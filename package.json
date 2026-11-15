@@ -1,0 +1,13 @@
+{
+  "name": "cre-agent-studio",
+  "private": true,
+  "workspaces": ["api"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "npm run dev -w api",
+    "build": "npm run build -w api",
+    "test": "npm test -w api",
+    "migrate": "npm run migrate -w api",
+    "typecheck": "npm run typecheck -w api"
+  }
+}

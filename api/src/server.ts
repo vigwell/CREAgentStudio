@@ -1,0 +1,27 @@
+import { buildApp } from "./app.js";
+import { createCreTokenVerifier } from "./auth/creToken.js";
+import { loadConfig } from "./config.js";
+import { createPool } from "./db/pool.js";
+
+const config = loadConfig();
+const db = await createPool(config);
+const app = buildApp({
+  db,
+  verifyToken: createCreTokenVerifier({
+    tenantId: config.CRE_TENANT_ID,
+    audience: config.CRE_API_CLIENT_ID,
+    requiredScope: config.CRE_REQUIRED_SCOPE,
+  }),
+  autoProvisionTenantId: config.AUTO_PROVISION_TENANT_ID,
+  logLevel: config.LOG_LEVEL,
+});
+
+const close = async () => {
+  await app.close();
+  await db.close();
+  process.exit(0);
+};
+process.on("SIGINT", close);
+process.on("SIGTERM", close);
+
+await app.listen({ port: config.PORT, host: "0.0.0.0" });
