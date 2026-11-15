@@ -26,4 +26,22 @@ Requires Node.js 20 or later.
 - **Audit:** `studio.audit_log` is append-only (UPDATE and DELETE are rejected by a trigger).
 - **Endpoints:** `GET /health` checks the database. `GET /me` returns the signed-in Studio user, or 401 (bad token) or 403 (no Studio access).
 
+- **Knowledge Library** (spec rev 7, sections 04–05): upload an XLSX/CSV
+  (10 MB, 50 MB expanded, 10,000 rows; macro-enabled, encrypted, external links
+  and embedded objects rejected; formulas never executed), choose sheet and
+  header row, preview, map existing columns to canonical fields
+  (`GET /knowledge/fields`), get row/cell-level errors with cell references.
+  Each import is a new immutable revision (original file + checksum kept):
+  draft → in review → approved by a different approver → withdrawn; an approved
+  revision past its review date shows as expired. All steps are audited.
+
+  | Endpoint | |
+  |---|---|
+  | `POST /knowledge/files` | multipart upload; returns fileId, sheets, sha256 |
+  | `GET /knowledge/files/:id/preview?sheet=&headerRow=` | headers + first rows |
+  | `GET/POST /knowledge/sources` | list (with latest revision) / create {kind, name, issuingOrg} |
+  | `POST /knowledge/sources/:id/revisions` | {fileId, sheet, headerRow, mapping, scope, clinicalOwner, effectiveFrom, reviewDue} |
+  | `GET /knowledge/revisions/:id?page=&pageSize=` | revision + rows |
+  | `POST /knowledge/revisions/:id/submit · approve · return · withdraw` | approval flow (roles: author / approver) |
+
 First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users.

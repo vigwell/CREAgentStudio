@@ -113,6 +113,7 @@ describe.skipIf(!hasDb)("database (XCreAgents)", () => {
     const app = buildApp({
       db,
       logLevel: "silent",
+      userCacheMs: 0,
       verifyToken: async (t) => {
         if (t !== "good") throw new (await import("../src/auth/creToken.js")).AuthError("invalid token");
         return id;
