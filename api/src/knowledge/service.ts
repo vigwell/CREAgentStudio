@@ -21,15 +21,9 @@ import {
   type SheetData,
 } from "./spreadsheet.js";
 
-export class KnowledgeError extends Error {
-  constructor(
-    readonly statusCode: number,
-    readonly code: string,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+import { AppError } from "../errors.js";
+
+export class KnowledgeError extends AppError {}
 
 export type RevisionStatus = "draft" | "in_review" | "approved" | "withdrawn";
 

@@ -1,6 +1,9 @@
 import Fastify, { type FastifyRequest } from "fastify";
 import multipart from "@fastify/multipart";
-import { KnowledgeError, KnowledgeService } from "./knowledge/service.js";
+import { KnowledgeService } from "./knowledge/service.js";
+import { AppError } from "./errors.js";
+import { AgentService } from "./agents/service.js";
+import { registerAgentRoutes } from "./agents/routes.js";
 import { registerKnowledgeRoutes } from "./knowledge/routes.js";
 import type { Db } from "./db/pool.js";
 import { AuthError, bearerToken, type CreIdentity } from "./auth/creToken.js";
@@ -70,7 +73,7 @@ export function buildApp(deps: AppDeps) {
   // Known errors keep their status and code; anything else is a 500 without details.
   app.setErrorHandler((err, req, reply) => {
     const e = err as Error & { statusCode?: number; code?: string };
-    if (e instanceof KnowledgeError) return reply.code(e.statusCode).send({ error: e.code, message: e.message });
+    if (e instanceof AppError) return reply.code(e.statusCode).send({ error: e.code, message: e.message });
     if (e.statusCode && e.statusCode < 500) return reply.code(e.statusCode).send({ error: e.code ?? "error", message: e.message });
     req.log.error({ err: e }, "request failed");
     return reply.code(500).send({ error: "internal", message: "Something went wrong" });
@@ -78,6 +81,7 @@ export function buildApp(deps: AppDeps) {
 
   app.register(multipart);
   app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
+  app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db), requireUser));
 
   return app;
 }
