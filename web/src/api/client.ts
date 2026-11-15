@@ -102,3 +102,134 @@ export interface Revision {
   approvedBy: string | null;
   rows: { rowId: string; originalRow: number; cells: Record<string, { v: unknown; ref: string }>; mapped: Record<string, unknown>; errors: RowError[] }[];
 }
+
+// ------------------------------------------------------------ agents (week 2)
+
+export type AgentKind = "cds" | "voice";
+
+export interface BlockOutput {
+  name: string;
+  type: string;
+  values?: string[];
+}
+
+export interface BlockDef {
+  type: string;
+  kinds: AgentKind[];
+  label: string;
+  ports: string[];
+  outputs: BlockOutput[];
+  aiCapable: boolean;
+  knowledgeKind?: SourceKind;
+  terminal?: boolean;
+  start?: boolean;
+}
+
+export interface PolicyRule {
+  id: string;
+  text: string;
+  kinds: AgentKind[];
+  locked: boolean;
+  binding: { type: string; category?: string; capability?: string; check?: string };
+}
+
+export interface Catalog {
+  blocks: BlockDef[];
+  operators: string[];
+  mandatoryRules: PolicyRule[];
+  optionalRules: PolicyRule[];
+  outputCategories: string[];
+}
+
+export interface PromptRef {
+  promptId?: string | null;
+  revisionId?: string | null;
+  draftText?: string | null;
+}
+
+export interface GraphNode {
+  id: string;
+  type: string;
+  label: string;
+  executionKind?: "deterministic" | "ai";
+  prompt?: PromptRef | null;
+  inputBindings?: Record<string, { nodeId: string; field: string }>;
+  condition?: { nodeId: string; field: string; operator: string; value?: unknown } | null;
+  knowledgeRevisionId?: string | null;
+  clinicProfileId?: string | null;
+  outputCategories?: string[];
+  position?: { x: number; y: number };
+}
+
+export interface GraphEdge {
+  id: string;
+  from: string;
+  port: string;
+  to: string;
+}
+
+export interface CustomProhibition {
+  id: string;
+  text: string;
+  owner: string;
+  binding: { type: "deny_output"; category: string } | { type: "deny_capability"; capability: string } | null;
+  reviewed: boolean;
+}
+
+export interface AgentDraft {
+  version: number;
+  graph: { nodes: GraphNode[]; edges: GraphEdge[] };
+  agentPrompt: PromptRef | null;
+  prohibitions: { optional: string[]; custom: CustomProhibition[] };
+}
+
+export interface Agent {
+  id: string;
+  kind: AgentKind;
+  name: string;
+  intendedUse: string;
+  scope: Record<string, unknown>;
+  executionMode: string;
+  draft: AgentDraft;
+}
+
+export interface AgentSummary {
+  id: string;
+  kind: AgentKind;
+  name: string;
+  intendedUse: string;
+  draftVersion: number;
+  candidates: number;
+}
+
+export interface Issue {
+  code: string;
+  message: string;
+  nodeId?: string;
+  edgeId?: string;
+}
+
+export interface CompileResult {
+  ok: boolean;
+  issues: Issue[];
+  manifest: Record<string, unknown> | null;
+  manifestHash: string | null;
+  preview: string[];
+  draftVersion: number;
+}
+
+export interface ClinicProfile {
+  id: string;
+  profileKey: string;
+  revisionNo: number;
+  name: string;
+  site: string;
+  department: string;
+  subdepartment: string | null;
+  risProcedureCode: string;
+  protocolCode: string | null;
+  questions: { id: string; text: string; answerType: string }[];
+  horizonDays: number;
+  status: "draft" | "approved" | "withdrawn";
+  createdBy: string;
+}

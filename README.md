@@ -46,6 +46,23 @@ Requires Node.js 20 or later.
   | `GET /knowledge/revisions/:id?page=&pageSize=` | revision + rows |
   | `POST /knowledge/revisions/:id/submit · approve · return · withdraw` | approval flow (roles: author / approver) |
 
+- **Agents** (week 2): typed block graph per agent kind, compiled into a
+  manifest (no layout, sorted keys, `sha256:` hash). The compiler checks
+  structure (one Start, every branch ends in a terminal, no cycles or
+  unreachable blocks), typed decisions, upstream-only bindings, approved
+  knowledge of the right kind, approved clinic & exam profiles, the AI call
+  budget (2), prompts, prohibitions, and for voice that booking only follows a
+  verified, resolved, profiled, confirmed path.
+
+  | Endpoint | |
+  |---|---|
+  | `GET /agents/catalog` | blocks, operators, locked and optional rules, output categories |
+  | `GET/POST /agents` | list / create {kind, name, intendedUse, scope} |
+  | `GET /agents/:id` · `PUT /agents/:id/draft` | load / save draft (409 `stale_draft` if the version moved) |
+  | `POST /agents/:id/compile` | problems, preview, manifest hash |
+  | `POST/GET /agents/:id/candidates` | freeze an immutable candidate / list |
+  | `GET/POST /clinic-profiles` · `POST /clinic-profiles/:id/revisions · approve · withdraw` | clinic & exam profiles |
+
 First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users.
 
 ## Web app
@@ -56,3 +73,17 @@ Screens (week 1): Knowledge Library list, new source, import wizard
 (file → sheet and header row with preview → column mapping with suggestions →
 owner, dates and scope) and the revision page (rows, cell-level problems,
 submit / approve / return / withdraw by role; the author can't approve).
+
+Screens (week 2): **Agents** list and new agent (CDS or voice scheduling, intended
+use, department and devices); the **agent editor** — block palette for the agent
+type, graph canvas (React Flow; one exit per port, Start can't be removed),
+inspector (label, deterministic / AI step, Prompt Builder reference or draft
+prompt, typed decision condition on an upstream field, approved knowledge
+revision, approved clinic & exam profile, output categories), agent
+instructions, prohibitions (locked platform rules, optional restrictions,
+custom restrictions mapped to an output category and confirmed by a reviewer),
+Save with the loaded draft version (a concurrent save is reported instead of
+overwritten), Compile (problems per block, readable preview, manifest hash)
+and Freeze candidate; **Clinic & exam profiles** (site, department, RIS
+procedure, yes/no screening questions, horizon; new revision per change,
+approved by a different user, withdraw).

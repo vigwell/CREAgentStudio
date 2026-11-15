@@ -6,6 +6,9 @@ import { signIn, signOut } from "./auth/msal";
 import { KnowledgeList } from "./pages/KnowledgeList";
 import { ImportWizard } from "./pages/ImportWizard";
 import { RevisionPage } from "./pages/RevisionPage";
+import { AgentsList } from "./pages/AgentsList";
+import { AgentEditor } from "./pages/AgentEditor";
+import { ClinicProfiles } from "./pages/ClinicProfiles";
 
 type MeState = { kind: "loading" } | { kind: "ok"; user: StudioUser } | { kind: "noAccess" } | { kind: "error"; message: string };
 
@@ -61,6 +64,12 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
             <Link to="/knowledge" className="hover:text-brand-strong">
               {t("nav.knowledge")}
             </Link>
+            <Link to="/agents" className="hover:text-brand-strong">
+              {t("nav.agents")}
+            </Link>
+            <Link to="/clinic-profiles" className="hover:text-brand-strong">
+              {t("nav.profiles")}
+            </Link>
           </nav>
           <div className="ms-auto flex items-center gap-3 text-sm">
             <span className="text-slate-600">
@@ -81,6 +90,9 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
           <Route path="/knowledge" element={<KnowledgeList user={user} />} />
           <Route path="/knowledge/:sourceId/import" element={<ImportWizard />} />
           <Route path="/knowledge/revisions/:revisionId" element={<RevisionPage user={user} />} />
+          <Route path="/agents" element={<AgentsList user={user} />} />
+          <Route path="/agents/:agentId" element={<AgentEditor user={user} />} />
+          <Route path="/clinic-profiles" element={<ClinicProfiles user={user} />} />
           <Route path="*" element={<Navigate to="/knowledge" replace />} />
         </Routes>
       </main>
