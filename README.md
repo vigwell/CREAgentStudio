@@ -4,6 +4,7 @@ One Studio for building, testing and approving CRE agents: clinical decision sup
 
 ## Layout
 
+- `web/`: Studio web app (React 18, TypeScript, Vite, Tailwind, i18next; English and Hebrew with RTL)
 - `api/`: backend (Node.js, TypeScript, Fastify)
 - `db/migrations/`: SQL Server migrations, applied in name order (`GO` separates batches)
 
@@ -15,6 +16,7 @@ npm install
 npm run migrate           # applies pending migrations to XCreAgents
 npm test                  # unit tests, plus database tests when .env is present
 npm run dev               # API on http://localhost:4000
+npm run dev:web           # web app on https://localhost:3000 (/api → API)
 ```
 
 Requires Node.js 20 or later.
@@ -45,3 +47,12 @@ Requires Node.js 20 or later.
   | `POST /knowledge/revisions/:id/submit · approve · return · withdraw` | approval flow (roles: author / approver) |
 
 First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users.
+
+## Web app
+
+Sign-in uses the CRE account (same Entra External ID app and API scope as CRE web);
+the dev server runs on `https://localhost:3000`, the redirect URI CRE already has.
+Screens (week 1): Knowledge Library list, new source, import wizard
+(file → sheet and header row with preview → column mapping with suggestions →
+owner, dates and scope) and the revision page (rows, cell-level problems,
+submit / approve / return / withdraw by role; the author can't approve).

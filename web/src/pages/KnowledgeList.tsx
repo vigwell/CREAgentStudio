@@ -1,0 +1,140 @@
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { api, type SourceKind, type SourceSummary, type StudioUser } from "../api/client";
+import { StatusBadge } from "../components/StatusBadge";
+import { ErrorNote } from "../components/ErrorNote";
+
+const KINDS: SourceKind[] = ["device_protocol", "clinical_rule", "reference_document"];
+
+export function KnowledgeList({ user }: { user: StudioUser }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [sources, setSources] = useState<SourceSummary[] | null>(null);
+  const [error, setError] = useState<unknown>(null);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ name: "", kind: "device_protocol" as SourceKind, issuingOrg: "" });
+  const canAuthor = user.role !== "viewer";
+
+  const load = () =>
+    api<{ sources: SourceSummary[] }>("/knowledge/sources")
+      .then((r) => setSources(r.sources))
+      .catch(setError);
+  useEffect(() => {
+    void load();
+  }, []);
+
+  const create = async () => {
+    setError(null);
+    try {
+      const s = await api<{ id: string }>("/knowledge/sources", { body: { ...form, issuingOrg: form.issuingOrg || null } });
+      navigate(`/knowledge/${s.id}/import`);
+    } catch (err) {
+      setError(err);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">{t("knowledge.title")}</h1>
+          <p className="mt-1 max-w-3xl text-sm text-slate-600">{t("knowledge.intro")}</p>
+        </div>
+        {canAuthor && !creating && (
+          <button className="btn btn-primary ms-auto shrink-0" onClick={() => setCreating(true)}>
+            {t("knowledge.newSource")}
+          </button>
+        )}
+      </div>
+      <ErrorNote error={error} />
+
+      {creating && (
+        <div className="card grid gap-4 md:grid-cols-3">
+          <label>
+            <span className="label">{t("knowledge.name")}</span>
+            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoFocus />
+          </label>
+          <label>
+            <span className="label">{t("knowledge.kind")}</span>
+            <select className="input" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as SourceKind })}>
+              {KINDS.map((k) => (
+                <option key={k} value={k}>
+                  {t(`kinds.${k}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span className="label">{t("knowledge.issuingOrg")}</span>
+            <input className="input" value={form.issuingOrg} onChange={(e) => setForm({ ...form, issuingOrg: e.target.value })} />
+          </label>
+          <div className="flex gap-2 md:col-span-3">
+            <button className="btn btn-primary" disabled={!form.name.trim()} onClick={() => void create()}>
+              {t("knowledge.create")}
+            </button>
+            <button className="btn" onClick={() => setCreating(false)}>
+              {t("knowledge.cancel")}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="card overflow-x-auto p-0">
+        {sources === null ? (
+          <p className="p-5 text-sm text-slate-500">{t("app.loading")}</p>
+        ) : sources.length === 0 ? (
+          <p className="p-5 text-sm text-slate-500">{t("knowledge.empty")}</p>
+        ) : (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>{t("knowledge.name")}</th>
+                <th>{t("knowledge.kind")}</th>
+                <th>{t("knowledge.latest")}</th>
+                <th>{t("knowledge.rows")}</th>
+                <th>{t("knowledge.errors")}</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {sources.map((s) => (
+                <tr key={s.id}>
+                  <td className="font-medium">
+                    {s.name}
+                    {s.issuingOrg && <div className="text-xs text-slate-500">{s.issuingOrg}</div>}
+                  </td>
+                  <td>{t(`kinds.${s.kind}`)}</td>
+                  <td>
+                    {s.latestRevision ? (
+                      <span className="flex items-center gap-2">
+                        <span className="text-slate-500">#{s.latestRevision.revisionNo}</span>
+                        <StatusBadge status={s.latestRevision.status} />
+                      </span>
+                    ) : (
+                      <StatusBadge status={null} />
+                    )}
+                  </td>
+                  <td>{s.latestRevision?.rowCount ?? "—"}</td>
+                  <td className={s.latestRevision?.errorCount ? "font-semibold text-red-600" : ""}>{s.latestRevision?.errorCount ?? "—"}</td>
+                  <td className="whitespace-nowrap text-end">
+                    {s.latestRevision && (
+                      <Link className="me-3 text-sm font-medium text-brand-strong underline" to={`/knowledge/revisions/${s.latestRevision.id}`}>
+                        {t("knowledge.open")}
+                      </Link>
+                    )}
+                    {canAuthor && (
+                      <Link className="text-sm font-medium text-brand-strong underline" to={`/knowledge/${s.id}/import`}>
+                        {t("knowledge.import")}
+                      </Link>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  );
+}

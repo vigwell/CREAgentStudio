@@ -1,0 +1,35 @@
+{
+  "app": { "title": "CRE Agent Studio", "signIn": "התחברות עם חשבון CRE", "signOut": "התנתקות", "loading": "טוען…", "noAccess": "לחשבון שלך אין גישה ל-CRE Agent Studio. בקש ממנהל Studio להוסיף אותך.", "language": "English" },
+  "nav": { "knowledge": "ספריית ידע" },
+  "roles": { "admin": "מנהל", "author": "כותב", "approver": "מאשר", "viewer": "צופה" },
+  "kinds": { "device_protocol": "פרוטוקול מכשיר", "clinical_rule": "כלל קליני", "reference_document": "מסמך עיון" },
+  "status": { "draft": "טיוטה", "in_review": "בבדיקה", "approved": "מאושר", "withdrawn": "בוטל", "expired": "פג תוקף", "none": "אין גרסה עדיין" },
+  "knowledge": {
+    "title": "ספריית ידע",
+    "intro": "פרוטוקולי מכשירים, כללים קליניים ומסמכי עיון. העלאת גיליון אינה יוצרת כלל מאושר: כל גרסה נבדקת ומאושרת בנפרד.",
+    "newSource": "מקור חדש",
+    "empty": "אין מקורות עדיין.",
+    "name": "שם", "kind": "סוג", "issuingOrg": "ארגון מנפיק", "latest": "גרסה אחרונה", "rows": "שורות", "errors": "שגיאות",
+    "create": "יצירה", "cancel": "ביטול", "import": "ייבוא גרסה", "open": "פתיחה"
+  },
+  "wizard": {
+    "title": "ייבוא גרסה — {{name}}",
+    "step1": "1. קובץ", "step2": "2. גיליון ושורת כותרת", "step3": "3. מיפוי עמודות", "step4": "4. אחראי ותאריכים",
+    "chooseFile": "בחר קובץ ‎.xlsx או ‎.csv (עד 10MB, ערכים בלבד — נוסחאות אינן מחושבות)",
+    "upload": "העלאה", "uploading": "מעלה…", "sheet": "גיליון", "headerRow": "שורת כותרת", "preview": "תצוגה מקדימה",
+    "previewNote": "{{count}} שורות נתונים מתחת לשורת הכותרת.",
+    "column": "עמודה בקובץ", "field": "שדה", "notMapped": "— להצגה בלבד —",
+    "required": "נדרש לסוג זה: {{fields}}",
+    "clinicalOwner": "אחראי קליני", "effectiveFrom": "בתוקף מ", "reviewDue": "מועד בדיקה",
+    "scope": "היקף (רשות)", "site": "אתר", "department": "מחלקה", "modality": "מודליות", "devices": "מכשירים / קבוצות (מופרד בפסיקים)",
+    "createRevision": "יצירת גרסה", "creating": "בודק שורות…", "back": "חזרה", "next": "הבא"
+  },
+  "revision": {
+    "title": "{{name}} — גרסה {{no}}", "owner": "אחראי קליני", "reviewDue": "מועד בדיקה", "effectiveFrom": "בתוקף מ",
+    "checksum": "חתימת שורות", "rowsWithErrors": "{{count}} שורות עם שגיאות — תקן את הקובץ וייבא גרסה חדשה.",
+    "noErrors": "כל השורות תקינות מבנית.",
+    "submit": "הגשה לבדיקה", "approve": "אישור", "return": "החזרה לטיוטה", "withdraw": "ביטול",
+    "reason": "סיבה", "row": "שורה", "rowId": "מזהה שורה", "mapped": "ערכים ממופים", "problems": "בעיות",
+    "approvedBy": "אושר על ידי משתמש שונה מהכותב.", "independentNote": "כותב הגרסה אינו יכול לאשר אותה."
+  }
+}
