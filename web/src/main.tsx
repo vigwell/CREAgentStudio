@@ -6,6 +6,9 @@ import "./i18n";
 import { App } from "./App";
 import { accessToken, initAuth } from "./auth/msal";
 import { setTokenProvider } from "./api/client";
+import { applyTheme, storedTheme } from "./ui/theme";
+
+applyTheme(storedTheme());
 
 setTokenProvider(accessToken);
 

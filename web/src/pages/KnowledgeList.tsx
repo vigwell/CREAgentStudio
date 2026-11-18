@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { api, type SourceKind, type SourceSummary, type StudioUser } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { ErrorNote } from "../components/ErrorNote";
+import { Plus } from "lucide-react";
 
 const KINDS: SourceKind[] = ["device_protocol", "clinical_rule", "reference_document"];
 
@@ -36,13 +37,14 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div>
-          <h1 className="text-2xl font-bold">{t("knowledge.title")}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-slate-600">{t("knowledge.intro")}</p>
+          <h1 className="page-title">{t("knowledge.title")}</h1>
+          <p className="page-intro">{t("knowledge.intro")}</p>
         </div>
         {canAuthor && !creating && (
-          <button className="btn btn-primary ms-auto shrink-0" onClick={() => setCreating(true)}>
+          <button className="btn btn-primary self-start sm:ms-auto" onClick={() => setCreating(true)}>
+            <Plus size={16} />
             {t("knowledge.newSource")}
           </button>
         )}
@@ -82,9 +84,9 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
 
       <div className="card overflow-x-auto p-0">
         {sources === null ? (
-          <p className="p-5 text-sm text-slate-500">{t("app.loading")}</p>
+          <p className="p-5 text-sm text-ink-subtle">{t("app.loading")}</p>
         ) : sources.length === 0 ? (
-          <p className="p-5 text-sm text-slate-500">{t("knowledge.empty")}</p>
+          <p className="p-5 text-sm text-ink-subtle">{t("knowledge.empty")}</p>
         ) : (
           <table className="table">
             <thead>
@@ -102,13 +104,13 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
                 <tr key={s.id}>
                   <td className="font-medium">
                     {s.name}
-                    {s.issuingOrg && <div className="text-xs text-slate-500">{s.issuingOrg}</div>}
+                    {s.issuingOrg && <div className="text-xs text-ink-subtle">{s.issuingOrg}</div>}
                   </td>
                   <td>{t(`kinds.${s.kind}`)}</td>
                   <td>
                     {s.latestRevision ? (
                       <span className="flex items-center gap-2">
-                        <span className="text-slate-500">#{s.latestRevision.revisionNo}</span>
+                        <span className="text-ink-subtle">#{s.latestRevision.revisionNo}</span>
                         <StatusBadge status={s.latestRevision.status} />
                       </span>
                     ) : (
@@ -116,15 +118,15 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
                     )}
                   </td>
                   <td>{s.latestRevision?.rowCount ?? "—"}</td>
-                  <td className={s.latestRevision?.errorCount ? "font-semibold text-red-600" : ""}>{s.latestRevision?.errorCount ?? "—"}</td>
+                  <td className={s.latestRevision?.errorCount ? "font-semibold text-danger" : ""}>{s.latestRevision?.errorCount ?? "—"}</td>
                   <td className="whitespace-nowrap text-end">
                     {s.latestRevision && (
-                      <Link className="me-3 text-sm font-medium text-brand-strong underline" to={`/knowledge/revisions/${s.latestRevision.id}`}>
+                      <Link className="me-3 text-sm font-medium text-accent underline" to={`/knowledge/revisions/${s.latestRevision.id}`}>
                         {t("knowledge.open")}
                       </Link>
                     )}
                     {canAuthor && (
-                      <Link className="text-sm font-medium text-brand-strong underline" to={`/knowledge/${s.id}/import`}>
+                      <Link className="text-sm font-medium text-accent underline" to={`/knowledge/${s.id}/import`}>
                         {t("knowledge.import")}
                       </Link>
                     )}

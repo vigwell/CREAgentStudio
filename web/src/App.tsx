@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { Library, Stethoscope, Workflow } from "lucide-react";
+import { AppShell } from "./ui/AppShell";
 import { useTranslation } from "react-i18next";
 import { api, ApiError, type StudioUser } from "./api/client";
 import { signIn, signOut } from "./auth/msal";
@@ -31,11 +33,12 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
   if (!initialAccount) {
     return (
       <Centered>
-        <h1 className="text-2xl font-bold">{t("app.title")}</h1>
-        <button className="btn btn-primary" onClick={() => void signIn()}>
+        <h1 className="text-title font-semibold">{t("app.title")}</h1>
+        <p className="text-sm text-ink-muted">{t("app.tagline")}</p>
+        <button className="btn btn-primary w-full" onClick={() => void signIn()}>
           {t("app.signIn")}
         </button>
-        <button className="text-sm text-slate-500 underline" onClick={toggleLang}>
+        <button className="text-sm text-ink-subtle underline hover:text-ink" onClick={toggleLang}>
           {t("app.language")}
         </button>
       </Centered>
@@ -45,7 +48,7 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
   if (me.kind === "noAccess" || me.kind === "error") {
     return (
       <Centered>
-        <p className="max-w-md text-center text-slate-700">{me.kind === "noAccess" ? t("app.noAccess") : me.message}</p>
+        <p className="text-sm text-ink">{me.kind === "noAccess" ? t("app.noAccess") : me.message}</p>
         <button className="btn" onClick={() => void signOut()}>
           {t("app.signOut")}
         </button>
@@ -54,54 +57,40 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
   }
 
   const user = me.user;
+  const nav = [
+    { to: "/knowledge", label: t("nav.knowledge"), icon: Library },
+    { to: "/agents", label: t("nav.agents"), icon: Workflow },
+    { to: "/clinic-profiles", label: t("nav.profiles"), icon: Stethoscope },
+  ];
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl items-center gap-6 px-6 py-3">
-          <Link to="/" className="text-lg font-bold text-brand-strong">
-            {t("app.title")}
-          </Link>
-          <nav className="flex gap-4 text-sm font-medium text-slate-600">
-            <Link to="/knowledge" className="hover:text-brand-strong">
-              {t("nav.knowledge")}
-            </Link>
-            <Link to="/agents" className="hover:text-brand-strong">
-              {t("nav.agents")}
-            </Link>
-            <Link to="/clinic-profiles" className="hover:text-brand-strong">
-              {t("nav.profiles")}
-            </Link>
-          </nav>
-          <div className="ms-auto flex items-center gap-3 text-sm">
-            <span className="text-slate-600">
-              {user.displayName ?? user.email} · <span className="font-medium">{t(`roles.${user.role}`)}</span>
-            </span>
-            <button className="text-slate-500 underline" onClick={toggleLang}>
-              {t("app.language")}
-            </button>
-            <button className="btn" onClick={() => void signOut()}>
-              {t("app.signOut")}
-            </button>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">
-        <Routes>
-          <Route path="/" element={<Navigate to="/knowledge" replace />} />
-          <Route path="/knowledge" element={<KnowledgeList user={user} />} />
-          <Route path="/knowledge/:sourceId/import" element={<ImportWizard />} />
-          <Route path="/knowledge/revisions/:revisionId" element={<RevisionPage user={user} />} />
-          <Route path="/agents" element={<AgentsList user={user} />} />
-          <Route path="/agents/:agentId" element={<AgentEditor user={user} />} />
-          <Route path="/agents/:agentId/runs" element={<AgentRuns />} />
-          <Route path="/clinic-profiles" element={<ClinicProfiles user={user} />} />
-          <Route path="*" element={<Navigate to="/knowledge" replace />} />
-        </Routes>
-      </main>
-    </div>
+    <AppShell
+      nav={nav}
+      user={{ name: user.displayName ?? user.email ?? "", role: t(`roles.${user.role}`) }}
+      onSignOut={() => void signOut()}
+      onToggleLanguage={toggleLang}
+    >
+      <Routes>
+        <Route path="/" element={<Navigate to="/knowledge" replace />} />
+        <Route path="/knowledge" element={<KnowledgeList user={user} />} />
+        <Route path="/knowledge/:sourceId/import" element={<ImportWizard />} />
+        <Route path="/knowledge/revisions/:revisionId" element={<RevisionPage user={user} />} />
+        <Route path="/agents" element={<AgentsList user={user} />} />
+        <Route path="/agents/:agentId" element={<AgentEditor user={user} />} />
+        <Route path="/agents/:agentId/runs" element={<AgentRuns />} />
+        <Route path="/clinic-profiles" element={<ClinicProfiles user={user} />} />
+        <Route path="*" element={<Navigate to="/knowledge" replace />} />
+      </Routes>
+    </AppShell>
   );
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
-  return <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">{children}</div>;
+  return (
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="card flex w-full max-w-sm flex-col items-center gap-4 text-center">
+        <span className="flex h-12 w-12 items-center justify-center rounded-panel bg-accent text-base font-bold text-accent-ink">CRE</span>
+        {children}
+      </div>
+    </div>
+  );
 }

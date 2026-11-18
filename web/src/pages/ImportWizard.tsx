@@ -116,10 +116,10 @@ export function ImportWizard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{t("wizard.title", { name: source?.name ?? "…" })}</h1>
+      <h1 className="page-title">{t("wizard.title", { name: source?.name ?? "…" })}</h1>
       <ol className="flex flex-wrap gap-2 text-sm">
         {[1, 2, 3, 4].map((n) => (
-          <li key={n} className={`rounded-full px-3 py-1 ${step === n ? "bg-brand text-white" : step > n ? "bg-brand-soft text-brand-strong" : "bg-slate-100 text-slate-500"}`}>
+          <li key={n} className={`rounded-full px-3 py-1 ${step === n ? "bg-accent text-accent-ink" : step > n ? "bg-accent-soft text-accent" : "bg-surface-sunken text-ink-subtle"}`}>
             {t(`wizard.step${n}`)}
           </li>
         ))}
@@ -128,7 +128,7 @@ export function ImportWizard() {
 
       {step === 1 && (
         <div className="card space-y-4">
-          <p className="text-sm text-slate-600">{t("wizard.chooseFile")}</p>
+          <p className="text-sm text-ink-muted">{t("wizard.chooseFile")}</p>
           <input type="file" accept=".xlsx,.csv" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
           <div>
             <button className="btn btn-primary" disabled={!file || busy} onClick={() => void doUpload()}>
@@ -160,7 +160,7 @@ export function ImportWizard() {
           </div>
           {preview && (
             <>
-              <p className="text-sm text-slate-600">{t("wizard.previewNote", { count: preview.totalRows })}</p>
+              <p className="text-sm text-ink-muted">{t("wizard.previewNote", { count: preview.totalRows })}</p>
               <div className="overflow-x-auto">
                 <table className="table">
                   <thead>
@@ -174,9 +174,9 @@ export function ImportWizard() {
                   <tbody>
                     {preview.rows.map((r) => (
                       <tr key={r.rowNumber}>
-                        <td className="text-slate-400">{r.rowNumber}</td>
+                        <td className="text-ink-subtle">{r.rowNumber}</td>
                         {preview.headers.map((h, i) => (
-                          <td key={h} className={r.formulaColumns.includes(i) ? "bg-red-50 text-red-600" : ""}>
+                          <td key={h} className={r.formulaColumns.includes(i) ? "bg-danger-soft text-danger" : ""}>
                             {r.formulaColumns.includes(i) ? "ƒ" : cellText(r.values[i])}
                           </td>
                         ))}
@@ -200,7 +200,8 @@ export function ImportWizard() {
 
       {step === 3 && preview && catalog && (
         <div className="card space-y-4">
-          <p className="text-sm text-slate-600">{t("wizard.required", { fields: required.join(", ") || "—" })}</p>
+          <p className="text-sm text-ink-muted">{t("wizard.required", { fields: required.join(", ") || "—" })}</p>
+          <div className="table-wrap">
           <table className="table">
             <thead>
               <tr>
@@ -231,6 +232,7 @@ export function ImportWizard() {
               ))}
             </tbody>
           </table>
+          </div>
           <div className="flex gap-2">
             <button className="btn" onClick={() => setStep(2)}>
               {t("wizard.back")}
@@ -262,7 +264,7 @@ export function ImportWizard() {
             <legend className="label">{t("wizard.scope")}</legend>
             {(["site", "department", "modality", "devices"] as const).map((k) => (
               <label key={k}>
-                <span className="text-xs text-slate-500">{t(`wizard.${k}`)}</span>
+                <span className="text-xs text-ink-subtle">{t(`wizard.${k}`)}</span>
                 <input className="input" value={meta[k]} onChange={(e) => setMeta({ ...meta, [k]: e.target.value })} />
               </label>
             ))}

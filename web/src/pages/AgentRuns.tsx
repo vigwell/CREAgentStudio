@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api, type Agent, type Candidate, type RunDetail, type RunSummary } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
+import { StatusPill, type Tone } from "../ui/StatusPill";
 
 const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" }[] = [
   { name: "indicationCode", kind: "text" },
@@ -25,13 +26,13 @@ export function manualValues(form: Record<string, string>): Record<string, unkno
   return out;
 }
 
-const OUTCOME_TONE: Record<string, string> = {
-  findings: "bg-brand-soft text-brand-strong",
-  needs_review: "bg-amber-100 text-amber-800",
-  needs_input: "bg-sky-100 text-sky-800",
-  blocked: "bg-red-100 text-red-700",
-  unavailable: "bg-red-100 text-red-700",
-  not_applicable: "bg-slate-100 text-slate-700",
+const OUTCOME_TONE: Record<string, Tone> = {
+  findings: "success",
+  needs_review: "warning",
+  needs_input: "info",
+  blocked: "danger",
+  unavailable: "danger",
+  not_applicable: "neutral",
 };
 
 export function AgentRuns() {
@@ -92,18 +93,18 @@ export function AgentRuns() {
   return (
     <div className="space-y-6">
       <div>
-        <Link to={`/agents/${agent.id}`} className="text-sm text-slate-500 hover:underline">
+        <Link to={`/agents/${agent.id}`} className="text-sm text-ink-subtle hover:underline">
           {agent.name}
         </Link>
-        <h1 className="text-2xl font-bold">{t("runs.title")}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-slate-600">{t("runs.intro")}</p>
+        <h1 className="page-title">{t("runs.title")}</h1>
+        <p className="page-intro">{t("runs.intro")}</p>
       </div>
       <ErrorNote error={error} />
 
       {agent.kind !== "cds" ? (
-        <p className="text-slate-500">{t("runs.voiceLater")}</p>
+        <p className="text-ink-subtle">{t("runs.voiceLater")}</p>
       ) : candidates.length === 0 ? (
-        <p className="text-slate-500">{t("runs.noCandidate")}</p>
+        <p className="text-ink-subtle">{t("runs.noCandidate")}</p>
       ) : (
         <div className="card grid gap-4 md:grid-cols-3">
           <label>
@@ -152,41 +153,41 @@ export function AgentRuns() {
       {run && (
         <div className="card space-y-4">
           <div className="flex flex-wrap items-center gap-3">
-            <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${OUTCOME_TONE[run.outcome] ?? ""}`}>{t(`runs.outcome.${run.outcome}`)}</span>
-            <span className="text-sm text-slate-600">
+            <StatusPill tone={OUTCOME_TONE[run.outcome] ?? "neutral"}>{t(`runs.outcome.${run.outcome}`)}</StatusPill>
+            <span className="text-sm text-ink-muted">
               {run.caseRef} · {t("runs.candidate")} #{run.candidateNo} · {run.state}
             </span>
-            <code className="ms-auto text-xs text-slate-400" dir="ltr">
+            <code className="ms-auto text-xs text-ink-subtle" dir="ltr">
               {run.snapshotHash.slice(0, 19)}
             </code>
           </div>
           {run.missingInputs.length > 0 && (
-            <p className="text-sm text-sky-800">
+            <p className="text-sm text-info">
               {t("runs.missing")}: <span className="font-mono">{run.missingInputs.join(", ")}</span>
             </p>
           )}
           {run.findings.map((f, i) => {
             const reviewed = run.reviews.filter((r) => r.findingIndex === i);
             return (
-              <div key={i} className="rounded-xl border border-slate-200 p-4 text-sm">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
+              <div key={i} className="rounded-panel border border-line p-4 text-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                  <div className="min-w-0 flex-1">
                     <div className="font-semibold">{f.title}</div>
-                    {f.detail && <div className="text-slate-600">{f.detail}</div>}
-                    <div className="mt-1 font-mono text-[11px] text-slate-400">
+                    {f.detail && <div className="text-ink-muted">{f.detail}</div>}
+                    <div className="mt-1 font-mono text-[11px] text-ink-subtle">
                       {f.code} · {f.category} · {f.severity}
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-1">
+                  <div className="flex shrink-0 flex-wrap gap-1.5">
                     {f.allowedActions.map((a) => (
-                      <button key={a} className="btn px-3 py-1 text-xs" onClick={() => void review(i, a)}>
+                      <button key={a} className="btn btn-sm" onClick={() => void review(i, a)}>
                         {t(`runs.action.${a}`)}
                       </button>
                     ))}
                   </div>
                 </div>
                 {f.observedInputs.length > 0 && (
-                  <div className="mt-2 text-xs text-slate-600">
+                  <div className="mt-2 text-xs text-ink-muted">
                     <span className="label">{t("runs.observed")}</span>
                     {f.observedInputs.map((o) => (
                       <div key={o.field} dir="ltr" className="font-mono">
@@ -196,7 +197,7 @@ export function AgentRuns() {
                   </div>
                 )}
                 {f.evidence.length > 0 && (
-                  <div className="mt-2 text-xs text-slate-600">
+                  <div className="mt-2 text-xs text-ink-muted">
                     <span className="label">{t("runs.evidence")}</span>
                     {f.evidence.map((e) => (
                       <div key={e.rowId}>
@@ -209,7 +210,7 @@ export function AgentRuns() {
                   </div>
                 )}
                 {reviewed.map((r, k) => (
-                  <div key={k} className="mt-2 text-xs text-brand-strong">
+                  <div key={k} className="mt-2 text-xs text-accent">
                     {t(`runs.action.${r.action}`)} {r.reason ? `— ${r.reason}` : ""}
                   </div>
                 ))}
@@ -217,18 +218,19 @@ export function AgentRuns() {
             );
           })}
           {run.blockedFindings.length > 0 && (
-            <p className="text-xs text-red-700">
+            <p className="text-xs text-danger">
               {t("runs.blocked")}: {run.blockedFindings.map((b) => `${b.code} (${b.ruleIds.join(", ")})`).join("; ")}
             </p>
           )}
           {run.summary && (
             <div>
               <span className="label">{t("runs.summary")}</span>
-              <pre className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-xs">{run.summary.text}</pre>
+              <pre className="whitespace-pre-wrap rounded-control bg-surface-sunken p-3 text-xs">{run.summary.text}</pre>
             </div>
           )}
           <div>
             <span className="label">{t("runs.trace")}</span>
+            <div className="table-wrap">
             <table className="table">
               <tbody>
                 {run.trace.map((n) => (
@@ -238,15 +240,16 @@ export function AgentRuns() {
                       {n.state}
                       {n.port ? ` → ${n.port}` : ""}
                     </td>
-                    <td className="font-mono text-xs text-slate-500" dir="ltr">
+                    <td className="font-mono text-xs text-ink-subtle" dir="ltr">
                       {Object.keys(n.outputs).length ? JSON.stringify(n.outputs) : ""}
                       {n.unknown.length ? ` unknown: ${n.unknown.join(", ")}` : ""}
-                      {n.note ? <div className="font-sans text-slate-500">{n.note}</div> : null}
+                      {n.note ? <div className="font-sans text-ink-subtle">{n.note}</div> : null}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       )}
@@ -267,7 +270,9 @@ export function AgentRuns() {
                 <tr key={r.runId}>
                   <td>{r.caseRef}</td>
                   <td>#{r.candidateNo}</td>
-                  <td>{t(`runs.outcome.${r.outcome}`)}</td>
+                  <td>
+                    <StatusPill tone={OUTCOME_TONE[r.outcome] ?? "neutral"}>{t(`runs.outcome.${r.outcome}`)}</StatusPill>
+                  </td>
                   <td className="text-end">
                     <button className="btn" onClick={() => void api<RunDetail>(`/runs/${r.runId}`).then(setRun).catch(setError)}>
                       {t("agents.open")}

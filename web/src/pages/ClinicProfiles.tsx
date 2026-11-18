@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { api, type ClinicProfile, type StudioUser } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { ErrorNote } from "../components/ErrorNote";
+import { Plus } from "lucide-react";
 
 const EMPTY = { name: "", site: "", department: "", risProcedureCode: "", horizonDays: 30, questions: "" };
 
@@ -77,13 +78,14 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div>
-          <h1 className="text-2xl font-bold">{t("profiles.title")}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-slate-600">{t("profiles.intro")}</p>
+          <h1 className="page-title">{t("profiles.title")}</h1>
+          <p className="page-intro">{t("profiles.intro")}</p>
         </div>
         {canAuthor && !form && (
-          <button className="btn btn-primary ms-auto shrink-0" onClick={() => setForm({ ...EMPTY })}>
+          <button className="btn btn-primary self-start sm:ms-auto" onClick={() => setForm({ ...EMPTY })}>
+            <Plus size={16} />
             {t("profiles.new")}
           </button>
         )}
@@ -147,19 +149,20 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
               {profiles.map((p) => (
                 <tr key={p.id}>
                   <td className="font-medium">
-                    {p.name} <span className="text-xs text-slate-500">{t("profiles.rev", { n: p.revisionNo })}</span>
+                    {p.name} <span className="text-xs text-ink-subtle">{t("profiles.rev", { n: p.revisionNo })}</span>
                     <div className="mt-1">
                       <StatusBadge status={p.status} />
                     </div>
                   </td>
                   <td>
                     {p.site}
-                    <div className="text-xs text-slate-500">{p.department}</div>
+                    <div className="text-xs text-ink-subtle">{p.department}</div>
                   </td>
                   <td className="font-mono text-xs">{p.risProcedureCode}</td>
                   <td>{p.horizonDays}</td>
-                  <td className="text-xs text-slate-600">{p.questions.length}</td>
-                  <td className="space-x-2 whitespace-nowrap text-end">
+                  <td className="text-xs text-ink-muted">{p.questions.length}</td>
+                  <td className="text-end">
+                    <div className="flex flex-wrap justify-end gap-2">
                     {canApprove && p.status === "draft" && p.createdBy !== user.id && (
                       <button className="btn btn-primary" onClick={() => void act(p.id, "approve")}>
                         {t("profiles.approve")}
@@ -175,6 +178,7 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
                         {t("profiles.withdraw")}
                       </button>
                     )}
+                    </div>
                   </td>
                 </tr>
               ))}

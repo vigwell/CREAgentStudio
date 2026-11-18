@@ -5,6 +5,10 @@ import { Background, Controls, ReactFlow, applyNodeChanges, type Connection, typ
 import "@xyflow/react/dist/style.css";
 import { api, ApiError, type Agent, type AgentDraft, type Catalog, type ClinicProfile, type CompileResult, type SourceSummary, type StudioUser } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
+import { FlaskConical, ListChecks, Plus, Save, Snowflake } from "lucide-react";
+import { PageHeader } from "../ui/PageHeader";
+import { StatusPill } from "../ui/StatusPill";
+import { useDarkTheme, useMedia } from "../ui/useMedia";
 import { BlockNode, type BlockFlowNode } from "../agents/BlockNode";
 import { Inspector } from "../agents/Inspector";
 import { Prohibitions } from "../agents/Prohibitions";
@@ -29,7 +33,11 @@ export function AgentEditor({ user }: { user: StudioUser }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [tab, setTab] = useState<Tab>("problems");
-  const readOnly = !(user.role === "admin" || user.role === "author");
+  const isPhone = useMedia("(max-width: 767px)");
+  const dark = useDarkTheme();
+  const canEdit = user.role === "admin" || user.role === "author";
+  // The graph is edited on a tablet or desktop; on a phone it is read-only (review, problems, runs).
+  const readOnly = !canEdit || isPhone;
 
   useEffect(() => {
     Promise.all([
@@ -139,48 +147,58 @@ export function AgentEditor({ user }: { user: StudioUser }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div>
-          <Link to="/agents" className="text-sm text-slate-500 hover:underline">
-            {t("agents.title")}
-          </Link>
-          <h1 className="text-2xl font-bold">{agent.name}</h1>
-          <p className="text-sm text-slate-600">
-            {t(`agents.${agent.kind}`)} · {t("agents.version", { v: draft.version })}
-          </p>
-        </div>
-        <div className="ms-auto flex items-center gap-2">
-          {notice && <span className="text-sm text-brand-strong">{notice}</span>}
-          {agent.kind === "cds" && (
-            <Link className="btn" to={`/agents/${agent.id}/runs`}>
-              {t("runs.title")}
-            </Link>
-          )}
-          {!readOnly && (
-            <button className="btn" disabled={!dirty || busy} onClick={() => void save()}>
-              {t("editor.save")}
+      <PageHeader
+        back={{ to: "/agents", label: t("agents.title") }}
+        title={agent.name}
+        meta={
+          <>
+            <StatusPill tone={agent.kind === "cds" ? "info" : "ai"}>{t(`agents.${agent.kind}`)}</StatusPill>
+            <span>{t("agents.version", { v: draft.version })}</span>
+            {dirty && <StatusPill tone="warning">{t("editor.unsaved")}</StatusPill>}
+            {notice && <span className="text-accent">{notice}</span>}
+          </>
+        }
+        actions={
+          <>
+            {agent.kind === "cds" && (
+              <Link className="btn" to={`/agents/${agent.id}/runs`}>
+                <FlaskConical size={16} />
+                {t("runs.title")}
+              </Link>
+            )}
+            {!readOnly && (
+              <button className="btn" disabled={!dirty || busy} onClick={() => void save()}>
+                <Save size={16} />
+                {t("editor.save")}
+              </button>
+            )}
+            <button className="btn" disabled={busy} onClick={() => void run("compile")}>
+              <ListChecks size={16} />
+              {t("editor.compile")}
             </button>
-          )}
-          <button className="btn" disabled={busy} onClick={() => void run("compile")}>
-            {t("editor.compile")}
-          </button>
-          {!readOnly && (
-            <button className="btn btn-primary" disabled={busy} onClick={() => void run("freeze")}>
-              {t("editor.freeze")}
-            </button>
-          )}
-        </div>
-      </div>
+            {!readOnly && (
+              <button className="btn btn-primary" disabled={busy} onClick={() => void run("freeze")}>
+                <Snowflake size={16} />
+                {t("editor.freeze")}
+              </button>
+            )}
+          </>
+        }
+      />
+      {isPhone && canEdit && (
+        <p className="rounded-control border border-info/30 bg-info-soft px-3 py-2 text-sm text-info">{t("editor.phoneReadOnly")}</p>
+      )}
       <ErrorNote error={error} />
 
-      <div className="grid gap-4 lg:grid-cols-[180px_1fr_300px]">
-        <div className="card space-y-2 p-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[200px_minmax(0,1fr)_320px]">
+        <div className={`card p-3 ${readOnly ? "hidden lg:block" : ""}`}>
           <h2 className="label">{t("editor.blocks")}</h2>
-          <p className="text-xs text-slate-500">{t("editor.addHint")}</p>
+          <p className="mb-2 text-caption text-ink-subtle">{t("editor.addHint")}</p>
+          <div className="flex flex-wrap gap-2 lg:flex-col lg:gap-1.5">
           {paletteFor(catalog, agent.kind).map((b) => (
             <button
               key={b.type}
-              className="block w-full rounded-lg border border-slate-200 px-2 py-1.5 text-start text-sm hover:border-brand disabled:opacity-50"
+              className="inline-flex min-h-9 items-center gap-2 py-1.5 leading-snug rounded-control border border-line bg-surface px-3 text-start text-sm text-ink hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:text-ink-subtle lg:w-full"
               disabled={readOnly}
               onClick={() =>
                 setGraph((g) => {
@@ -190,12 +208,14 @@ export function AgentEditor({ user }: { user: StudioUser }) {
                 })
               }
             >
+              <Plus size={14} className="shrink-0 text-ink-subtle" />
               {b.label}
             </button>
           ))}
+          </div>
         </div>
 
-        <div className="card h-[560px] p-0" dir="ltr">
+        <div className="card h-[420px] overflow-hidden p-0 md:h-[600px]" dir="ltr">
           <ReactFlow
             nodes={rfNodes}
             edges={rfEdges}
@@ -216,8 +236,12 @@ export function AgentEditor({ user }: { user: StudioUser }) {
             nodesConnectable={!readOnly}
             deleteKeyCode={readOnly ? null : ["Backspace", "Delete"]}
             fitView
+            fitViewOptions={{ padding: 0.12, maxZoom: 1 }}
+            minZoom={0.15}
+            colorMode={dark ? "dark" : "light"}
+            proOptions={{ hideAttribution: false }}
           >
-            <Background />
+            <Background gap={20} size={1} />
             <Controls showInteractive={false} />
           </ReactFlow>
         </div>
@@ -241,19 +265,19 @@ export function AgentEditor({ user }: { user: StudioUser }) {
               }}
             />
           ) : (
-            <p className="text-sm text-slate-500">{t("editor.noSelection")}</p>
+            <p className="text-sm text-ink-subtle">{t("editor.noSelection")}</p>
           )}
         </div>
       </div>
 
       <div className="card">
-        <div className="mb-4 flex gap-4 border-b border-slate-200 text-sm font-medium" role="tablist">
+        <div className="-mx-1 mb-4 flex gap-5 overflow-x-auto border-b border-line px-1 text-sm font-medium" role="tablist">
           {(["problems", "instructions", "prohibitions"] as Tab[]).map((k) => (
             <button
               key={k}
               role="tab"
               aria-selected={tab === k}
-              className={`-mb-px border-b-2 pb-2 ${tab === k ? "border-brand text-brand-strong" : "border-transparent text-slate-500"}`}
+              className={`-mb-px shrink-0 whitespace-nowrap border-b-2 pb-2 ${tab === k ? "border-accent text-accent" : "border-transparent text-ink-subtle"}`}
               onClick={() => setTab(k)}
             >
               {k === "problems" ? t("editor.tabProblems") : k === "instructions" ? t("editor.tabInstructions") : t("editor.tabProhibitions")}
@@ -319,15 +343,15 @@ export function AgentEditor({ user }: { user: StudioUser }) {
           (compiled ? (
             <div className="space-y-4 text-sm">
               {compiled.ok ? (
-                <p className="font-medium text-brand-strong">{t("editor.noProblems")}</p>
+                <p className="font-medium text-accent">{t("editor.noProblems")}</p>
               ) : (
                 <div>
-                  <p className="mb-2 font-medium text-red-700">{t("editor.problems", { count: compiled.issues.length })}</p>
+                  <p className="mb-2 font-medium text-danger">{t("editor.problems", { count: compiled.issues.length })}</p>
                   <ul className="space-y-1">
                     {compiled.issues.map((i, k) => (
                       <li key={k}>
                         <button className="text-start hover:underline" onClick={() => i.nodeId && setSelected(i.nodeId)}>
-                          <span className="font-mono text-xs text-slate-400">{i.code}</span> {i.message}
+                          <span className="font-mono text-xs text-ink-subtle">{i.code}</span> {i.message}
                         </button>
                       </li>
                     ))}
@@ -342,13 +366,13 @@ export function AgentEditor({ user }: { user: StudioUser }) {
               )}
               <div>
                 <span className="label">{t("editor.preview")}</span>
-                <pre className="whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-xs" dir="ltr">
+                <pre className="whitespace-pre-wrap rounded-control bg-surface-sunken p-3 text-xs" dir="ltr">
                   {compiled.preview.join("\n")}
                 </pre>
               </div>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">{t("editor.notCompiled")}</p>
+            <p className="text-sm text-ink-subtle">{t("editor.notCompiled")}</p>
           ))}
       </div>
     </div>

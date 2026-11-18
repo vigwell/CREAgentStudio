@@ -31,9 +31,9 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
 
   return (
     <fieldset disabled={readOnly} className="space-y-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{def?.label ?? node.type}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">{def?.label ?? node.type}</div>
       {issues.length > 0 && (
-        <ul className="space-y-1 rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+        <ul className="space-y-1 rounded-control border border-danger/40 bg-danger-soft p-2 text-xs text-danger">
           {issues.map((i, k) => (
             <li key={k}>{i.message}</li>
           ))}

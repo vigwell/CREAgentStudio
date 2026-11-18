@@ -27,8 +27,8 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
         <ul className="space-y-1 text-sm">
           {locked.map((r) => (
             <li key={r.id} className="flex gap-2">
-              <span className="font-mono text-xs text-slate-400">{r.id}</span>
-              <span className="text-slate-700">{r.text}</span>
+              <span className="font-mono text-xs text-ink-subtle">{r.id}</span>
+              <span className="text-ink">{r.text}</span>
             </li>
           ))}
         </ul>
@@ -40,7 +40,7 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
             <label key={r.id} className="flex items-start gap-2 text-sm">
               <input type="checkbox" className="mt-1" checked={value.optional.includes(r.id)} onChange={(e) => toggle(r.id, e.target.checked)} />
               <span>
-                <span className="font-mono text-xs text-slate-400">{r.id}</span> {r.text}
+                <span className="font-mono text-xs text-ink-subtle">{r.id}</span> {r.text}
               </span>
             </label>
           ))}
@@ -50,10 +50,10 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
           {value.custom.map((c, i) => {
             const set = (patch: Partial<typeof c>) => onChange({ ...value, custom: value.custom.map((x, k) => (k === i ? { ...x, ...patch } : x)) });
             return (
-              <div key={c.id} className="space-y-2 rounded-lg border border-slate-200 p-3 text-sm">
+              <div key={c.id} className="space-y-2 rounded-control border border-line p-3 text-sm">
                 <div className="flex gap-2">
                   <span className="flex-1">{c.text}</span>
-                  <button type="button" className="text-xs text-red-600 underline" onClick={() => onChange({ ...value, custom: value.custom.filter((_, k) => k !== i) })}>
+                  <button type="button" className="text-xs text-danger underline" onClick={() => onChange({ ...value, custom: value.custom.filter((_, k) => k !== i) })}>
                     ×
                   </button>
                 </div>

@@ -5,12 +5,18 @@
     "signOut": "Sign out",
     "loading": "Loading…",
     "noAccess": "Your account has no access to CRE Agent Studio. Ask a Studio admin to add you.",
-    "language": "עברית"
+    "language": "עברית",
+    "tagline": "Build, test and approve CRE agents."
   },
   "nav": {
     "knowledge": "Knowledge Library",
     "agents": "Agents",
-    "profiles": "Clinic & exam profiles"
+    "profiles": "Clinic & exam profiles",
+    "main": "Main navigation",
+    "close": "Close menu",
+    "menu": "Open menu",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
   },
   "roles": {
     "admin": "Admin",
@@ -158,7 +164,9 @@
     "preview": "Readable preview (not the runtime)",
     "stale": "Someone else saved this agent; reload to continue.",
     "none": "— choose —",
-    "notCompiled": "Compile to check the graph before freezing a candidate."
+    "notCompiled": "Compile to check the graph before freezing a candidate.",
+    "unsaved": "Unsaved changes",
+    "phoneReadOnly": "The graph is edited on a tablet or computer. On a phone you can review it, compile and see test runs."
   },
   "profiles": {
     "title": "Clinic & exam profiles",
@@ -208,5 +216,10 @@
       "dismiss": "Dismiss",
       "defer": "Defer"
     }
+  },
+  "theme": {
+    "system": "Theme: follows the system",
+    "light": "Theme: light",
+    "dark": "Theme: dark"
   }
 }

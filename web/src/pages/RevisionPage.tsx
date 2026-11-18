@@ -32,7 +32,7 @@ export function RevisionPage({ user }: { user: StudioUser }) {
     }
   };
 
-  if (!rev) return error ? <ErrorNote error={error} /> : <p className="text-sm text-slate-500">{t("app.loading")}</p>;
+  if (!rev) return error ? <ErrorNote error={error} /> : <p className="text-sm text-ink-subtle">{t("app.loading")}</p>;
 
   const isAuthor = rev.createdBy === user.id;
   const canAuthor = user.role !== "viewer";
@@ -42,7 +42,7 @@ export function RevisionPage({ user }: { user: StudioUser }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">{t("revision.title", { name: rev.sourceName, no: rev.revisionNo })}</h1>
+        <h1 className="page-title">{t("revision.title", { name: rev.sourceName, no: rev.revisionNo })}</h1>
         <StatusBadge status={rev.status} />
       </div>
       <ErrorNote error={error} />
@@ -58,7 +58,7 @@ export function RevisionPage({ user }: { user: StudioUser }) {
         <Info label={t("wizard.scope")} value={rev.scope ? Object.entries(rev.scope).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`).join(" · ") : "—"} />
       </div>
 
-      <div className={`rounded-lg px-4 py-3 text-sm ${rev.errorCount ? "bg-red-50 text-red-700" : "bg-brand-soft text-brand-strong"}`}>
+      <div className={`rounded-control px-4 py-3 text-sm ${rev.errorCount ? "bg-danger-soft text-danger" : "bg-accent-soft text-accent"}`}>
         {rev.errorCount ? t("revision.rowsWithErrors", { count: rev.errorCount }) : t("revision.noErrors")}
       </div>
 
@@ -93,7 +93,7 @@ export function RevisionPage({ user }: { user: StudioUser }) {
             </button>
           </>
         )}
-        {rev.status === "in_review" && isAuthor && <p className="text-xs text-slate-500">{t("revision.independentNote")}</p>}
+        {rev.status === "in_review" && isAuthor && <p className="text-xs text-ink-subtle">{t("revision.independentNote")}</p>}
       </div>
 
       <div className="card overflow-x-auto p-0">
@@ -110,13 +110,13 @@ export function RevisionPage({ user }: { user: StudioUser }) {
           </thead>
           <tbody>
             {rev.rows.map((r) => (
-              <tr key={r.rowId + r.originalRow} className={r.errors.length ? "bg-red-50/60" : ""}>
-                <td className="text-slate-400">{r.originalRow}</td>
+              <tr key={r.rowId + r.originalRow} className={r.errors.length ? "bg-danger-soft/60" : ""}>
+                <td className="text-ink-subtle">{r.originalRow}</td>
                 <td className="font-mono text-xs">{r.rowId}</td>
                 {mappedFields.map((f) => (
                   <td key={f}>{r.mapped[f] == null ? "" : String(r.mapped[f])}</td>
                 ))}
-                <td className="text-red-700">
+                <td className="text-danger">
                   {r.errors.map((e, i) => (
                     <div key={i}>
                       {e.ref && <span className="font-mono text-xs">{e.ref}: </span>}

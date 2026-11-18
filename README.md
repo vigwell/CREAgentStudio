@@ -110,3 +110,18 @@ Screens (week 3): **Test runs** per CDS agent — choose a candidate, case
 reference and test values, run, then see the outcome, findings with observed
 inputs and evidence links to the source rows, the step trace, and acknowledge /
 dismiss / defer each finding.
+
+## Design
+
+Layout follows the Vaplio back-office system, in CRE colours:
+- Shell: sidebar on desktop (expanded or collapsed with the handle or Ctrl/⌘ B,
+  remembered), icon rail on tablet, menu drawer on phone; top bar with user,
+  language, theme (system / light / dark) and sign out.
+- Semantic colour tokens only (`bg-surface`, `text-ink-muted`, `bg-accent`, …),
+  defined once in `web/src/index.css` for light and dark; accent = CRE green.
+- Flat panels and tables; controls in a row share one 40 px height; wide tables
+  scroll inside their panel and the page never scrolls sideways; status pills
+  always carry words.
+- Logical properties throughout, so Hebrew mirrors the layout.
+- The agent graph is edited on tablet and desktop; on a phone it is read-only
+  (review, compile, test runs).
