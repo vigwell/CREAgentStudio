@@ -18,6 +18,18 @@ export function setTokenProvider(p: TokenProvider) {
 
 const BASE = "/api";
 
+// Requests in flight, for the thin progress bar at the top of the page.
+let inFlight = 0;
+const activityListeners = new Set<(n: number) => void>();
+export function onApiActivity(fn: (n: number) => void): () => void {
+  activityListeners.add(fn);
+  return () => activityListeners.delete(fn);
+}
+function setInFlight(n: number) {
+  inFlight = n;
+  for (const fn of activityListeners) fn(inFlight);
+}
+
 export async function api<T>(path: string, init: { method?: string; body?: unknown; form?: FormData; headers?: Record<string, string> } = {}): Promise<T> {
   const token = await tokenProvider();
   const headers: Record<string, string> = { ...init.headers, Authorization: `Bearer ${token}` };
@@ -27,8 +39,15 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(init.body);
   }
-  const res = await fetch(`${BASE}${path}`, { method: init.method ?? (body ? "POST" : "GET"), headers, body });
-  const text = await res.text();
+  setInFlight(inFlight + 1);
+  let res: Response;
+  let text: string;
+  try {
+    res = await fetch(`${BASE}${path}`, { method: init.method ?? (body ? "POST" : "GET"), headers, body });
+    text = await res.text();
+  } finally {
+    setInFlight(inFlight - 1);
+  }
   const data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new ApiError(res.status, data?.error ?? "error", data?.message ?? `Request failed (${res.status})`);
   return data as T;

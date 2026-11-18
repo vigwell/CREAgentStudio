@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Background, Controls, ReactFlow, applyNodeChanges, type Connection, type Edge, type NodeChange } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { api, ApiError, type Agent, type AgentDraft, type Catalog, type ClinicProfile, type CompileResult, type SourceSummary, type StudioUser } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
+import { invalidate, setQueryData, useQuery } from "../api/query";
+import { EditorSkeleton } from "../ui/Skeleton";
 import { FlaskConical, ListChecks, Plus, Save, Snowflake } from "lucide-react";
 import { PageHeader } from "../ui/PageHeader";
 import { StatusPill } from "../ui/StatusPill";
@@ -12,7 +14,7 @@ import { useDarkTheme, useMedia } from "../ui/useMedia";
 import { BlockNode, type BlockFlowNode } from "../agents/BlockNode";
 import { Inspector } from "../agents/Inspector";
 import { Prohibitions } from "../agents/Prohibitions";
-import { addBlock, blockMap, connect, issuesByNode, paletteFor, removeBlocks, updateNode, type Graph } from "../agents/graph";
+import { addBlock, blockLabel, blockMap, connect, issuesByNode, paletteFor, removeBlocks, updateNode, type Graph } from "../agents/graph";
 
 const nodeTypes = { block: BlockNode };
 type Tab = "instructions" | "prohibitions" | "problems";
@@ -20,11 +22,16 @@ type Tab = "instructions" | "prohibitions" | "problems";
 export function AgentEditor({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
   const { agentId } = useParams();
-  const [catalog, setCatalog] = useState<Catalog | null>(null);
-  const [agent, setAgent] = useState<Agent | null>(null);
+  const catalogQ = useQuery<Catalog>("/agents/catalog");
+  const agentQ = useQuery<Agent>(`/agents/${agentId}`);
+  const sourcesQ = useQuery<{ sources: SourceSummary[] }>("/knowledge/sources");
+  const profilesQ = useQuery<{ profiles: ClinicProfile[] }>("/clinic-profiles");
+  const catalog = catalogQ.data ?? null;
+  const agent = agentQ.data ?? null;
+  const sources = sourcesQ.data?.sources ?? [];
+  const profiles = profilesQ.data?.profiles ?? [];
   const [draft, setDraft] = useState<AgentDraft | null>(null);
-  const [sources, setSources] = useState<SourceSummary[]>([]);
-  const [profiles, setProfiles] = useState<ClinicProfile[]>([]);
+  const [pending, setPending] = useState<"save" | "compile" | "freeze" | null>(null);
   const [compiled, setCompiled] = useState<CompileResult | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [rfNodes, setRfNodes] = useState<BlockFlowNode[]>([]);
@@ -39,22 +46,15 @@ export function AgentEditor({ user }: { user: StudioUser }) {
   // The graph is edited on a tablet or desktop; on a phone it is read-only (review, problems, runs).
   const readOnly = !canEdit || isPhone;
 
+  // The draft is edited locally; it is taken from the server once per agent (never over unsaved edits).
+  const loadedFor = useRef<string | null>(null);
   useEffect(() => {
-    Promise.all([
-      api<Catalog>("/agents/catalog"),
-      api<Agent>(`/agents/${agentId}`),
-      api<{ sources: SourceSummary[] }>("/knowledge/sources"),
-      api<{ profiles: ClinicProfile[] }>("/clinic-profiles"),
-    ])
-      .then(([c, a, s, p]) => {
-        setCatalog(c);
-        setAgent(a);
-        setDraft(a.draft);
-        setSources(s.sources);
-        setProfiles(p.profiles);
-      })
-      .catch(setError);
-  }, [agentId]);
+    if (agent && loadedFor.current !== agent.id) {
+      loadedFor.current = agent.id;
+      setDraft(agent.draft);
+      setDirty(false);
+    }
+  }, [agent]);
 
   const defs = useMemo(() => (catalog ? blockMap(catalog) : new Map()), [catalog]);
   const issues = useMemo(() => issuesByNode(compiled?.issues ?? []), [compiled]);
@@ -110,22 +110,43 @@ export function AgentEditor({ user }: { user: StudioUser }) {
   const save = async (): Promise<AgentDraft | null> => {
     if (!draft || !agent) return null;
     setError(null);
+    setPending((p) => p ?? "save");
     try {
       const r = await api<{ version: number }>(`/agents/${agent.id}/draft`, { method: "PUT", body: draft });
       const next = { ...draft, version: r.version };
       setDraft(next);
       setDirty(false);
       setNotice(t("editor.saved", { v: r.version }));
+      // Keep the cache in step, so coming back to this agent opens the saved draft instantly.
+      setQueryData<Agent>(`/agents/${agent.id}`, (old) => (old ? { ...old, draft: next } : old!));
+      invalidate("/agents");
       return next;
     } catch (err) {
       setError(err instanceof ApiError && err.status === 409 ? new Error(t("editor.stale")) : err);
       return null;
+    } finally {
+      setPending((p) => (p === "save" ? null : p));
     }
   };
+
+  // Ctrl/⌘ S saves.
+  const saveRef = useRef(save);
+  saveRef.current = save;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void saveRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const run = async (what: "compile" | "freeze") => {
     if (!agent) return;
     setBusy(true);
+    setPending(what);
     try {
       if (dirty && !(await save())) return;
       const c = await api<CompileResult>(`/agents/${agent.id}/compile`, { method: "POST" });
@@ -133,16 +154,20 @@ export function AgentEditor({ user }: { user: StudioUser }) {
       setTab("problems");
       if (what === "freeze" && c.ok) {
         const cand = await api<{ candidateNo: number }>(`/agents/${agent.id}/candidates`, { method: "POST" });
+        invalidate(`/agents/${agent.id}/candidates`);
+        invalidate("/agents");
         setNotice(t("editor.frozen", { no: cand.candidateNo }));
       }
     } catch (err) {
       setError(err);
     } finally {
       setBusy(false);
+      setPending(null);
     }
   };
 
-  if (!catalog || !agent || !draft || !graph) return <ErrorNote error={error} />;
+  const loadError = error ?? catalogQ.error ?? agentQ.error;
+  if (!catalog || !agent || !draft || !graph) return loadError ? <ErrorNote error={loadError} /> : <EditorSkeleton />;
   const selectedNode = graph.nodes.find((n) => n.id === selected) ?? null;
 
   return (
@@ -169,17 +194,17 @@ export function AgentEditor({ user }: { user: StudioUser }) {
             {!readOnly && (
               <button className="btn" disabled={!dirty || busy} onClick={() => void save()}>
                 <Save size={16} />
-                {t("editor.save")}
+                {pending === "save" ? t("editor.saving") : t("editor.save")}
               </button>
             )}
             <button className="btn" disabled={busy} onClick={() => void run("compile")}>
               <ListChecks size={16} />
-              {t("editor.compile")}
+              {pending === "compile" ? t("editor.compiling") : t("editor.compile")}
             </button>
             {!readOnly && (
               <button className="btn btn-primary" disabled={busy} onClick={() => void run("freeze")}>
                 <Snowflake size={16} />
-                {t("editor.freeze")}
+                {pending === "freeze" ? t("editor.freezing") : t("editor.freeze")}
               </button>
             )}
           </>
@@ -202,14 +227,14 @@ export function AgentEditor({ user }: { user: StudioUser }) {
               disabled={readOnly}
               onClick={() =>
                 setGraph((g) => {
-                  const r = addBlock(g, b);
+                  const r = addBlock(g, { ...b, label: blockLabel(t, b) });
                   setSelected(r.id);
                   return r.graph;
                 })
               }
             >
               <Plus size={14} className="shrink-0 text-ink-subtle" />
-              {b.label}
+              {blockLabel(t, b)}
             </button>
           ))}
           </div>

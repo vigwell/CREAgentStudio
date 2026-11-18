@@ -5,7 +5,7 @@
     "signOut": "התנתקות",
     "loading": "טוען…",
     "noAccess": "לחשבון שלך אין גישה ל-CRE Agent Studio. בקש ממנהל Studio להוסיף אותך.",
-    "language": "English",
+    "language": "שפה",
     "tagline": "בנייה, בדיקה ואישור של סוכני CRE."
   },
   "nav": {
@@ -166,7 +166,10 @@
     "none": "— בחירה —",
     "notCompiled": "הדר כדי לבדוק את הגרף לפני הקפאת מועמד.",
     "unsaved": "שינויים שלא נשמרו",
-    "phoneReadOnly": "עריכת הגרף נעשית בטאבלט או במחשב. בטלפון אפשר לעיין, להדר ולראות הרצות בדיקה."
+    "phoneReadOnly": "עריכת הגרף נעשית בטאבלט או במחשב. בטלפון אפשר לעיין, להדר ולראות הרצות בדיקה.",
+    "saving": "שומר…",
+    "compiling": "מהדר…",
+    "freezing": "מקפיא…"
   },
   "profiles": {
     "title": "פרופילי מרפאה ובדיקה",
@@ -215,11 +218,31 @@
       "acknowledge": "אישור קריאה",
       "dismiss": "דחייה",
       "defer": "דחייה לאחר כך"
-    }
+    },
+    "running": "מריץ…"
   },
   "theme": {
     "system": "ערכת נושא: לפי המערכת",
     "light": "ערכת נושא: בהירה",
     "dark": "ערכת נושא: כהה"
+  },
+  "blocks": {
+    "start": "התחלה",
+    "decision": "החלטה",
+    "patient_service": "שירות מידע על המטופל",
+    "protocol_lookup": "איתור פרוטוקול מקומי",
+    "guidance_lookup": "איתור כלל קליני / הנחיה",
+    "instruction": "הנחיה / ממצא",
+    "final_synthesis": "סיכום סופי",
+    "verify_authority": "אימות הרשאת המטופל",
+    "resolve_order": "איתור הפניה / הזמנה",
+    "clinic_profile": "פרופיל מרפאה ובדיקה",
+    "ask_questions": "שאלות סינון",
+    "patient_instructions": "הנחיות למטופל",
+    "offer_slots": "הצעת מועדים מה-RIS",
+    "confirmation": "הקראה ואישור",
+    "book": "קביעת תור ב-RIS",
+    "transfer_staff": "העברה לצוות",
+    "end_call": "סיום שיחה"
   }
 }

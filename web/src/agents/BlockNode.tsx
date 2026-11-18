@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { blockLabel } from "./graph";
 import { Handle, Position, type NodeProps, type Node } from "@xyflow/react";
 import type { BlockDef, GraphNode, Issue } from "../api/client";
 
@@ -7,6 +9,7 @@ export type BlockFlowNode = Node<BlockNodeData, "block">;
 /** One block on the canvas: input on the left, one exit per port on the right. */
 export function BlockNode({ data, selected }: NodeProps<BlockFlowNode>) {
   const { node, def, issues } = data;
+  const { t } = useTranslation();
   const ports = def?.ports ?? [];
   const tone = def?.start ? "border-accent" : def?.terminal ? "border-line-strong" : node.type === "decision" ? "border-warning" : "border-line-strong";
   return (
@@ -16,7 +19,7 @@ export function BlockNode({ data, selected }: NodeProps<BlockFlowNode>) {
       }`}
     >
       {!def?.start && <Handle type="target" position={Position.Left} />}
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-ink-subtle">{def?.label ?? node.type}</div>
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-ink-subtle">{blockLabel(t, def, node.type)}</div>
       <div className="text-sm font-semibold text-ink">{node.label}</div>
       <div className="mt-1 flex flex-wrap gap-1">
         {node.executionKind === "ai" && <span className="rounded bg-ai-soft px-1.5 text-[10px] font-semibold text-ai">AI</span>}

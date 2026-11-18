@@ -1,24 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api, type AgentKind, type AgentSummary, type StudioUser } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
+import { invalidate, useQuery } from "../api/query";
+import { TableSkeleton } from "../ui/Skeleton";
+import { warmAgent } from "./lazy";
 import { Plus } from "lucide-react";
 
 export function AgentsList({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [agents, setAgents] = useState<AgentSummary[] | null>(null);
+  const q = useQuery<{ agents: AgentSummary[] }>("/agents");
+  const agents = q.data?.agents ?? null;
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ kind: "cds" as AgentKind, name: "", intendedUse: "", department: "", devices: "" });
   const canAuthor = user.role === "admin" || user.role === "author";
 
-  useEffect(() => {
-    api<{ agents: AgentSummary[] }>("/agents")
-      .then((r) => setAgents(r.agents))
-      .catch(setError);
-  }, []);
 
   const create = async () => {
     setError(null);
@@ -28,6 +27,7 @@ export function AgentsList({ user }: { user: StudioUser }) {
     if (devices.length) scope.devices = devices;
     try {
       const a = await api<{ id: string }>("/agents", { body: { kind: form.kind, name: form.name, intendedUse: form.intendedUse, scope } });
+      invalidate("/agents");
       navigate(`/agents/${a.id}`);
     } catch (err) {
       setError(err);
@@ -48,7 +48,7 @@ export function AgentsList({ user }: { user: StudioUser }) {
           </button>
         )}
       </div>
-      <ErrorNote error={error} />
+      <ErrorNote error={error ?? q.error} />
 
       {creating && (
         <div className="card grid gap-4 md:grid-cols-2">
@@ -86,6 +86,7 @@ export function AgentsList({ user }: { user: StudioUser }) {
         </div>
       )}
 
+      {agents === null && !q.error && <TableSkeleton cols={4} />}
       {agents && agents.length === 0 && <p className="text-ink-subtle">{t("agents.empty")}</p>}
       {agents && agents.length > 0 && (
         <div className="card overflow-x-auto p-0">
@@ -110,7 +111,7 @@ export function AgentsList({ user }: { user: StudioUser }) {
                   <td className="hidden max-w-md text-ink-muted md:table-cell">{a.intendedUse}</td>
                   <td>{a.candidates}</td>
                   <td className="text-end">
-                    <Link className="btn" to={`/agents/${a.id}`}>
+                    <Link className="btn" to={`/agents/${a.id}`} onMouseEnter={() => warmAgent(a.id)} onFocus={() => warmAgent(a.id)}>
                       {t("agents.open")}
                     </Link>
                   </td>

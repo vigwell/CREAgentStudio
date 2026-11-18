@@ -9,13 +9,16 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, Languages, LogOut, Menu, Monitor, Moon, Sun, X, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, Menu, Monitor, Moon, Sun, X, type LucideIcon } from "lucide-react";
+import { LanguageMenu } from "./LanguageMenu";
 import { applyTheme, readFlag, storedTheme, writeFlag, type ThemeChoice } from "./theme";
 
 export interface NavItem {
   to: string;
   label: string;
   icon: LucideIcon;
+  /** Warm up this page's data when the pointer reaches the link. */
+  warm?: () => void;
 }
 
 const COLLAPSE_KEY = "studio.sidebarCollapsed";
@@ -24,13 +27,11 @@ export function AppShell({
   nav,
   user,
   onSignOut,
-  onToggleLanguage,
   children,
 }: {
   nav: NavItem[];
   user: { name: string; role: string };
   onSignOut: () => void;
-  onToggleLanguage: () => void;
   children: React.ReactNode;
 }) {
   const { t } = useTranslation();
@@ -115,9 +116,7 @@ export function AppShell({
               <span className="block font-medium text-ink">{user.name}</span>
               <span className="block text-caption text-ink-subtle">{user.role}</span>
             </span>
-            <button className="icon-btn" onClick={onToggleLanguage} title={t("app.language")} aria-label={t("app.language")}>
-              <Languages size={18} />
-            </button>
+            <LanguageMenu />
             <button
               className="icon-btn"
               onClick={() => setTheme(nextTheme[theme])}
@@ -131,7 +130,9 @@ export function AppShell({
             </button>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main key={location.pathname} className="animate-fade-in mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
+          {children}
+        </main>
       </div>
     </div>
   );
@@ -155,6 +156,8 @@ function NavList({ nav, compact }: { nav: NavItem[]; compact: boolean }) {
           key={item.to}
           to={item.to}
           title={item.label}
+          onMouseEnter={item.warm}
+          onFocus={item.warm}
           className={({ isActive }) =>
             `flex h-10 items-center gap-3 rounded-control px-3 text-sm font-medium transition-colors ${
               isActive ? "bg-highlight text-ink" : "text-ink-muted hover:bg-surface-sunken hover:text-ink"

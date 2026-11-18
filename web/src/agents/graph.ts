@@ -92,3 +92,9 @@ export function formatConditionValue(value: unknown): string {
   if (value === undefined || value === null) return "";
   return String(value);
 }
+
+/** Block type name in the UI language (falls back to the catalog's English label). */
+export function blockLabel(t: (key: string, opts?: Record<string, unknown>) => string, def: { type: string; label: string } | undefined, type?: string): string {
+  if (!def) return type ?? "";
+  return t(`blocks.${def.type}`, { defaultValue: def.label });
+}

@@ -1,22 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api, type Revision, type StudioUser } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { ErrorNote } from "../components/ErrorNote";
+import { invalidate, useQuery } from "../api/query";
+import { DetailSkeleton } from "../ui/Skeleton";
 
 export function RevisionPage({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
   const { revisionId } = useParams();
-  const [rev, setRev] = useState<Revision | null>(null);
+  const key = `/knowledge/revisions/${revisionId}?pageSize=200`;
+  const q = useQuery<Revision>(key);
+  const rev = q.data ?? null;
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [reason, setReason] = useState("");
 
-  const load = () => api<Revision>(`/knowledge/revisions/${revisionId}?pageSize=200`).then(setRev).catch(setError);
-  useEffect(() => {
-    void load();
-  }, [revisionId]);
+  const load = async () => {
+    invalidate("/knowledge/sources");
+    await q.refetch();
+  };
 
   const act = async (action: "submit" | "approve" | "return" | "withdraw") => {
     setBusy(true);
@@ -32,7 +36,7 @@ export function RevisionPage({ user }: { user: StudioUser }) {
     }
   };
 
-  if (!rev) return error ? <ErrorNote error={error} /> : <p className="text-sm text-ink-subtle">{t("app.loading")}</p>;
+  if (!rev) return error || q.error ? <ErrorNote error={error ?? q.error} /> : <DetailSkeleton />;
 
   const isAuthor = rev.createdBy === user.id;
   const canAuthor = user.role !== "viewer";

@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, type ClinicProfile, type StudioUser } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { ErrorNote } from "../components/ErrorNote";
+import { useQuery } from "../api/query";
+import { TableSkeleton } from "../ui/Skeleton";
 import { Plus } from "lucide-react";
 
 const EMPTY = { name: "", site: "", department: "", risProcedureCode: "", horizonDays: 30, questions: "" };
@@ -18,20 +20,16 @@ export function questionsFromText(text: string) {
 
 export function ClinicProfiles({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
-  const [profiles, setProfiles] = useState<ClinicProfile[] | null>(null);
+  const q = useQuery<{ profiles: ClinicProfile[] }>("/clinic-profiles");
+  const profiles = q.data?.profiles ?? null;
   const [error, setError] = useState<unknown>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const [form, setForm] = useState<typeof EMPTY | null>(null);
   const [reviseKey, setReviseKey] = useState<string | null>(null);
   const canAuthor = user.role === "admin" || user.role === "author";
   const canApprove = user.role === "admin" || user.role === "approver";
 
-  const load = () =>
-    api<{ profiles: ClinicProfile[] }>("/clinic-profiles")
-      .then((r) => setProfiles(r.profiles))
-      .catch(setError);
-  useEffect(() => {
-    void load();
-  }, []);
+  const load = () => q.refetch().catch(setError);
 
   const save = async () => {
     if (!form) return;
@@ -56,11 +54,14 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
 
   const act = async (id: string, action: "approve" | "withdraw") => {
     setError(null);
+    setBusyId(id);
     try {
       await api(`/clinic-profiles/${id}/${action}`, { method: "POST" });
       await load();
     } catch (err) {
       setError(err);
+    } finally {
+      setBusyId(null);
     }
   };
 
@@ -90,7 +91,7 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
           </button>
         )}
       </div>
-      <ErrorNote error={error} />
+      <ErrorNote error={error ?? q.error} />
 
       {form && (
         <div className="card grid gap-4 md:grid-cols-2">
@@ -132,6 +133,7 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
         </div>
       )}
 
+      {profiles === null && !q.error && <TableSkeleton cols={5} />}
       {profiles && profiles.length > 0 && (
         <div className="card overflow-x-auto p-0">
           <table className="table">
@@ -164,7 +166,7 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
                   <td className="text-end">
                     <div className="flex flex-wrap justify-end gap-2">
                     {canApprove && p.status === "draft" && p.createdBy !== user.id && (
-                      <button className="btn btn-primary" onClick={() => void act(p.id, "approve")}>
+                      <button className="btn btn-primary" disabled={busyId === p.id} onClick={() => void act(p.id, "approve")}>
                         {t("profiles.approve")}
                       </button>
                     )}
@@ -174,7 +176,7 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
                       </button>
                     )}
                     {canApprove && p.status === "approved" && (
-                      <button className="btn btn-danger" onClick={() => void act(p.id, "withdraw")}>
+                      <button className="btn btn-danger" disabled={busyId === p.id} onClick={() => void act(p.id, "withdraw")}>
                         {t("profiles.withdraw")}
                       </button>
                     )}

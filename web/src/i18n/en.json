@@ -5,7 +5,7 @@
     "signOut": "Sign out",
     "loading": "Loading…",
     "noAccess": "Your account has no access to CRE Agent Studio. Ask a Studio admin to add you.",
-    "language": "עברית",
+    "language": "Language",
     "tagline": "Build, test and approve CRE agents."
   },
   "nav": {
@@ -166,7 +166,10 @@
     "none": "— choose —",
     "notCompiled": "Compile to check the graph before freezing a candidate.",
     "unsaved": "Unsaved changes",
-    "phoneReadOnly": "The graph is edited on a tablet or computer. On a phone you can review it, compile and see test runs."
+    "phoneReadOnly": "The graph is edited on a tablet or computer. On a phone you can review it, compile and see test runs.",
+    "saving": "Saving…",
+    "compiling": "Compiling…",
+    "freezing": "Freezing…"
   },
   "profiles": {
     "title": "Clinic & exam profiles",
@@ -215,11 +218,31 @@
       "acknowledge": "Acknowledge",
       "dismiss": "Dismiss",
       "defer": "Defer"
-    }
+    },
+    "running": "Running…"
   },
   "theme": {
     "system": "Theme: follows the system",
     "light": "Theme: light",
     "dark": "Theme: dark"
+  },
+  "blocks": {
+    "start": "Start",
+    "decision": "Decision",
+    "patient_service": "Patient information service",
+    "protocol_lookup": "Local protocol lookup",
+    "guidance_lookup": "Clinical rule / guidance lookup",
+    "instruction": "Instruction / finding",
+    "final_synthesis": "Final synthesis",
+    "verify_authority": "Verify patient authority",
+    "resolve_order": "Resolve referral / order",
+    "clinic_profile": "Clinic & exam profile",
+    "ask_questions": "Screening questions",
+    "patient_instructions": "Patient instructions",
+    "offer_slots": "Offer RIS slots",
+    "confirmation": "Read back and confirm",
+    "book": "Book in RIS",
+    "transfer_staff": "Transfer to staff",
+    "end_call": "End call"
   }
 }

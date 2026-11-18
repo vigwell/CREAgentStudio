@@ -1,34 +1,30 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { api, type SourceKind, type SourceSummary, type StudioUser } from "../api/client";
 import { StatusBadge } from "../components/StatusBadge";
 import { ErrorNote } from "../components/ErrorNote";
 import { Plus } from "lucide-react";
+import { invalidate, prefetch, useQuery } from "../api/query";
+import { TableSkeleton } from "../ui/Skeleton";
 
 const KINDS: SourceKind[] = ["device_protocol", "clinical_rule", "reference_document"];
 
 export function KnowledgeList({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [sources, setSources] = useState<SourceSummary[] | null>(null);
+  const q = useQuery<{ sources: SourceSummary[] }>("/knowledge/sources");
+  const sources = q.data?.sources ?? null;
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ name: "", kind: "device_protocol" as SourceKind, issuingOrg: "" });
   const canAuthor = user.role !== "viewer";
 
-  const load = () =>
-    api<{ sources: SourceSummary[] }>("/knowledge/sources")
-      .then((r) => setSources(r.sources))
-      .catch(setError);
-  useEffect(() => {
-    void load();
-  }, []);
-
   const create = async () => {
     setError(null);
     try {
       const s = await api<{ id: string }>("/knowledge/sources", { body: { ...form, issuingOrg: form.issuingOrg || null } });
+      invalidate("/knowledge/sources");
       navigate(`/knowledge/${s.id}/import`);
     } catch (err) {
       setError(err);
@@ -49,7 +45,7 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
           </button>
         )}
       </div>
-      <ErrorNote error={error} />
+      <ErrorNote error={error ?? q.error} />
 
       {creating && (
         <div className="card grid gap-4 md:grid-cols-3">
@@ -84,7 +80,7 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
 
       <div className="card overflow-x-auto p-0">
         {sources === null ? (
-          <p className="p-5 text-sm text-ink-subtle">{t("app.loading")}</p>
+          <TableSkeleton bare cols={5} />
         ) : sources.length === 0 ? (
           <p className="p-5 text-sm text-ink-subtle">{t("knowledge.empty")}</p>
         ) : (

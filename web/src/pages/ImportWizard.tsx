@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { invalidate, useQuery } from "../api/query";
+import { Skeleton, TableSkeleton } from "../ui/Skeleton";
 import { api, type FieldDef, type Preview, type SourceKind, type SourceSummary, type UploadResult } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
 import { suggestMapping } from "../mapping";
@@ -20,8 +22,11 @@ export function ImportWizard() {
   const { t } = useTranslation();
   const { sourceId } = useParams();
   const navigate = useNavigate();
-  const [source, setSource] = useState<SourceSummary | null>(null);
-  const [catalog, setCatalog] = useState<FieldsResponse | null>(null);
+  const sourcesQ = useQuery<{ sources: SourceSummary[] }>("/knowledge/sources");
+  const fieldsQ = useQuery<FieldsResponse>("/knowledge/fields");
+  const source = sourcesQ.data?.sources.find((s) => s.id === sourceId) ?? null;
+  const catalog = fieldsQ.data ?? null;
+  const [previewLoading, setPreviewLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -33,19 +38,14 @@ export function ImportWizard() {
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [meta, setMeta] = useState({ clinicalOwner: "", effectiveFrom: "", reviewDue: "", site: "", department: "", modality: "", devices: "" });
 
-  useEffect(() => {
-    api<{ sources: SourceSummary[] }>("/knowledge/sources")
-      .then((r) => setSource(r.sources.find((s) => s.id === sourceId) ?? null))
-      .catch(setError);
-    api<FieldsResponse>("/knowledge/fields").then(setCatalog).catch(setError);
-  }, [sourceId]);
-
   // Preview whenever the sheet or header row changes.
   useEffect(() => {
     if (!upload || step < 2) return;
     const q = new URLSearchParams({ headerRow: String(headerRow) });
     if (sheet && upload.fileType === "xlsx") q.set("sheet", sheet);
     setError(null);
+    setPreviewLoading(true);
+    // The previous preview stays (dimmed) until the new one arrives: no blank flash.
     api<Preview>(`/knowledge/files/${upload.fileId}/preview?${q}`)
       .then((p) => {
         setPreview(p);
@@ -54,7 +54,8 @@ export function ImportWizard() {
       .catch((err) => {
         setPreview(null);
         setError(err);
-      });
+      })
+      .finally(() => setPreviewLoading(false));
   }, [upload, sheet, headerRow, step]);
 
   const required = useMemo(() => {
@@ -104,6 +105,7 @@ export function ImportWizard() {
           reviewDue: meta.reviewDue,
         },
       });
+      invalidate("/knowledge/sources");
       navigate(`/knowledge/revisions/${r.id}`);
     } catch (err) {
       setError(err);
@@ -116,7 +118,7 @@ export function ImportWizard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="page-title">{t("wizard.title", { name: source?.name ?? "…" })}</h1>
+      {source ? <h1 className="page-title">{t("wizard.title", { name: source.name })}</h1> : <Skeleton className="h-7 w-80 max-w-full" />}
       <ol className="flex flex-wrap gap-2 text-sm">
         {[1, 2, 3, 4].map((n) => (
           <li key={n} className={`rounded-full px-3 py-1 ${step === n ? "bg-accent text-accent-ink" : step > n ? "bg-accent-soft text-accent" : "bg-surface-sunken text-ink-subtle"}`}>
@@ -124,7 +126,7 @@ export function ImportWizard() {
           </li>
         ))}
       </ol>
-      <ErrorNote error={error} />
+      <ErrorNote error={error ?? sourcesQ.error ?? fieldsQ.error} />
 
       {step === 1 && (
         <div className="card space-y-4">
@@ -158,8 +160,9 @@ export function ImportWizard() {
               <input className="input" type="number" min={1} value={headerRow} onChange={(e) => setHeaderRow(Math.max(1, Number(e.target.value) || 1))} />
             </label>
           </div>
+          {!preview && previewLoading && <TableSkeleton bare rows={3} cols={5} />}
           {preview && (
-            <>
+            <div className={`space-y-3 transition-opacity ${previewLoading ? "opacity-50" : ""}`}>
               <p className="text-sm text-ink-muted">{t("wizard.previewNote", { count: preview.totalRows })}</p>
               <div className="overflow-x-auto">
                 <table className="table">
@@ -185,7 +188,7 @@ export function ImportWizard() {
                   </tbody>
                 </table>
               </div>
-            </>
+            </div>
           )}
           <div className="flex gap-2">
             <button className="btn" onClick={() => setStep(1)}>

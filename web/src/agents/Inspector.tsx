@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { BlockDef, Catalog, ClinicProfile, GraphNode, Issue, SourceSummary } from "../api/client";
-import { formatConditionValue, parseConditionValue, upstreamOf, type Graph } from "./graph";
+import { blockLabel, formatConditionValue, parseConditionValue, upstreamOf, type Graph } from "./graph";
 
 type Props = {
   graph: Graph;
@@ -31,7 +31,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
 
   return (
     <fieldset disabled={readOnly} className="space-y-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">{def?.label ?? node.type}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">{blockLabel(t, def, node.type)}</div>
       {issues.length > 0 && (
         <ul className="space-y-1 rounded-control border border-danger/40 bg-danger-soft p-2 text-xs text-danger">
           {issues.map((i, k) => (

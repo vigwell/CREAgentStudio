@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 import { api, type Agent, type Candidate, type RunDetail, type RunSummary } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
 import { StatusPill, type Tone } from "../ui/StatusPill";
+import { fetchQuery, setQueryData, useQuery } from "../api/query";
+import { DetailSkeleton } from "../ui/Skeleton";
 
 const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" }[] = [
   { name: "indicationCode", kind: "text" },
@@ -38,9 +40,12 @@ const OUTCOME_TONE: Record<string, Tone> = {
 export function AgentRuns() {
   const { t } = useTranslation();
   const { agentId } = useParams();
-  const [agent, setAgent] = useState<Agent | null>(null);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [runs, setRuns] = useState<RunSummary[]>([]);
+  const agentQ = useQuery<Agent>(`/agents/${agentId}`);
+  const candQ = useQuery<{ candidates: Candidate[] }>(`/agents/${agentId}/candidates`);
+  const runsQ = useQuery<{ runs: RunSummary[] }>(`/agents/${agentId}/runs`);
+  const agent = agentQ.data ?? null;
+  const candidates = candQ.data?.candidates ?? [];
+  const runs = runsQ.data?.runs ?? [];
   const [candidateId, setCandidateId] = useState("");
   const [caseRef, setCaseRef] = useState("");
   const [deviceId, setDeviceId] = useState("");
@@ -49,16 +54,21 @@ export function AgentRuns() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
 
-  const loadRuns = () => api<{ runs: RunSummary[] }>(`/agents/${agentId}/runs`).then((r) => setRuns(r.runs));
+  const loadRuns = () => runsQ.refetch();
   useEffect(() => {
-    Promise.all([api<Agent>(`/agents/${agentId}`), api<{ candidates: Candidate[] }>(`/agents/${agentId}/candidates`), loadRuns()])
-      .then(([a, c]) => {
-        setAgent(a);
-        setCandidates(c.candidates);
-        if (c.candidates[0]) setCandidateId(c.candidates[0].id);
-      })
-      .catch(setError);
-  }, [agentId]);
+    if (!candidateId && candidates[0]) setCandidateId(candidates[0].id);
+  }, [candidates, candidateId]);
+  const [opening, setOpening] = useState<string | null>(null);
+  const openRun = async (runId: string) => {
+    setOpening(runId);
+    try {
+      setRun(await fetchQuery<RunDetail>(`/runs/${runId}`));
+    } catch (err) {
+      setError(err);
+    } finally {
+      setOpening(null);
+    }
+  };
 
   const start = async () => {
     setBusy(true);
@@ -68,6 +78,7 @@ export function AgentRuns() {
       const body = { agentId, candidateId, caseRef: caseRef.trim(), deviceId: deviceId.trim() || null, inputs: { manualValues: manualValues(form) } };
       const res = await api<RunDetail>("/runs", { body, headers: { "Idempotency-Key": key } });
       setRun(res);
+      setQueryData(`/runs/${res.runId}`, res);
       await loadRuns();
     } catch (err) {
       setError(err);
@@ -82,13 +93,13 @@ export function AgentRuns() {
     if (action !== "acknowledge" && !reason) return;
     try {
       await api(`/runs/${run.runId}/reviews`, { body: { findingIndex: index, action, reason, snapshotHash: run.snapshotHash } });
-      setRun(await api<RunDetail>(`/runs/${run.runId}`));
+      setRun(await fetchQuery<RunDetail>(`/runs/${run.runId}`));
     } catch (err) {
       setError(err);
     }
   };
 
-  if (!agent) return <ErrorNote error={error} />;
+  if (!agent) return error || agentQ.error ? <ErrorNote error={error ?? agentQ.error} /> : <DetailSkeleton />;
 
   return (
     <div className="space-y-6">
@@ -144,14 +155,14 @@ export function AgentRuns() {
           ))}
           <div className="md:col-span-3">
             <button className="btn btn-primary" disabled={busy || !caseRef.trim() || !candidateId} onClick={() => void start()}>
-              {t("runs.run")}
+              {busy ? t("runs.running") : t("runs.run")}
             </button>
           </div>
         </div>
       )}
 
       {run && (
-        <div className="card space-y-4">
+        <div key={run.runId} className="card animate-fade-in space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <StatusPill tone={OUTCOME_TONE[run.outcome] ?? "neutral"}>{t(`runs.outcome.${run.outcome}`)}</StatusPill>
             <span className="text-sm text-ink-muted">
@@ -274,7 +285,7 @@ export function AgentRuns() {
                     <StatusPill tone={OUTCOME_TONE[r.outcome] ?? "neutral"}>{t(`runs.outcome.${r.outcome}`)}</StatusPill>
                   </td>
                   <td className="text-end">
-                    <button className="btn" onClick={() => void api<RunDetail>(`/runs/${r.runId}`).then(setRun).catch(setError)}>
+                    <button className="btn" disabled={opening === r.runId} onClick={() => void openRun(r.runId)}>
                       {t("agents.open")}
                     </button>
                   </td>
