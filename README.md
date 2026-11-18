@@ -81,7 +81,7 @@ Requires Node.js 20 or later.
   | `GET /runs/:id` · `GET /agents/:id/runs` | result, findings with evidence, steps, reviews |
   | `POST /runs/:id/reviews` | acknowledge / dismiss / defer (reason) against the run's snapshot hash (409 if stale) |
 
-First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users.
+First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users. The Medilis tenant (migration 0005) is `a6da57a3-bfe5-592d-a9a6-6c840a27d7a0`: with that id, the first user who signs in becomes admin and later users authors.
 
 ## Web app
 
