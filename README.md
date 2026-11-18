@@ -125,3 +125,11 @@ Layout follows the Vaplio back-office system, in CRE colours:
 - Logical properties throughout, so Hebrew mirrors the layout.
 - The agent graph is edited on tablet and desktop; on a phone it is read-only
   (review, compile, test runs).
+- Languages: the Report Engine's five (English, French, Hebrew, Arabic,
+  Spanish) in a dropdown; Hebrew and Arabic are right-to-left. Block names are
+  translated; platform rule texts stay as approved.
+- Loading without spinners: skeletons shaped like the page, a thin progress
+  bar for background requests, a cache that opens visited pages instantly and
+  refreshes them quietly, data and code warmed on link hover, the graph editor
+  loaded on demand, and buttons that say what they are doing ("Saving…").
+  Ctrl/⌘ S saves an agent.

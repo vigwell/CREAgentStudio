@@ -18,6 +18,18 @@ export default defineConfig({
       "/api": { target: "http://localhost:4000", changeOrigin: true, rewrite: (p: string) => p.replace(/^\/api/, "") },
     },
   },
+  // Libraries change rarely: separate files stay cached across app updates.
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          msal: ["@azure/msal-browser"],
+          i18n: ["i18next", "react-i18next"],
+        },
+      },
+    },
+  },
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
