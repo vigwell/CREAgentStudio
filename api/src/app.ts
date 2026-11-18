@@ -4,6 +4,8 @@ import { KnowledgeService } from "./knowledge/service.js";
 import { AppError } from "./errors.js";
 import { AgentService } from "./agents/service.js";
 import { registerAgentRoutes } from "./agents/routes.js";
+import { RunService } from "./runtime/service.js";
+import { registerRunRoutes } from "./runtime/routes.js";
 import { registerKnowledgeRoutes } from "./knowledge/routes.js";
 import type { Db } from "./db/pool.js";
 import { AuthError, bearerToken, type CreIdentity } from "./auth/creToken.js";
@@ -82,6 +84,7 @@ export function buildApp(deps: AppDeps) {
   app.register(multipart);
   app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
   app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db), requireUser));
+  app.register(async (scope) => registerRunRoutes(scope, new RunService(deps.db), requireUser));
 
   return app;
 }

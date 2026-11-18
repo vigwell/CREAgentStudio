@@ -9,6 +9,7 @@ import { RevisionPage } from "./pages/RevisionPage";
 import { AgentsList } from "./pages/AgentsList";
 import { AgentEditor } from "./pages/AgentEditor";
 import { ClinicProfiles } from "./pages/ClinicProfiles";
+import { AgentRuns } from "./pages/AgentRuns";
 
 type MeState = { kind: "loading" } | { kind: "ok"; user: StudioUser } | { kind: "noAccess" } | { kind: "error"; message: string };
 
@@ -92,6 +93,7 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
           <Route path="/knowledge/revisions/:revisionId" element={<RevisionPage user={user} />} />
           <Route path="/agents" element={<AgentsList user={user} />} />
           <Route path="/agents/:agentId" element={<AgentEditor user={user} />} />
+          <Route path="/agents/:agentId/runs" element={<AgentRuns />} />
           <Route path="/clinic-profiles" element={<ClinicProfiles user={user} />} />
           <Route path="*" element={<Navigate to="/knowledge" replace />} />
         </Routes>

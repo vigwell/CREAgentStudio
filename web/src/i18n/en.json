@@ -175,5 +175,38 @@
     "withdraw": "Withdraw",
     "rev": "rev {{n}}",
     "newRevision": "New revision"
+  },
+  "runs": {
+    "title": "Test runs",
+    "intro": "Run a frozen candidate on test values. Only entered values are used; an empty field is missing, never false. Findings show the exact rows used and stay for clinician review.",
+    "voiceLater": "Voice agents run on calls, not here.",
+    "noCandidate": "Freeze a candidate in the editor first.",
+    "candidate": "Candidate",
+    "caseRef": "Case reference",
+    "device": "Device (optional)",
+    "notGiven": "— not given —",
+    "run": "Run",
+    "missing": "Missing inputs",
+    "observed": "Observed inputs",
+    "evidence": "Evidence",
+    "row": "row",
+    "blocked": "Blocked by prohibitions",
+    "summary": "Summary",
+    "trace": "Steps",
+    "result": "Result",
+    "reason": "Reason",
+    "outcome": {
+      "findings": "Findings",
+      "needs_review": "Needs review",
+      "needs_input": "Needs input",
+      "not_applicable": "Not applicable",
+      "blocked": "Blocked",
+      "unavailable": "Unavailable"
+    },
+    "action": {
+      "acknowledge": "Acknowledge",
+      "dismiss": "Dismiss",
+      "defer": "Defer"
+    }
   }
 }

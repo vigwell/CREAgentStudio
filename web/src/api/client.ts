@@ -18,9 +18,9 @@ export function setTokenProvider(p: TokenProvider) {
 
 const BASE = "/api";
 
-export async function api<T>(path: string, init: { method?: string; body?: unknown; form?: FormData } = {}): Promise<T> {
+export async function api<T>(path: string, init: { method?: string; body?: unknown; form?: FormData; headers?: Record<string, string> } = {}): Promise<T> {
   const token = await tokenProvider();
-  const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+  const headers: Record<string, string> = { ...init.headers, Authorization: `Bearer ${token}` };
   let body: BodyInit | undefined;
   if (init.form) body = init.form;
   else if (init.body !== undefined) {
@@ -232,4 +232,74 @@ export interface ClinicProfile {
   horizonDays: number;
   status: "draft" | "approved" | "withdrawn";
   createdBy: string;
+}
+
+// ------------------------------------------------------------ runs (week 3)
+
+export interface Candidate {
+  id: string;
+  candidateNo: number;
+  manifestHash: string;
+  draftVersion: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface Evidence {
+  knowledgeRevisionId: string;
+  sourceName: string;
+  rowId: string;
+  sheet: string | null;
+  sourceRow: number;
+}
+
+export interface Finding {
+  code: string;
+  category: string;
+  severity: "info" | "review" | "warning" | "critical";
+  title: string;
+  detail: string | null;
+  nodeId: string;
+  observedInputs: { field: string; value: unknown; sourceRef: string | null; observedAt: string | null; attribution: string }[];
+  evidence: Evidence[];
+  missingInputs: string[];
+  allowedActions: string[];
+}
+
+export interface NodeTrace {
+  nodeId: string;
+  type: string;
+  label: string;
+  state: string;
+  port?: string;
+  outputs: Record<string, unknown>;
+  unknown: string[];
+  note?: string;
+}
+
+export interface RunDetail {
+  runId: string;
+  agentId: string;
+  agentName: string;
+  candidateNo: number;
+  manifestHash: string;
+  caseRef: string;
+  state: string;
+  outcome: string;
+  snapshotHash: string;
+  findings: Finding[];
+  blockedFindings: { code: string; category: string; ruleIds: string[] }[];
+  missingInputs: string[];
+  trace: NodeTrace[];
+  summary: { text: string; ai: string } | null;
+  reviews: { findingIndex: number; findingCode: string; action: string; reason: string | null; by: string; at: string }[];
+}
+
+export interface RunSummary {
+  runId: string;
+  caseRef: string;
+  state: string;
+  outcome: string;
+  candidateNo: number;
+  createdAt: string;
 }

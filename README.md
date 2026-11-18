@@ -63,6 +63,24 @@ Requires Node.js 20 or later.
   | `POST/GET /agents/:id/candidates` | freeze an immutable candidate / list |
   | `GET/POST /clinic-profiles` · `POST /clinic-profiles/:id/revisions · approve · withdraw` | clinic & exam profiles |
 
+- **CDS runs** (week 3): a frozen candidate runs over an immutable input
+  snapshot (stored apart from run metadata, hashed) and the exact knowledge
+  revisions it binds. Ordinary blocks activate all successors, a decision only
+  the chosen port; skipped branches never supply data. Missing, denied or
+  stale values are unknown, never false: the run pauses (`awaiting_input`,
+  `needs_input`) and names the missing fields. One matching row gives a
+  finding with that row as evidence; several or none give `needs_review` and
+  no default. A withdrawn or expired source blocks the run. Findings in a
+  denied output category are dropped and recorded. AI steps are not
+  configured yet: the summary lists the deterministic findings and says so.
+  Test values are entered manually and attributed to the user.
+
+  | Endpoint | |
+  |---|---|
+  | `POST /runs` | `Idempotency-Key` required (428); same key + same body replays, different body 409 |
+  | `GET /runs/:id` · `GET /agents/:id/runs` | result, findings with evidence, steps, reviews |
+  | `POST /runs/:id/reviews` | acknowledge / dismiss / defer (reason) against the run's snapshot hash (409 if stale) |
+
 First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users.
 
 ## Web app
@@ -87,3 +105,8 @@ overwritten), Compile (problems per block, readable preview, manifest hash)
 and Freeze candidate; **Clinic & exam profiles** (site, department, RIS
 procedure, yes/no screening questions, horizon; new revision per change,
 approved by a different user, withdraw).
+
+Screens (week 3): **Test runs** per CDS agent — choose a candidate, case
+reference and test values, run, then see the outcome, findings with observed
+inputs and evidence links to the source rows, the step trace, and acknowledge /
+dismiss / defer each finding.

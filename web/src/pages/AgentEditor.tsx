@@ -151,6 +151,11 @@ export function AgentEditor({ user }: { user: StudioUser }) {
         </div>
         <div className="ms-auto flex items-center gap-2">
           {notice && <span className="text-sm text-brand-strong">{notice}</span>}
+          {agent.kind === "cds" && (
+            <Link className="btn" to={`/agents/${agent.id}/runs`}>
+              {t("runs.title")}
+            </Link>
+          )}
           {!readOnly && (
             <button className="btn" disabled={!dirty || busy} onClick={() => void save()}>
               {t("editor.save")}
