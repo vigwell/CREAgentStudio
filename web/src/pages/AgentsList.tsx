@@ -7,6 +7,7 @@ import { invalidate, useQuery } from "../api/query";
 import { TableSkeleton } from "../ui/Skeleton";
 import { warmAgent } from "./lazy";
 import { Plus } from "lucide-react";
+import { Field } from "../ui/Field";
 
 export function AgentsList({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
@@ -51,30 +52,25 @@ export function AgentsList({ user }: { user: StudioUser }) {
       <ErrorNote error={error ?? q.error} />
 
       {creating && (
-        <div className="card grid gap-4 md:grid-cols-2">
-          <label>
-            <span className="label">{t("agents.kind")}</span>
+        <div className="card field-grid md:grid-cols-2">
+          <Field label={t("agents.kind")}>
             <select className="input" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as AgentKind })}>
               <option value="cds">{t("agents.cds")}</option>
               <option value="voice">{t("agents.voice")}</option>
             </select>
-          </label>
-          <label>
-            <span className="label">{t("agents.name")}</span>
+          </Field>
+          <Field label={t("agents.name")}>
             <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          </label>
-          <label className="md:col-span-2">
-            <span className="label">{t("agents.intendedUse")}</span>
+          </Field>
+          <Field className="md:col-span-2" label={t("agents.intendedUse")}>
             <textarea className="input" rows={2} value={form.intendedUse} onChange={(e) => setForm({ ...form, intendedUse: e.target.value })} />
-          </label>
-          <label>
-            <span className="label">{t("agents.department")}</span>
+          </Field>
+          <Field label={t("agents.department")}>
             <input className="input" value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} />
-          </label>
-          <label>
-            <span className="label">{t("agents.devices")}</span>
+          </Field>
+          <Field label={t("agents.devices")}>
             <input className="input" value={form.devices} onChange={(e) => setForm({ ...form, devices: e.target.value })} />
-          </label>
+          </Field>
           <div className="flex gap-2 md:col-span-2">
             <button className="btn btn-primary" disabled={!form.name.trim() || !form.intendedUse.trim()} onClick={() => void create()}>
               {t("agents.create")}
@@ -105,13 +101,13 @@ export function AgentsList({ user }: { user: StudioUser }) {
                 <tr key={a.id}>
                   <td className="font-medium">
                     {a.name}
-                    <div className="text-xs text-ink-subtle">{t("agents.version", { v: a.draftVersion })}</div>
+                    <div className="text-caption text-ink-subtle">{t("agents.version", { v: a.draftVersion })}</div>
                   </td>
                   <td>{t(`agents.${a.kind}`)}</td>
                   <td className="hidden max-w-md text-ink-muted md:table-cell">{a.intendedUse}</td>
                   <td>{a.candidates}</td>
                   <td className="text-end">
-                    <Link className="btn" to={`/agents/${a.id}`} onMouseEnter={() => warmAgent(a.id)} onFocus={() => warmAgent(a.id)}>
+                    <Link className="btn btn-sm" to={`/agents/${a.id}`} onMouseEnter={() => warmAgent(a.id)} onFocus={() => warmAgent(a.id)}>
                       {t("agents.open")}
                     </Link>
                   </td>

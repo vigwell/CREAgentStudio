@@ -81,6 +81,13 @@ export function buildApp(deps: AppDeps) {
     return reply.code(500).send({ error: "internal", message: "Something went wrong" });
   });
 
+  // Every :id in the API is a UUID: anything else is simply not found (never a database error).
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  app.addHook("preValidation", async (req) => {
+    const id = (req.params as Record<string, string> | undefined)?.id;
+    if (id !== undefined && !UUID.test(id)) throw new AppError(404, "not_found", "Not found");
+  });
+
   app.register(multipart);
   app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
   app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db), requireUser));

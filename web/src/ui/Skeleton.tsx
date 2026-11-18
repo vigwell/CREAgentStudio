@@ -56,7 +56,7 @@ export function EditorSkeleton() {
   return (
     <div className="space-y-4" aria-busy="true">
       <HeaderSkeleton actions={3} />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[200px_minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[240px_minmax(0,1fr)_300px]">
         <div className="card hidden space-y-2 p-3 lg:block">
           {Array.from({ length: 6 }, (_, i) => (
             <Skeleton key={i} className="h-9" />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { AgentDraft, AgentKind, Catalog } from "../api/client";
+import { Field } from "../ui/Field";
 
 type P = AgentDraft["prohibitions"];
 
@@ -27,7 +28,7 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
         <ul className="space-y-1 text-sm">
           {locked.map((r) => (
             <li key={r.id} className="flex gap-2">
-              <span className="font-mono text-xs text-ink-subtle">{r.id}</span>
+              <span className="shrink-0 rounded bg-surface-sunken px-1.5 text-caption font-medium text-ink-muted">{r.id}</span>
               <span className="text-ink">{r.text}</span>
             </li>
           ))}
@@ -40,7 +41,8 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
             <label key={r.id} className="flex items-start gap-2 text-sm">
               <input type="checkbox" className="mt-1" checked={value.optional.includes(r.id)} onChange={(e) => toggle(r.id, e.target.checked)} />
               <span>
-                <span className="font-mono text-xs text-ink-subtle">{r.id}</span> {r.text}
+                <span className="me-1.5 rounded bg-surface-sunken px-1.5 text-caption font-medium text-ink-muted">{r.id}</span>
+                {r.text}
               </span>
             </label>
           ))}
@@ -57,8 +59,7 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
                     ×
                   </button>
                 </div>
-                <label className="block">
-                  <span className="label">{t("editor.mapTo")}</span>
+                <Field label={t("editor.mapTo")}>
                   <select
                     className="input"
                     value={c.binding && c.binding.type === "deny_output" ? c.binding.category : ""}
@@ -67,11 +68,11 @@ export function Prohibitions({ kind, catalog, value, readOnly, onChange }: { kin
                     <option value="">{t("editor.unmapped")}</option>
                     {catalog.outputCategories.map((cat) => (
                       <option key={cat} value={cat}>
-                        deny_output: {cat}
+                        {t("editor.blockOutput", { category: t(`categories.${cat}`, { defaultValue: cat }) })}
                       </option>
                     ))}
                   </select>
-                </label>
+                </Field>
                 <label className="flex items-center gap-2">
                   <input type="checkbox" checked={c.reviewed} disabled={!c.binding} onChange={(e) => set({ reviewed: e.target.checked })} />
                   <span>{t("editor.reviewed")}</span>

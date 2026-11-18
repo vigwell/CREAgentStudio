@@ -7,6 +7,7 @@ import { ErrorNote } from "../components/ErrorNote";
 import { Plus } from "lucide-react";
 import { invalidate, prefetch, useQuery } from "../api/query";
 import { TableSkeleton } from "../ui/Skeleton";
+import { Field } from "../ui/Field";
 
 const KINDS: SourceKind[] = ["device_protocol", "clinical_rule", "reference_document"];
 
@@ -48,13 +49,11 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
       <ErrorNote error={error ?? q.error} />
 
       {creating && (
-        <div className="card grid gap-4 md:grid-cols-3">
-          <label>
-            <span className="label">{t("knowledge.name")}</span>
+        <div className="card field-grid md:grid-cols-3">
+          <Field label={t("knowledge.name")}>
             <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoFocus />
-          </label>
-          <label>
-            <span className="label">{t("knowledge.kind")}</span>
+          </Field>
+          <Field label={t("knowledge.kind")}>
             <select className="input" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as SourceKind })}>
               {KINDS.map((k) => (
                 <option key={k} value={k}>
@@ -62,11 +61,10 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
                 </option>
               ))}
             </select>
-          </label>
-          <label>
-            <span className="label">{t("knowledge.issuingOrg")}</span>
+          </Field>
+          <Field label={t("knowledge.issuingOrg")}>
             <input className="input" value={form.issuingOrg} onChange={(e) => setForm({ ...form, issuingOrg: e.target.value })} />
-          </label>
+          </Field>
           <div className="flex gap-2 md:col-span-3">
             <button className="btn btn-primary" disabled={!form.name.trim()} onClick={() => void create()}>
               {t("knowledge.create")}
@@ -100,32 +98,38 @@ export function KnowledgeList({ user }: { user: StudioUser }) {
                 <tr key={s.id}>
                   <td className="font-medium">
                     {s.name}
-                    {s.issuingOrg && <div className="text-xs text-ink-subtle">{s.issuingOrg}</div>}
+                    {s.issuingOrg && <div className="text-caption text-ink-subtle">{s.issuingOrg}</div>}
                   </td>
                   <td>{t(`kinds.${s.kind}`)}</td>
                   <td>
                     {s.latestRevision ? (
                       <span className="flex items-center gap-2">
-                        <span className="text-ink-subtle">#{s.latestRevision.revisionNo}</span>
+                        <span className="text-ink-subtle">{t("profiles.rev", { n: s.latestRevision.revisionNo })}</span>
                         <StatusBadge status={s.latestRevision.status} />
                       </span>
                     ) : (
                       <StatusBadge status={null} />
                     )}
                   </td>
-                  <td>{s.latestRevision?.rowCount ?? "—"}</td>
-                  <td className={s.latestRevision?.errorCount ? "font-semibold text-danger" : ""}>{s.latestRevision?.errorCount ?? "—"}</td>
-                  <td className="whitespace-nowrap text-end">
-                    {s.latestRevision && (
-                      <Link className="me-3 text-sm font-medium text-accent underline" to={`/knowledge/revisions/${s.latestRevision.id}`}>
-                        {t("knowledge.open")}
-                      </Link>
-                    )}
-                    {canAuthor && (
-                      <Link className="text-sm font-medium text-accent underline" to={`/knowledge/${s.id}/import`}>
-                        {t("knowledge.import")}
-                      </Link>
-                    )}
+                  <td className="tabular-nums">{s.latestRevision?.rowCount ?? ""}</td>
+                  <td className={s.latestRevision?.errorCount ? "font-semibold text-danger" : ""}>{s.latestRevision?.errorCount ?? ""}</td>
+                  <td>
+                    <div className="flex justify-end gap-2">
+                      {canAuthor && (
+                        <Link className="btn btn-sm" to={`/knowledge/${s.id}/import`}>
+                          {t("knowledge.import")}
+                        </Link>
+                      )}
+                      {s.latestRevision && (
+                        <Link
+                          className="btn btn-sm"
+                          to={`/knowledge/revisions/${s.latestRevision.id}`}
+                          onMouseEnter={() => prefetch(`/knowledge/revisions/${s.latestRevision!.id}?pageSize=200`)}
+                        >
+                          {t("knowledge.open")}
+                        </Link>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

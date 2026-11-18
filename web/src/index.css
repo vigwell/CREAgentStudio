@@ -111,7 +111,7 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     @apply bg-canvas text-body text-ink antialiased;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Hebrew", Arial, sans-serif;
+    font-family: "IBM Plex Sans", "IBM Plex Sans Hebrew", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
     font-variant-numeric: tabular-nums;
   }
   :focus-visible { outline: 2px solid rgb(var(--c-accent)); outline-offset: 2px; }
@@ -148,10 +148,13 @@
   .card { @apply rounded-panel border border-line bg-surface p-4 sm:p-5; }
   .input { @apply h-10 w-full rounded-control border border-line-strong bg-surface px-3 text-sm text-ink placeholder:text-ink-subtle focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/25 disabled:bg-surface-sunken disabled:text-ink-subtle; }
   textarea.input { @apply h-auto py-2; }
-  .label { @apply mb-1.5 block text-caption font-medium text-ink-muted; }
+  .label { @apply mb-1.5 block truncate text-caption font-medium text-ink-muted; }
+  .hint { @apply mt-1.5 block text-caption text-ink-subtle; }
+  /* Rows of fields: controls start on one line whatever the labels and hints do. */
+  .field-grid { @apply grid grid-cols-1 items-start gap-x-4 gap-y-5; }
   .table { @apply w-full text-sm; }
   .table th { @apply whitespace-nowrap border-b border-line px-3 py-2.5 text-start text-caption font-medium text-ink-subtle; }
-  .table td { @apply border-b border-line px-3 py-3 align-top; }
+  .table td { @apply border-b border-line px-3 py-3 align-middle; }
   .table tbody tr:last-child td { @apply border-b-0; }
   .table tbody tr:hover td { @apply bg-surface-sunken/40; }
   /* Wide tables scroll inside their panel; the page never scrolls sideways. */

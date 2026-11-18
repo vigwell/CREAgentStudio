@@ -92,7 +92,7 @@ describe("AgentEditor", () => {
     const body = put.body as { version: number; graph: { nodes: { type: string }[] } };
     expect(body.version).toBe(3);
     expect(body.graph.nodes.map((n) => n.type)).toContain("decision");
-    expect(screen.getByText("Draft v4", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Draft 4", { exact: false })).toBeInTheDocument();
   });
 
   it("shows the locked platform prohibitions", async () => {

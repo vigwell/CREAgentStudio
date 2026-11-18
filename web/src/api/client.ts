@@ -312,6 +312,7 @@ export interface RunDetail {
   trace: NodeTrace[];
   summary: { text: string; ai: string } | null;
   reviews: { findingIndex: number; findingCode: string; action: string; reason: string | null; by: string; at: string }[];
+  createdAt: string;
 }
 
 export interface RunSummary {

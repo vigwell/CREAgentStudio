@@ -6,6 +6,7 @@ import { ErrorNote } from "../components/ErrorNote";
 import { useQuery } from "../api/query";
 import { TableSkeleton } from "../ui/Skeleton";
 import { Plus } from "lucide-react";
+import { Field } from "../ui/Field";
 
 const EMPTY = { name: "", site: "", department: "", risProcedureCode: "", horizonDays: 30, questions: "" };
 
@@ -94,15 +95,13 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
       <ErrorNote error={error ?? q.error} />
 
       {form && (
-        <div className="card grid gap-4 md:grid-cols-2">
+        <div className="card field-grid md:grid-cols-2">
           {(["name", "site", "department", "risProcedureCode"] as const).map((k) => (
-            <label key={k}>
-              <span className="label">{t(`profiles.${k === "risProcedureCode" ? "ris" : k}`)}</span>
+            <Field key={k} label={t(`profiles.${k === "risProcedureCode" ? "ris" : k}`)}>
               <input className="input" value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} />
-            </label>
+            </Field>
           ))}
-          <label>
-            <span className="label">{t("profiles.horizon")}</span>
+          <Field label={t("profiles.horizon")}>
             <input
               className="input"
               type="number"
@@ -111,11 +110,10 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
               value={form.horizonDays}
               onChange={(e) => setForm({ ...form, horizonDays: Number(e.target.value) })}
             />
-          </label>
-          <label className="md:col-span-2">
-            <span className="label">{t("profiles.questions")}</span>
+          </Field>
+          <Field className="md:col-span-2" label={t("profiles.questions")}>
             <textarea className="input" rows={4} value={form.questions} onChange={(e) => setForm({ ...form, questions: e.target.value })} />
-          </label>
+          </Field>
           <div className="flex gap-2 md:col-span-2">
             <button className="btn btn-primary" onClick={() => void save()}>
               {t("profiles.create")}
@@ -140,43 +138,45 @@ export function ClinicProfiles({ user }: { user: StudioUser }) {
             <thead>
               <tr>
                 <th>{t("profiles.name")}</th>
+                <th>{t("profiles.status")}</th>
                 <th>{t("profiles.site")}</th>
                 <th>{t("profiles.ris")}</th>
-                <th>{t("profiles.horizon")}</th>
-                <th>{t("profiles.questions")}</th>
+                <th className="text-end">{t("profiles.horizonShort")}</th>
+                <th className="text-end">{t("profiles.questionsShort")}</th>
                 <th />
               </tr>
             </thead>
             <tbody>
               {profiles.map((p) => (
                 <tr key={p.id}>
-                  <td className="font-medium">
-                    {p.name} <span className="text-xs text-ink-subtle">{t("profiles.rev", { n: p.revisionNo })}</span>
-                    <div className="mt-1">
-                      <StatusBadge status={p.status} />
-                    </div>
+                  <td>
+                    <div className="font-medium text-ink">{p.name}</div>
+                    <div className="text-caption text-ink-subtle">{t("profiles.rev", { n: p.revisionNo })}</div>
+                  </td>
+                  <td>
+                    <StatusBadge status={p.status} />
                   </td>
                   <td>
                     {p.site}
-                    <div className="text-xs text-ink-subtle">{p.department}</div>
+                    <div className="text-caption text-ink-subtle">{p.department}</div>
                   </td>
-                  <td className="font-mono text-xs">{p.risProcedureCode}</td>
-                  <td>{p.horizonDays}</td>
-                  <td className="text-xs text-ink-muted">{p.questions.length}</td>
+                  <td>{p.risProcedureCode}</td>
+                  <td className="text-end tabular-nums">{p.horizonDays}</td>
+                  <td className="text-end tabular-nums">{p.questions.length}</td>
                   <td className="text-end">
                     <div className="flex flex-wrap justify-end gap-2">
                     {canApprove && p.status === "draft" && p.createdBy !== user.id && (
-                      <button className="btn btn-primary" disabled={busyId === p.id} onClick={() => void act(p.id, "approve")}>
+                      <button className="btn btn-sm btn-primary" disabled={busyId === p.id} onClick={() => void act(p.id, "approve")}>
                         {t("profiles.approve")}
                       </button>
                     )}
                     {canAuthor && p.status !== "withdrawn" && (
-                      <button className="btn" onClick={() => revise(p)}>
+                      <button className="btn btn-sm" onClick={() => revise(p)}>
                         {t("profiles.newRevision")}
                       </button>
                     )}
                     {canApprove && p.status === "approved" && (
-                      <button className="btn btn-danger" disabled={busyId === p.id} onClick={() => void act(p.id, "withdraw")}>
+                      <button className="btn btn-sm btn-danger" disabled={busyId === p.id} onClick={() => void act(p.id, "withdraw")}>
                         {t("profiles.withdraw")}
                       </button>
                     )}

@@ -15,6 +15,7 @@ import { BlockNode, type BlockFlowNode } from "../agents/BlockNode";
 import { Inspector } from "../agents/Inspector";
 import { Prohibitions } from "../agents/Prohibitions";
 import { addBlock, blockLabel, blockMap, connect, issuesByNode, paletteFor, removeBlocks, updateNode, type Graph } from "../agents/graph";
+import { Field } from "../ui/Field";
 
 const nodeTypes = { block: BlockNode };
 type Tab = "instructions" | "prohibitions" | "problems";
@@ -215,7 +216,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
       )}
       <ErrorNote error={error} />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[200px_minmax(0,1fr)_320px]">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[240px_minmax(0,1fr)_300px]">
         <div className={`card p-3 ${readOnly ? "hidden lg:block" : ""}`}>
           <h2 className="label">{t("editor.blocks")}</h2>
           <p className="mb-2 text-caption text-ink-subtle">{t("editor.addHint")}</p>
@@ -223,7 +224,8 @@ export function AgentEditor({ user }: { user: StudioUser }) {
           {paletteFor(catalog, agent.kind).map((b) => (
             <button
               key={b.type}
-              className="inline-flex min-h-9 items-center gap-2 py-1.5 leading-snug rounded-control border border-line bg-surface px-3 text-start text-sm text-ink hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:text-ink-subtle lg:w-full"
+              title={blockLabel(t, b)}
+              className="inline-flex h-9 min-w-0 items-center gap-2 rounded-control border border-line bg-surface px-3 text-start text-sm text-ink hover:border-accent hover:bg-accent-soft disabled:cursor-not-allowed disabled:text-ink-subtle lg:w-full"
               disabled={readOnly}
               onClick={() =>
                 setGraph((g) => {
@@ -234,7 +236,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
               }
             >
               <Plus size={14} className="shrink-0 text-ink-subtle" />
-              {blockLabel(t, b)}
+              <span className="truncate">{blockLabel(t, b)}</span>
             </button>
           ))}
           </div>
@@ -312,8 +314,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
 
         {tab === "instructions" && (
           <fieldset disabled={readOnly} className="space-y-2">
-            <label className="block">
-              <span className="label">{t("editor.agentPrompt")}</span>
+            <Field label={t("editor.agentPrompt")}>
               <textarea
                 className="input"
                 rows={6}
@@ -323,10 +324,9 @@ export function AgentEditor({ user }: { user: StudioUser }) {
                   setDirty(true);
                 }}
               />
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <label>
-                <span className="label">{t("editor.promptId")}</span>
+            </Field>
+            <div className="field-grid sm:grid-cols-2">
+              <Field label={t("editor.promptId")}>
                 <input
                   className="input"
                   value={draft.agentPrompt?.promptId ?? ""}
@@ -335,9 +335,8 @@ export function AgentEditor({ user }: { user: StudioUser }) {
                     setDirty(true);
                   }}
                 />
-              </label>
-              <label>
-                <span className="label">{t("editor.promptRev")}</span>
+              </Field>
+              <Field label={t("editor.promptRev")}>
                 <input
                   className="input"
                   value={draft.agentPrompt?.revisionId ?? ""}
@@ -346,7 +345,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
                     setDirty(true);
                   }}
                 />
-              </label>
+              </Field>
             </div>
           </fieldset>
         )}
@@ -376,7 +375,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
                     {compiled.issues.map((i, k) => (
                       <li key={k}>
                         <button className="text-start hover:underline" onClick={() => i.nodeId && setSelected(i.nodeId)}>
-                          <span className="font-mono text-xs text-ink-subtle">{i.code}</span> {i.message}
+                          {i.message}
                         </button>
                       </li>
                     ))}

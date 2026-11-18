@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { BlockDef, Catalog, ClinicProfile, GraphNode, Issue, SourceSummary } from "../api/client";
 import { blockLabel, formatConditionValue, parseConditionValue, upstreamOf, type Graph } from "./graph";
+import { Field } from "../ui/Field";
 
 type Props = {
   graph: Graph;
@@ -31,7 +32,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
 
   return (
     <fieldset disabled={readOnly} className="space-y-4">
-      <div className="text-xs font-semibold uppercase tracking-wide text-ink-subtle">{blockLabel(t, def, node.type)}</div>
+      <div className="text-sm font-medium text-ink-muted">{blockLabel(t, def, node.type)}</div>
       {issues.length > 0 && (
         <ul className="space-y-1 rounded-control border border-danger/40 bg-danger-soft p-2 text-xs text-danger">
           {issues.map((i, k) => (
@@ -39,37 +40,32 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
           ))}
         </ul>
       )}
-      <label className="block">
-        <span className="label">{t("editor.label")}</span>
+      <Field label={t("editor.label")}>
         <input className="input" value={node.label} onChange={(e) => onChange({ label: e.target.value })} />
-      </label>
+      </Field>
 
       {def?.aiCapable && !def.terminal && (
-        <label className="block">
-          <span className="label">{t("editor.execution")}</span>
+        <Field label={t("editor.execution")}>
           <select className="input" value={node.executionKind ?? "deterministic"} onChange={(e) => onChange({ executionKind: e.target.value as "deterministic" | "ai" })}>
             <option value="deterministic">{t("editor.deterministic")}</option>
             <option value="ai">{t("editor.ai")}</option>
           </select>
-        </label>
+        </Field>
       )}
 
       {isAi && (
         <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <label>
-              <span className="label">{t("editor.promptId")}</span>
+          <div className="field-grid sm:grid-cols-2">
+            <Field label={t("editor.promptId")}>
               <input className="input" value={node.prompt?.promptId ?? ""} onChange={(e) => onChange({ prompt: { ...node.prompt, promptId: e.target.value || null } })} />
-            </label>
-            <label>
-              <span className="label">{t("editor.promptRev")}</span>
+            </Field>
+            <Field label={t("editor.promptRev")}>
               <input className="input" value={node.prompt?.revisionId ?? ""} onChange={(e) => onChange({ prompt: { ...node.prompt, revisionId: e.target.value || null } })} />
-            </label>
+            </Field>
           </div>
-          <label className="block">
-            <span className="label">{t("editor.draftPrompt")}</span>
+          <Field label={t("editor.draftPrompt")}>
             <textarea className="input" rows={4} value={node.prompt?.draftText ?? ""} onChange={(e) => onChange({ prompt: { ...node.prompt, draftText: e.target.value || null } })} />
-          </label>
+          </Field>
         </div>
       )}
 
@@ -95,7 +91,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
                 <option value="">{t("editor.none")}</option>
                 {defs.get(condSource.type)?.outputs.map((o) => (
                   <option key={o.name} value={o.name}>
-                    {o.name} ({o.type})
+                    {t(`fields.${o.name}`, { defaultValue: o.name })}
                   </option>
                 ))}
               </select>
@@ -107,7 +103,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
               >
                 {catalog.operators.map((o) => (
                   <option key={o} value={o}>
-                    {o}
+                    {t(`ops.${o}`, { defaultValue: o })}
                   </option>
                 ))}
               </select>
@@ -117,15 +113,15 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
                     <option value="">{t("editor.none")}</option>
                     {condField.values.map((v) => (
                       <option key={v} value={v}>
-                        {v}
+                        {t(`values.${v}`, { defaultValue: v })}
                       </option>
                     ))}
                   </select>
                 ) : condField?.type === "boolean" ? (
                   <select className="input" aria-label={t("editor.value")} value={formatConditionValue(cond.value)} onChange={(e) => onChange({ condition: { ...cond, value: parseConditionValue(e.target.value, "boolean", cond.operator) } })}>
                     <option value="">{t("editor.none")}</option>
-                    <option value="true">true</option>
-                    <option value="false">false</option>
+                    <option value="true">{t("values.true")}</option>
+                    <option value="false">{t("values.false")}</option>
                   </select>
                 ) : (
                   <input
@@ -141,31 +137,29 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
       )}
 
       {def?.knowledgeKind && (
-        <label className="block">
-          <span className="label">{t("editor.knowledge")}</span>
+        <Field label={t("editor.knowledge")}>
           <select className="input" value={node.knowledgeRevisionId ?? ""} onChange={(e) => onChange({ knowledgeRevisionId: e.target.value || null })}>
             <option value="">{t("editor.none")}</option>
             {approvedKnowledge.map((s) => (
               <option key={s.latestRevision!.id} value={s.latestRevision!.id}>
-                {s.name} · rev {s.latestRevision!.revisionNo}
+                {s.name}, {t("profiles.rev", { n: s.latestRevision!.revisionNo })}
               </option>
             ))}
           </select>
-        </label>
+        </Field>
       )}
 
       {node.type === "clinic_profile" && (
-        <label className="block">
-          <span className="label">{t("editor.profile")}</span>
+        <Field label={t("editor.profile")}>
           <select className="input" value={node.clinicProfileId ?? ""} onChange={(e) => onChange({ clinicProfileId: e.target.value || null })}>
             <option value="">{t("editor.none")}</option>
             {approvedProfiles.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.name} · {p.risProcedureCode} · rev {p.revisionNo}
+                {p.name} ({p.risProcedureCode}), {t("profiles.rev", { n: p.revisionNo })}
               </option>
             ))}
           </select>
-        </label>
+        </Field>
       )}
 
       {showsOutputs && (
@@ -184,7 +178,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
                     onChange({ outputCategories: [...cur] });
                   }}
                 />
-                <span className="font-mono text-xs">{c}</span>
+                <span className="text-sm">{t(`categories.${c}`, { defaultValue: c })}</span>
               </label>
             ))}
           </div>

@@ -6,6 +6,7 @@ import { Skeleton, TableSkeleton } from "../ui/Skeleton";
 import { api, type FieldDef, type Preview, type SourceKind, type SourceSummary, type UploadResult } from "../api/client";
 import { ErrorNote } from "../components/ErrorNote";
 import { suggestMapping } from "../mapping";
+import { Field } from "../ui/Field";
 
 interface FieldsResponse {
   fields: FieldDef[];
@@ -144,8 +145,7 @@ export function ImportWizard() {
         <div className="card space-y-4">
           <div className="flex flex-wrap gap-4">
             {upload.fileType === "xlsx" && (
-              <label className="w-64">
-                <span className="label">{t("wizard.sheet")}</span>
+              <Field className="w-64" label={t("wizard.sheet")}>
                 <select className="input" value={sheet ?? ""} onChange={(e) => setSheet(e.target.value)}>
                   {upload.sheets.map((s) => (
                     <option key={s.name} value={s.name}>
@@ -153,12 +153,11 @@ export function ImportWizard() {
                     </option>
                   ))}
                 </select>
-              </label>
+              </Field>
             )}
-            <label className="w-40">
-              <span className="label">{t("wizard.headerRow")}</span>
+            <Field className="w-40" label={t("wizard.headerRow")}>
               <input className="input" type="number" min={1} value={headerRow} onChange={(e) => setHeaderRow(Math.max(1, Number(e.target.value) || 1))} />
-            </label>
+            </Field>
           </div>
           {!preview && previewLoading && <TableSkeleton bare rows={3} cols={5} />}
           {preview && (
@@ -249,28 +248,26 @@ export function ImportWizard() {
 
       {step === 4 && (
         <div className="card space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
-            <label>
-              <span className="label">{t("wizard.clinicalOwner")}</span>
+          <div className="field-grid md:grid-cols-3">
+            <Field label={t("wizard.clinicalOwner")}>
               <input className="input" value={meta.clinicalOwner} onChange={(e) => setMeta({ ...meta, clinicalOwner: e.target.value })} />
-            </label>
-            <label>
-              <span className="label">{t("wizard.effectiveFrom")}</span>
+            </Field>
+            <Field label={t("wizard.effectiveFrom")}>
               <input className="input" type="date" value={meta.effectiveFrom} onChange={(e) => setMeta({ ...meta, effectiveFrom: e.target.value })} />
-            </label>
-            <label>
-              <span className="label">{t("wizard.reviewDue")}</span>
+            </Field>
+            <Field label={t("wizard.reviewDue")}>
               <input className="input" type="date" value={meta.reviewDue} onChange={(e) => setMeta({ ...meta, reviewDue: e.target.value })} />
-            </label>
+            </Field>
           </div>
-          <fieldset className="grid gap-4 md:grid-cols-4">
-            <legend className="label">{t("wizard.scope")}</legend>
-            {(["site", "department", "modality", "devices"] as const).map((k) => (
-              <label key={k}>
-                <span className="text-xs text-ink-subtle">{t(`wizard.${k}`)}</span>
-                <input className="input" value={meta[k]} onChange={(e) => setMeta({ ...meta, [k]: e.target.value })} />
-              </label>
-            ))}
+          <fieldset className="border-t border-line pt-4">
+            <legend className="mb-3 text-sm font-medium text-ink">{t("wizard.scope")}</legend>
+            <div className="field-grid sm:grid-cols-2 lg:grid-cols-4">
+              {(["site", "department", "modality", "devices"] as const).map((k) => (
+                <Field key={k} label={t(`wizard.${k}`)}>
+                  <input className="input" value={meta[k]} onChange={(e) => setMeta({ ...meta, [k]: e.target.value })} />
+                </Field>
+              ))}
+            </div>
           </fieldset>
           <div className="flex gap-2">
             <button className="btn" onClick={() => setStep(3)}>
