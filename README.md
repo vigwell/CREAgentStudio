@@ -14,6 +14,7 @@ One Studio for building, testing and approving CRE agents: clinical decision sup
 cp .env.example .env      # fill DB_USER / DB_PASSWORD
 npm install
 npm run migrate           # applies pending migrations to XCreAgents
+npm run seed:demo         # optional: demo knowledge, profiles, agents and runs (DEMO ·)
 npm test                  # unit tests, plus database tests when .env is present
 npm run dev               # API on http://localhost:4000
 npm run dev:web           # web app on https://localhost:3000 (/api → API)

@@ -14,7 +14,8 @@
     "test": "npm test -w api && npm test -w web",
     "migrate": "npm run migrate -w api",
     "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
-    "dev:web": "npm run dev -w web"
+    "dev:web": "npm run dev -w web",
+    "seed:demo": "npm run seed:demo -w api"
   },
   "overrides": {
     "react": "18.3.1",
