@@ -159,6 +159,13 @@ describe("runAgent", () => {
     expect(r.aiCalls?.map((c) => c.reason)).toEqual(["timeout", "HTTP 500"]);
   });
 
+  it("a content-filter refusal is a rejected step, and the run still completes", async () => {
+    const ai = fakeAi({ patient_facts: new AiError("refused", "content_filter", 400), cds_summary: { summary: "ok" } });
+    const r = await runAgent(manifest({ extractAi: true }), snap({ indicationCode: manual("DEMO-A"), clinicalNote: manual(NOTE) }), k, ai);
+    expect(r.aiCalls?.[0]).toMatchObject({ status: "rejected", reason: "content_filter" });
+    expect(r.outcome).toBe("findings");
+  });
+
   it("a summary with a value not in the findings is rejected", async () => {
     const ai = fakeAi({ cds_summary: { summary: "Protocol CT-HEAD-01; give 100 ml contrast." } });
     const r = await runAgent(manifest(), snap({ hasIndication: manual(true), indicationCode: manual("DEMO-A") }), k, ai);
@@ -229,7 +236,8 @@ describe("AI client", () => {
   it("maps HTTP errors, refusals, incomplete replies and bad JSON to AiError", async () => {
     const mk = (res: Response) => createAiClient({ endpoint: "https://x", apiKey: "k", deployment: "d", fetchImpl: (async () => res) as unknown as typeof fetch });
     const call = (c: AiClient) => c.call({ instructions: "", input: "", schemaName: "s", schema: {} });
-    await expect(call(mk(ok({ error: { code: "DeploymentNotFound", message: "nope" } }, 404)))).rejects.toMatchObject({ reason: "http", status: 404 });
+    await expect(call(mk(ok({ error: { code: "DeploymentNotFound", message: "nope" } }, 404)))).rejects.toMatchObject({ reason: "http", status: 404, message: "HTTP 404 DeploymentNotFound" });
+    await expect(call(mk(ok({ error: { code: "content_filter", message: "filtered" } }, 400)))).rejects.toMatchObject({ reason: "refused", message: "content_filter" });
     await expect(call(mk(ok({ output: [{ type: "message", content: [{ type: "refusal", refusal: "no" }] }] })))).rejects.toMatchObject({ reason: "refused" });
     await expect(call(mk(ok({ status: "incomplete", incomplete_details: { reason: "max_output_tokens" } })))).rejects.toMatchObject({ reason: "incomplete" });
     await expect(call(mk(ok({ output_text: "not json" })))).rejects.toMatchObject({ reason: "bad_reply" });

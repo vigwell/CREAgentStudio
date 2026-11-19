@@ -123,9 +123,12 @@ const SYNTHESIS_SCHEMA = {
 };
 
 function errReason(err: unknown): string {
-  if (err instanceof AiError) return err.reason === "http" ? err.message : err.reason;
+  if (err instanceof AiError) return err.reason === "http" || err.reason === "refused" ? err.message : err.reason;
   return "error";
 }
+
+/** A refusal (e.g. the content filter) is a rejected reply, not an outage. */
+const failStatus = (err: unknown): AiStepStatus => (err instanceof AiError && err.reason === "refused" ? "rejected" : "unavailable");
 
 export interface ExtractionOutcome {
   facts: Record<string, Fact>;
@@ -197,7 +200,7 @@ async function extract(ai: AiClient, node: AiNode, manifest: AiManifest, snapsho
       called: true,
     };
   } catch (err) {
-    return { facts: {}, record: { ...base, status: "unavailable", reason: errReason(err) }, called: true };
+    return { facts: {}, record: { ...base, status: failStatus(err), reason: errReason(err) }, called: true };
   }
 }
 
@@ -250,7 +253,7 @@ async function synthesize(ai: AiClient, node: AiNode, manifest: AiManifest, resu
     if (!numbersSupported(text, payload)) return { text: null, record: { ...meta, status: "rejected", reason: "unsupported_value" } };
     return { text, record: { ...meta, status: "used" } };
   } catch (err) {
-    return { text: null, record: { ...base, status: "unavailable", reason: errReason(err) } };
+    return { text: null, record: { ...base, status: failStatus(err), reason: errReason(err) } };
   }
 }
 

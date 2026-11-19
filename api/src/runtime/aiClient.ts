@@ -98,16 +98,16 @@ export function createAiClient(opts: AiClientOptions): AiClient {
         throw new AiError("network", "The AI service could not be reached");
       }
       if (!res.ok) {
-        // Error bodies may echo the request; keep only the service's message.
-        let msg = `HTTP ${res.status}`;
+        // Error bodies may echo the request; keep only the service's code.
+        let code: string | undefined;
         try {
-          const e = (await res.json()) as { error?: { message?: string; code?: string } };
-          if (e.error?.code) msg += ` ${e.error.code}`;
-          if (e.error?.message) msg += `: ${e.error.message.slice(0, 200)}`;
+          code = ((await res.json()) as { error?: { code?: string } }).error?.code;
         } catch {
           /* not JSON */
         }
-        throw new AiError("http", msg, res.status);
+        // Azure's content filter declined the input or the output.
+        if (code === "content_filter") throw new AiError("refused", "content_filter", res.status);
+        throw new AiError("http", `HTTP ${res.status}${code ? ` ${code}` : ""}`, res.status);
       }
       const body = (await res.json()) as Record<string, unknown>;
       const text = outputText(body);
