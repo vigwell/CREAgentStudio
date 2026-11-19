@@ -21,7 +21,8 @@
     "menu": "Ouvrir le menu",
     "collapse": "Réduire la barre latérale",
     "expand": "Développer la barre latérale",
-    "runs": "Inspecteur d’exécutions"
+    "runs": "Inspecteur d’exécutions",
+    "monitoring": "Suivi"
   },
   "roles": {
     "admin": "Administrateur",
@@ -513,5 +514,50 @@
     "delete": "Supprimer",
     "saveAsCase": "Enregistrer comme cas de test",
     "savedAsCase": "Enregistré comme cas de test."
+  },
+  "monitoring": {
+    "title": "Suivi",
+    "intro": "Utilisation et comportement des agents : volume, durée, arrêts pour données manquantes, blocages de politique, revues et usage de l’IA. Des comptes uniquement, aucune donnée patient.",
+    "period": "Période",
+    "lastDays_one": "Dernier jour",
+    "lastDays_other": "{{count}} derniers jours",
+    "empty": "Aucune exécution sur cette période.",
+    "truncated": "Affichage des {{count}} dernières exécutions de la période.",
+    "runs": "Exécutions",
+    "findingsCount_one": "{{n}} constat",
+    "findingsCount_other": "{{n}} constats",
+    "missingStops": "Arrêts pour données manquantes",
+    "ofRuns": "{{share}} des exécutions",
+    "time": "Durée médiane",
+    "timeSub": "95 % en moins de {{p95}}",
+    "seconds": "{{value}} s",
+    "aiCalls": "Appels IA",
+    "aiSub": "{{tokens}} jetons",
+    "aiSubCost": "{{tokens}} jetons · environ {{cost}}",
+    "results": "Résultats",
+    "reviews": "Revues cliniques",
+    "reviewsHint": "Comment les cliniciens ont traité les constats. Ce n’est pas une mesure de la précision clinique.",
+    "noReviews": "Aucun constat revu sur cette période.",
+    "missingFields": "Le plus souvent manquant",
+    "policyBlocks_one": "Blocages de politique ({{count}})",
+    "policyBlocks_other": "Blocages de politique ({{count}})",
+    "none": "Aucun sur cette période.",
+    "aiSteps": "Étapes IA",
+    "departments": "Services",
+    "noDepartment": "Sans service",
+    "byAgent": "Par agent",
+    "department": "Service",
+    "blockedRuns": "Avec un blocage",
+    "aiStatus": {
+      "used": "Utilisée",
+      "nothing_found": "Rien trouvé dans la note",
+      "no_note": "Pas de note clinique",
+      "not_configured": "IA non configurée",
+      "unavailable": "Le service IA n’a pas répondu",
+      "rejected": "Réponse non utilisée",
+      "budget": "Limite d’appels ou de temps atteinte",
+      "prompt_unavailable": "Pas de texte d’invite",
+      "model_changed": "Autre modèle d’IA"
+    }
   }
 }

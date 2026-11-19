@@ -24,6 +24,9 @@ const schema = z.object({
     .transform((v) => (v && v.trim() ? v.trim() : undefined)),
   AI_DEPLOYMENT: z.string().min(1).default("CREAgentStudio__gpt-6.1-sol"),
   AI_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
+  // Optional: USD per million tokens, for the cost estimate on Monitoring.
+  AI_PRICE_INPUT_PER_MTOK: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
+  AI_PRICE_OUTPUT_PER_MTOK: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
 });
 
 export type Config = z.infer<typeof schema>;

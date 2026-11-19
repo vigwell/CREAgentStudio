@@ -3,6 +3,7 @@ import type { FastifyInstance, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { AppError } from "../errors.js";
 import { RunService, type RunRequest } from "./service.js";
+import type { MonitoringService } from "./monitoring.js";
 
 const Run = z.object({
   agentId: z.string().uuid(),
@@ -26,7 +27,7 @@ function parse<T>(schema: z.ZodType<T>, body: unknown): T {
   return r.data;
 }
 
-export function registerRunRoutes(app: FastifyInstance, service: RunService, requireUser: (req: FastifyRequest) => Promise<void>) {
+export function registerRunRoutes(app: FastifyInstance, service: RunService, requireUser: (req: FastifyRequest) => Promise<void>, monitoring?: MonitoringService) {
   const auth = { preHandler: requireUser };
   const id = (req: FastifyRequest) => (req.params as { id: string }).id;
   app.post("/runs", auth, async (req, reply) => {
@@ -49,6 +50,19 @@ export function registerRunRoutes(app: FastifyInstance, service: RunService, req
     return { runs: await service.search(req.user!, q) };
   });
   app.get("/runs/:id", auth, async (req) => service.get(req.user!, id(req)));
+  if (monitoring) {
+    app.get("/monitoring", auth, async (req) => {
+      const q = parse(
+        z.object({
+          days: z.coerce.number().int().min(1).max(366).default(30),
+          agentId: z.string().uuid().optional(),
+          purpose: z.enum(["clinical", "test"]).optional(),
+        }),
+        req.query,
+      );
+      return monitoring.summary(req.user!, { ...q, days: q.days ?? 30 });
+    });
+  }
   app.get("/agents/:id/runs", auth, async (req) => ({ runs: await service.list(req.user!, id(req)) }));
   app.post("/runs/:id/reviews", auth, async (req, reply) => {
     reply.code(201);

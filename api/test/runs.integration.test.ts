@@ -129,6 +129,15 @@ describe.skipIf(!hasDb)("CDS runs (XCreAgents)", { timeout: 240_000 }, () => {
     expect(after.reviews.map((x: { action: string }) => x.action)).toEqual(["acknowledge"]);
     expect((await call("author", "GET", `/agents/${agentId}/runs`)).json().runs).toHaveLength(2);
 
+    // Monitoring: this agent's two runs, one stopped for missing data, the review counted.
+    expect(r.durationMs).toEqual(expect.any(Number));
+    const mon = (await call("author", "GET", `/monitoring?days=1&agentId=${agentId}`)).json();
+    expect(mon).toMatchObject({ runs: 2, outcomes: { findings: 1, needs_input: 1 }, reviews: { acknowledge: 1 }, missingInputs: [{ key: "indicationCode", count: 1 }] });
+    expect(mon.time.measured).toBe(2);
+    expect(mon.byAgent).toEqual([expect.objectContaining({ agentId, runs: 2, needsInput: 1 })]);
+    expect((await call("other", "GET", `/monitoring?days=1&agentId=${agentId}`)).json().runs).toBe(0); // other tenant
+    expect((await call("author", "GET", "/monitoring?days=0")).statusCode).toBe(422);
+
     expect((await call("other", "GET", `/runs/${r.runId}`)).statusCode).toBe(404);
     await expect(
       withTenant(db, TENANT_A, (tx) => new sql.Request(tx).input("id", r.runId).query("UPDATE studio.input_snapshots SET case_ref = N'x' WHERE id = (SELECT snapshot_id FROM studio.agent_runs WHERE id = @id)")),

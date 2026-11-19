@@ -21,7 +21,8 @@
     "menu": "פתיחת התפריט",
     "collapse": "כיווץ סרגל הצד",
     "expand": "הרחבת סרגל הצד",
-    "runs": "בודק הרצות"
+    "runs": "בודק הרצות",
+    "monitoring": "ניטור"
   },
   "roles": {
     "admin": "מנהל",
@@ -516,5 +517,53 @@
     "delete": "מחיקה",
     "saveAsCase": "שמירה כמקרה בדיקה",
     "savedAsCase": "נשמר כמקרה בדיקה."
+  },
+  "monitoring": {
+    "title": "ניטור",
+    "intro": "איך הסוכנים בשימוש ואיך הם מתנהגים: כמות, זמן, עצירות בגלל נתונים חסרים, חסימות מדיניות, סקירות ושימוש ב-AI. ספירות בלבד, ללא נתוני מטופלים.",
+    "period": "תקופה",
+    "lastDays_one": "היום האחרון",
+    "lastDays_other": "{{count}} הימים האחרונים",
+    "empty": "אין הרצות בתקופה זו.",
+    "truncated": "מוצגות {{count}} ההרצות האחרונות בתקופה זו.",
+    "runs": "הרצות",
+    "findingsCount_one": "ממצא אחד",
+    "findingsCount_other": "{{n}} ממצאים",
+    "missingStops": "נעצרו בגלל נתונים חסרים",
+    "ofRuns": "{{share}} מההרצות",
+    "time": "זמן הרצה חציוני",
+    "timeSub": "95% תוך {{p95}}",
+    "seconds": "{{value}} שנ׳",
+    "aiCalls": "קריאות AI",
+    "aiSub": "{{tokens}} טוקנים",
+    "aiSubCost": "{{tokens}} טוקנים · כ-{{cost}}",
+    "results": "תוצאות",
+    "reviews": "סקירות קלינאים",
+    "reviewsHint": "כיצד הקלינאים טיפלו בממצאים. זה אינו מדד לדיוק קליני.",
+    "noReviews": "לא נסקרו ממצאים בתקופה זו.",
+    "missingFields": "חסרים לרוב",
+    "policyBlocks_one": "חסימות מדיניות ({{count}})",
+    "policyBlocks_other": "חסימות מדיניות ({{count}})",
+    "none": "אין בתקופה זו.",
+    "aiSteps": "שלבי AI",
+    "departments": "מחלקות",
+    "noDepartment": "ללא מחלקה",
+    "byAgent": "לפי סוכן",
+    "department": "מחלקה",
+    "blockedRuns": "עם חסימת מדיניות",
+    "aiStatus": {
+      "used": "בשימוש",
+      "nothing_found": "לא נמצא דבר בהערה",
+      "no_note": "אין הערה קלינית",
+      "not_configured": "AI לא הוגדר",
+      "unavailable": "שירות ה-AI לא ענה",
+      "rejected": "התשובה לא שימשה",
+      "budget": "הושגה מגבלת קריאות או זמן",
+      "prompt_unavailable": "אין טקסט הנחיה",
+      "model_changed": "מודל AI אחר"
+    },
+    "lastDays_two": "היומיים האחרונים",
+    "findingsCount_two": "{{n}} ממצאים",
+    "policyBlocks_two": "חסימות מדיניות ({{count}})"
   }
 }

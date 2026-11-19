@@ -133,6 +133,8 @@ export interface RunResult {
   missingInputs: string[];
   trace: NodeTrace[];
   summary: { text: string; ai: "not_configured" | "used" | "unavailable" | "rejected" | "model_changed"; model?: string | null } | null;
+  /** Active execution time of the run, AI calls included (set by the run service). */
+  durationMs?: number;
   /** One record per AI step (status, model, timing, tokens); no clinical text. */
   aiCalls?: { nodeId: string; purpose: string; status: string; model: string | null; ms: number | null; inputTokens: number | null; outputTokens: number | null; reason?: string }[];
 }

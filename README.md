@@ -131,6 +131,14 @@ Requires Node.js 20 or later.
   - A step linked only to a Prompt Builder record (no text) isn't sent until
     Prompt Builder integration resolves the text.
 
+- **Monitoring** (`GET /monitoring?days=&agentId=&purpose=`, page
+  *Monitoring*): runs, results, run time (median, 95%), stops for missing data
+  and the fields most often missing, policy blocks by rule, clinician reviews,
+  AI calls by status and tokens, per agent and department. Counts only, no
+  clinical content. Each run records its active time (`durationMs`). Set
+  `AI_PRICE_INPUT_PER_MTOK` / `AI_PRICE_OUTPUT_PER_MTOK` to show an AI cost
+  estimate. Alerts through CRE operations are not wired yet.
+
 - **Voice scheduling is out of scope for now** (Medilis, 15 Nov 2026: booking
   goes through RADICAL's scheduling APIs and a separate Twilio agent). The web
   app hides the voice agent type, voice agents and Clinic & exam profiles; the

@@ -21,7 +21,8 @@
     "menu": "Open menu",
     "collapse": "Collapse sidebar",
     "expand": "Expand sidebar",
-    "runs": "Run Inspector"
+    "runs": "Run Inspector",
+    "monitoring": "Monitoring"
   },
   "roles": {
     "admin": "Admin",
@@ -513,5 +514,50 @@
     "delete": "Delete",
     "saveAsCase": "Save as test case",
     "savedAsCase": "Saved as a test case."
+  },
+  "monitoring": {
+    "title": "Monitoring",
+    "intro": "How agents are used and behave: volume, time, stops for missing data, policy blocks, reviews and AI use. Counts only, no patient data.",
+    "period": "Period",
+    "lastDays_one": "Last {{count}} day",
+    "lastDays_other": "Last {{count}} days",
+    "empty": "No runs in this period.",
+    "truncated": "Showing the latest {{count}} runs of this period.",
+    "runs": "Runs",
+    "findingsCount_one": "{{n}} finding",
+    "findingsCount_other": "{{n}} findings",
+    "missingStops": "Stopped for missing data",
+    "ofRuns": "{{share}} of runs",
+    "time": "Median run time",
+    "timeSub": "95% within {{p95}}",
+    "seconds": "{{value}} s",
+    "aiCalls": "AI calls",
+    "aiSub": "{{tokens}} tokens",
+    "aiSubCost": "{{tokens}} tokens · about {{cost}}",
+    "results": "Results",
+    "reviews": "Clinician reviews",
+    "reviewsHint": "How clinicians handled findings. This is not a measure of clinical accuracy.",
+    "noReviews": "No findings were reviewed in this period.",
+    "missingFields": "Most often missing",
+    "policyBlocks_one": "Policy blocks ({{count}})",
+    "policyBlocks_other": "Policy blocks ({{count}})",
+    "none": "None in this period.",
+    "aiSteps": "AI steps",
+    "departments": "Departments",
+    "noDepartment": "No department",
+    "byAgent": "By agent",
+    "department": "Department",
+    "blockedRuns": "With a policy block",
+    "aiStatus": {
+      "used": "Used",
+      "nothing_found": "Nothing found in the note",
+      "no_note": "No clinical note",
+      "not_configured": "AI not set up",
+      "unavailable": "AI service didn't answer",
+      "rejected": "Reply not used",
+      "budget": "Call or time limit reached",
+      "prompt_unavailable": "No prompt text",
+      "model_changed": "Different AI model"
+    }
   }
 }

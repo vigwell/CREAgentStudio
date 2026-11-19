@@ -15,6 +15,10 @@ const app = buildApp({
   }),
   autoProvisionTenantId: config.AUTO_PROVISION_TENANT_ID,
   logLevel: config.LOG_LEVEL,
+  aiPrice:
+    config.AI_PRICE_INPUT_PER_MTOK != null && config.AI_PRICE_OUTPUT_PER_MTOK != null
+      ? { inputPerMTok: config.AI_PRICE_INPUT_PER_MTOK, outputPerMTok: config.AI_PRICE_OUTPUT_PER_MTOK }
+      : null,
   ai: config.AI_API_KEY
     ? createAiClient({ endpoint: config.AI_ENDPOINT, apiKey: config.AI_API_KEY, deployment: config.AI_DEPLOYMENT, timeoutMs: config.AI_TIMEOUT_MS })
     : null,

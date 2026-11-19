@@ -177,12 +177,14 @@ export class RunService {
     const snapHash = snapshotHash(snapshot);
 
     let result: RunResult;
+    const started = Date.now();
     try {
       result = await runAgent(manifest, snapshot, knowledge, this.ai);
     } catch {
       // An engine fault fails the run; it never produces a partial clinical result.
       result = { state: "failed", outcome: "unavailable", findings: [], blockedFindings: [], missingInputs: [], trace: [], summary: null };
     }
+    result.durationMs = Date.now() - started;
 
     try {
       return await withTenant(this.db, user.tenantId, async (tx) => {

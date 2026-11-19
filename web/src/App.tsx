@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Activity, Library, Stethoscope, Workflow } from "lucide-react";
+import { Activity, Gauge, Library, Stethoscope, Workflow } from "lucide-react";
 import { AppShell } from "./ui/AppShell";
 import { LanguageMenu } from "./ui/LanguageMenu";
 import { EditorSkeleton, ListPageSkeleton, Skeleton } from "./ui/Skeleton";
@@ -8,6 +8,7 @@ import { prefetch } from "./api/query";
 import { AgentEditorPage } from "./pages/lazy";
 import { AgentRelease } from "./pages/AgentRelease";
 import { RunDetailPage, RunInspector } from "./pages/RunInspector";
+import { Monitoring } from "./pages/Monitoring";
 import { useTranslation } from "react-i18next";
 import { api, ApiError, type StudioUser } from "./api/client";
 import { signIn, signOut } from "./auth/msal";
@@ -67,6 +68,7 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
     // Clinic & exam profiles serve voice scheduling only.
     ...(VOICE_AGENTS ? [{ to: "/clinic-profiles", label: t("nav.profiles"), icon: Stethoscope, warm: () => prefetch("/clinic-profiles") }] : []),
     { to: "/runs", label: t("nav.runs"), icon: Activity, warm: () => prefetch("/runs") },
+    { to: "/monitoring", label: t("nav.monitoring"), icon: Gauge, warm: () => prefetch("/monitoring?days=30") },
   ];
   return (
     <AppShell
@@ -91,6 +93,7 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
         <Route path="/agents/:agentId/runs" element={<AgentRuns />} />
         <Route path="/agents/:agentId/release" element={<AgentRelease user={user} />} />
         <Route path="/runs" element={<RunInspector />} />
+        <Route path="/monitoring" element={<Monitoring />} />
         <Route path="/runs/:runId" element={<RunDetailPage />} />
         <Route path="/clinic-profiles" element={<ClinicProfiles user={user} />} />
         <Route path="*" element={<Navigate to="/knowledge" replace />} />
