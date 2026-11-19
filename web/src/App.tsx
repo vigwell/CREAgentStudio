@@ -15,6 +15,7 @@ import { KnowledgeList } from "./pages/KnowledgeList";
 import { ImportWizard } from "./pages/ImportWizard";
 import { RevisionPage } from "./pages/RevisionPage";
 import { AgentsList } from "./pages/AgentsList";
+import { VOICE_AGENTS } from "./features";
 
 import { ClinicProfiles } from "./pages/ClinicProfiles";
 import { AgentRuns } from "./pages/AgentRuns";
@@ -63,7 +64,8 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
   const nav = [
     { to: "/knowledge", label: t("nav.knowledge"), icon: Library, warm: () => prefetch("/knowledge/sources") },
     { to: "/agents", label: t("nav.agents"), icon: Workflow, warm: () => prefetch("/agents") },
-    { to: "/clinic-profiles", label: t("nav.profiles"), icon: Stethoscope, warm: () => prefetch("/clinic-profiles") },
+    // Clinic & exam profiles serve voice scheduling only.
+    ...(VOICE_AGENTS ? [{ to: "/clinic-profiles", label: t("nav.profiles"), icon: Stethoscope, warm: () => prefetch("/clinic-profiles") }] : []),
     { to: "/runs", label: t("nav.runs"), icon: Activity, warm: () => prefetch("/runs") },
   ];
   return (

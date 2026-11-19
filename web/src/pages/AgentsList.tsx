@@ -8,12 +8,13 @@ import { TableSkeleton } from "../ui/Skeleton";
 import { warmAgent } from "./lazy";
 import { Plus } from "lucide-react";
 import { Field } from "../ui/Field";
+import { VOICE_AGENTS } from "../features";
 
 export function AgentsList({ user }: { user: StudioUser }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const q = useQuery<{ agents: AgentSummary[] }>("/agents");
-  const agents = q.data?.agents ?? null;
+  const agents = q.data ? q.data.agents.filter((a) => VOICE_AGENTS || a.kind !== "voice") : null;
   const [error, setError] = useState<unknown>(null);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ kind: "cds" as AgentKind, name: "", intendedUse: "", department: "", devices: "" });
@@ -53,12 +54,14 @@ export function AgentsList({ user }: { user: StudioUser }) {
 
       {creating && (
         <div className="card field-grid md:grid-cols-2">
-          <Field label={t("agents.kind")}>
-            <select className="input" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as AgentKind })}>
-              <option value="cds">{t("agents.cds")}</option>
-              <option value="voice">{t("agents.voice")}</option>
-            </select>
-          </Field>
+          {VOICE_AGENTS && (
+            <Field label={t("agents.kind")}>
+              <select className="input" value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as AgentKind })}>
+                <option value="cds">{t("agents.cds")}</option>
+                <option value="voice">{t("agents.voice")}</option>
+              </select>
+            </Field>
+          )}
           <Field label={t("agents.name")}>
             <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </Field>
