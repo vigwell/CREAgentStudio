@@ -6,7 +6,11 @@
     "loading": "טוען…",
     "noAccess": "לחשבון שלך אין גישה ל-CRE Agent Studio. בקש ממנהל Studio להוסיף אותך.",
     "language": "שפה",
-    "tagline": "בנייה, בדיקה ואישור של סוכני CRE."
+    "tagline": "בנייה, בדיקה ואישור של סוכני CRE.",
+    "pageFailed": "לא ניתן להציג את הדף",
+    "pageFailedHint": "משהו השתבש בהצגת הדף. העבודה השמורה שלך בטוחה. נסה שוב או טען מחדש את הסטודיו.",
+    "tryAgain": "נסה שוב",
+    "reload": "טעינה מחדש"
   },
   "nav": {
     "knowledge": "ספריית ידע",
@@ -227,7 +231,7 @@
       "defer": "דחייה לאחר כך"
     },
     "running": "מריץ…",
-    "candidateOption": "מועמד {{no}}, הוקפא {{date}}",
+    "candidateOption": "גרסה {{no}}, הוקפאה {{date}}",
     "caseSection": "מקרה",
     "patientSection": "ערכי המטופל",
     "patientHint": "השאר שדה ריק כשהערך אינו ידוע. הוא נחשב חסר, לא 'לא'.",
@@ -235,7 +239,7 @@
     "history": "הרצות קודמות",
     "when": "מתי",
     "resultFor": "תוצאה עבור {{caseRef}}",
-    "resultMeta": "מועמד {{no}}, הורץ {{date}}",
+    "resultMeta": "גרסה {{no}}, הורץ {{date}}",
     "missingText": "ההרצה הושהתה: חסר {{fields}}. הזן את הערך והרץ שוב.",
     "findingsTitle_one": "ממצא אחד לבדיקה",
     "findingsTitle_other": "{{count}} ממצאים לבדיקה",

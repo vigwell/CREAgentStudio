@@ -82,6 +82,25 @@ Requires Node.js 20 or later.
   | `GET /runs/:id` · `GET /agents/:id/runs` | result, findings with evidence, steps, reviews |
   | `POST /runs/:id/reviews` | acknowledge / dismiss / defer (reason) against the run's snapshot hash (409 if stale) |
 
+- **Release** (week 4): saved test cases (patient values plus the expected
+  result, findings and decision branches) run in memory on a frozen version;
+  a version is approved only by someone other than its author, after a passing
+  run of the current suite on its exact manifest hash, with every bound source
+  still approved. Activation rechecks this in one transaction; one version is
+  active per agent, activating an earlier approved version is the rollback, and
+  withdrawal (with a reason) stops new runs. Clinical runs (no candidate given)
+  use the active version. The Run Inspector lists runs and shows every step,
+  the rule a decision evaluated and the value it saw.
+
+  | Endpoint | |
+  |---|---|
+  | `GET/POST /agents/:id/test-cases` · `PUT/DELETE …/:testCaseId` | test cases (PUT checks the version) |
+  | `GET /agents/:id/versions` | frozen versions with status and last test result |
+  | `POST/GET /candidates/:id/tests` | run the suite / last result, per case and per problem |
+  | `POST /candidates/:id/approve · activate · withdraw` | release lifecycle |
+  | `GET /candidates/:id/diff?against=` | blocks, connections, instructions, prohibitions, knowledge changed |
+  | `GET /runs?agentId=&outcome=&purpose=&caseRef=` | Run Inspector list |
+
 First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users. The Medilis tenant (migration 0005) is `a6da57a3-bfe5-592d-a9a6-6c840a27d7a0`: with that id, the first user who signs in becomes admin and later users authors.
 
 ## Web app

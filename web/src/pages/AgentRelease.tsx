@@ -387,7 +387,7 @@ export function AgentRelease({ user }: { user: StudioUser }) {
                       <td className="hidden text-ink-muted md:table-cell">
                         {[
                           ...(c.expected.findingCodes ?? []).map((x) => t(`release.codes.${x}`, { defaultValue: x })),
-                          ...(c.expected.path ?? []).map((p) => `${nodeLabel(p.nodeId)}: ${p.port ? t(`values.${p.port}`) : t(`runs.step.${p.state}`)}`),
+                          ...(c.expected.path ?? []).map((p) => { const l = nodeLabel(p.nodeId); return `${l}${/[?:؟]$/.test(l) ? "" : ":"} ${p.port ? t(`values.${p.port}`) : t(`runs.step.${p.state}`)}`; }),
                         ].join("; ") || t("release.outcomeOnly")}
                       </td>
                       <td>

@@ -11,6 +11,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, LogOut, Menu, Monitor, Moon, Sun, X, type LucideIcon } from "lucide-react";
 import { LanguageMenu } from "./LanguageMenu";
+import { PageErrorBoundary } from "./ErrorBoundary";
 import { applyTheme, readFlag, storedTheme, writeFlag, type ThemeChoice } from "./theme";
 
 export interface NavItem {
@@ -131,7 +132,7 @@ export function AppShell({
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
-          {children}
+          <PageErrorBoundary>{children}</PageErrorBoundary>
         </main>
       </div>
     </div>

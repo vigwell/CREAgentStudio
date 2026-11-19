@@ -6,7 +6,11 @@
     "loading": "Loading…",
     "noAccess": "Your account has no access to CRE Agent Studio. Ask a Studio admin to add you.",
     "language": "Language",
-    "tagline": "Build, test and approve CRE agents."
+    "tagline": "Build, test and approve CRE agents.",
+    "pageFailed": "This page couldn't be shown",
+    "pageFailedHint": "Something went wrong while drawing this page. Your saved work is safe. Try again, or reload the Studio.",
+    "tryAgain": "Try again",
+    "reload": "Reload"
   },
   "nav": {
     "knowledge": "Knowledge Library",
@@ -226,7 +230,7 @@
       "defer": "Defer"
     },
     "running": "Running…",
-    "candidateOption": "Candidate {{no}}, frozen {{date}}",
+    "candidateOption": "Version {{no}}, frozen {{date}}",
     "caseSection": "Case",
     "patientSection": "Patient values",
     "patientHint": "Leave a field empty when the value isn't known. It counts as missing, not as no.",
@@ -234,7 +238,7 @@
     "history": "Earlier runs",
     "when": "When",
     "resultFor": "Result for {{caseRef}}",
-    "resultMeta": "Candidate {{no}}, run {{date}}",
+    "resultMeta": "Version {{no}}, run {{date}}",
     "missingText": "Paused: the run needs {{fields}}. Enter the value and run again.",
     "findingsTitle_one": "1 finding to review",
     "findingsTitle_other": "{{count}} findings to review",

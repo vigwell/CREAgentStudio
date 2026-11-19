@@ -46,6 +46,8 @@ export function AgentRuns() {
     if (!candidateId && candidates[0]) setCandidateId(candidates[0].id);
   }, [candidates, candidateId]);
   const [opening, setOpening] = useState<string | null>(null);
+  const [savedCase, setSavedCase] = useState<string | null>(null);
+  const [savingCase, setSavingCase] = useState(false);
   const openRun = async (runId: string) => {
     setOpening(runId);
     try {
@@ -94,8 +96,6 @@ export function AgentRuns() {
 
   if (!agent) return error || agentQ.error ? <ErrorNote error={error ?? agentQ.error} /> : <DetailSkeleton />;
 
-  const [savedCase, setSavedCase] = useState<string | null>(null);
-  const [savingCase, setSavingCase] = useState(false);
   /** This run's inputs and result become a saved test case (expected = what happened now). */
   const saveAsCase = async (r: RunDetail) => {
     setSavingCase(true);

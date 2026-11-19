@@ -6,7 +6,11 @@
     "loading": "Cargando…",
     "noAccess": "Su cuenta no tiene acceso a CRE Agent Studio. Pida a un administrador del Studio que le añada.",
     "language": "Idioma",
-    "tagline": "Crear, probar y aprobar agentes de CRE."
+    "tagline": "Crear, probar y aprobar agentes de CRE.",
+    "pageFailed": "No se pudo mostrar esta página",
+    "pageFailedHint": "Algo salió mal al mostrar la página. Su trabajo guardado está a salvo. Inténtelo de nuevo o recargue el Studio.",
+    "tryAgain": "Reintentar",
+    "reload": "Recargar"
   },
   "nav": {
     "knowledge": "Biblioteca de conocimiento",
@@ -226,7 +230,7 @@
       "defer": "Aplazar"
     },
     "running": "Ejecutando…",
-    "candidateOption": "Candidato {{no}}, congelado el {{date}}",
+    "candidateOption": "Versión {{no}}, congelada el {{date}}",
     "caseSection": "Caso",
     "patientSection": "Valores del paciente",
     "patientHint": "Deje un campo vacío si no se conoce el valor. Cuenta como faltante, no como «no».",
@@ -234,7 +238,7 @@
     "history": "Ejecuciones anteriores",
     "when": "Cuándo",
     "resultFor": "Resultado de {{caseRef}}",
-    "resultMeta": "Candidato {{no}}, ejecutado el {{date}}",
+    "resultMeta": "Versión {{no}}, ejecutada el {{date}}",
     "missingText": "En pausa: la ejecución necesita {{fields}}. Introduzca el valor y vuelva a ejecutar.",
     "findingsTitle_one": "1 hallazgo por revisar",
     "findingsTitle_other": "{{count}} hallazgos por revisar",
