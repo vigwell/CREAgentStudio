@@ -6,7 +6,7 @@ import { RunService, type RunRequest } from "./service.js";
 
 const Run = z.object({
   agentId: z.string().uuid(),
-  candidateId: z.string().uuid(),
+  candidateId: z.string().uuid().nullable().optional(),
   caseRef: z.string().min(1).max(200),
   deviceId: z.string().max(100).nullable().optional(),
   executionMode: z.enum(["standalone_cds", "report_context"]).optional(),
@@ -34,6 +34,19 @@ export function registerRunRoutes(app: FastifyInstance, service: RunService, req
     const r = await service.start(req.user!, Array.isArray(key) ? key[0] : key, parse(Run, req.body) as RunRequest);
     reply.code(r.replayed ? 200 : 201);
     return service.get(req.user!, r.runId);
+  });
+  app.get("/runs", auth, async (req) => {
+    const q = parse(
+      z.object({
+        agentId: z.string().uuid().optional(),
+        outcome: z.enum(["findings", "needs_input", "needs_review", "not_applicable", "blocked", "unavailable"]).optional(),
+        purpose: z.enum(["test", "clinical"]).optional(),
+        caseRef: z.string().max(200).optional(),
+        limit: z.coerce.number().int().min(1).max(200).optional(),
+      }),
+      req.query,
+    );
+    return { runs: await service.search(req.user!, q) };
   });
   app.get("/runs/:id", auth, async (req) => service.get(req.user!, id(req)));
   app.get("/agents/:id/runs", auth, async (req) => ({ runs: await service.list(req.user!, id(req)) }));

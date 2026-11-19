@@ -32,7 +32,8 @@ const MANUAL_FIELDS: Record<string, "code" | "boolean" | "number"> = {
 
 export interface RunRequest {
   agentId: string;
-  candidateId: string;
+  /** A specific candidate (test run); omitted = the agent's active version (clinical run). */
+  candidateId?: string | null;
   caseRef: string;
   deviceId?: string | null;
   executionMode?: string;
@@ -61,6 +62,36 @@ export function factsFromManual(values: Record<string, unknown>, userId: string,
   return facts;
 }
 
+/** The knowledge revisions a candidate binds, with their status now and their rows. */
+export async function loadKnowledge(tx: sql.Transaction, revisionIds: string[]): Promise<Map<string, KnowledgeBinding>> {
+  const knowledge = new Map<string, KnowledgeBinding>();
+  for (const revId of revisionIds) {
+    const rev = (
+      await new sql.Request(tx)
+        .input("id", sql.UniqueIdentifier, revId)
+        .query("SELECT r.id, r.status, r.review_due, r.sheet_name, s.name, s.kind FROM studio.knowledge_revisions r JOIN studio.knowledge_sources s ON s.id = r.source_id WHERE r.id = @id")
+    ).recordset[0];
+    if (!rev) continue;
+    const rows = await new sql.Request(tx)
+      .input("id", sql.UniqueIdentifier, revId)
+      .query("SELECT row_id, original_row, mapped, errors FROM studio.knowledge_rows WHERE revision_id = @id ORDER BY original_row");
+    knowledge.set(revId, {
+      revisionId: revId,
+      sourceName: String(rev.name),
+      kind: String(rev.kind),
+      status: effectiveStatus(rev.status, rev.review_due),
+      rows: rows.recordset.map((x: Record<string, unknown>) => ({
+        rowId: String(x.row_id),
+        sheet: (rev.sheet_name as string) ?? null,
+        originalRow: Number(x.original_row),
+        mapped: JSON.parse(String(x.mapped ?? "{}")),
+        hasErrors: JSON.parse(String(x.errors ?? "[]")).length > 0,
+      })),
+    });
+  }
+  return knowledge;
+}
+
 export class RunService {
   constructor(private readonly db: Db) {}
 
@@ -84,15 +115,20 @@ export class RunService {
         return { runId: lower(prior.id)!, replayed: true };
       }
 
+      const purpose = body.candidateId ? "test" : "clinical";
       const cand = (
         await new sql.Request(tx)
-          .input("id", sql.UniqueIdentifier, body.candidateId)
+          .input("id", sql.UniqueIdentifier, body.candidateId ?? null)
           .input("agent", sql.UniqueIdentifier, body.agentId)
           .query(
-            `SELECT c.id, c.manifest, c.manifest_hash, c.status, a.kind FROM studio.agent_candidates c
-             JOIN studio.agents a ON a.id = c.agent_id WHERE c.id = @id AND c.agent_id = @agent`,
+            body.candidateId
+              ? `SELECT c.id, c.manifest, c.manifest_hash, c.status, a.kind FROM studio.agent_candidates c
+                 JOIN studio.agents a ON a.id = c.agent_id WHERE c.id = @id AND c.agent_id = @agent`
+              : `SELECT c.id, c.manifest, c.manifest_hash, c.status, a.kind FROM studio.agent_candidates c
+                 JOIN studio.agents a ON a.id = c.agent_id WHERE c.agent_id = @agent AND c.status = N'active'`,
           )
       ).recordset[0];
+      if (!cand && !body.candidateId) throw new AppError(409, "no_active_version", "This agent has no active version; approve and activate a candidate first");
       if (!cand) throw new AppError(404, "not_found", "Candidate not found");
       if (cand.kind !== "cds") throw new AppError(422, "not_cds", "Only CDS agents run here; voice agents run on calls");
       if (cand.status === "withdrawn") throw new AppError(409, "candidate_withdrawn", "This candidate was withdrawn");
@@ -100,31 +136,7 @@ export class RunService {
       if (manifest.executionMode !== mode) throw new AppError(422, "mode_mismatch", `This agent runs as ${manifest.executionMode}`);
 
       // Knowledge exactly as bound by the candidate, with its status now.
-      const knowledge = new Map<string, KnowledgeBinding>();
-      for (const revId of manifest.sourceBindings ?? []) {
-        const rev = (
-          await new sql.Request(tx)
-            .input("id", sql.UniqueIdentifier, revId)
-            .query("SELECT r.id, r.status, r.review_due, r.sheet_name, s.name, s.kind FROM studio.knowledge_revisions r JOIN studio.knowledge_sources s ON s.id = r.source_id WHERE r.id = @id")
-        ).recordset[0];
-        if (!rev) continue;
-        const rows = await new sql.Request(tx)
-          .input("id", sql.UniqueIdentifier, revId)
-          .query("SELECT row_id, original_row, mapped, errors FROM studio.knowledge_rows WHERE revision_id = @id ORDER BY original_row");
-        knowledge.set(revId, {
-          revisionId: revId,
-          sourceName: String(rev.name),
-          kind: String(rev.kind),
-          status: effectiveStatus(rev.status, rev.review_due),
-          rows: rows.recordset.map((x: Record<string, unknown>) => ({
-            rowId: String(x.row_id),
-            sheet: (rev.sheet_name as string) ?? null,
-            originalRow: Number(x.original_row),
-            mapped: JSON.parse(String(x.mapped ?? "{}")),
-            hasErrors: JSON.parse(String(x.errors ?? "[]")).length > 0,
-          })),
-        });
-      }
+      const knowledge = await loadKnowledge(tx, manifest.sourceBindings ?? []);
 
       const now = new Date().toISOString();
       const snapshot: InputSnapshot = {
@@ -158,19 +170,20 @@ export class RunService {
         await new sql.Request(tx)
           .input("tenant", sql.UniqueIdentifier, user.tenantId)
           .input("agent", sql.UniqueIdentifier, body.agentId)
-          .input("cand", sql.UniqueIdentifier, body.candidateId)
+          .input("cand", sql.UniqueIdentifier, String(cand.id))
           .input("snap", sql.UniqueIdentifier, snapId)
           .input("key", sql.NVarChar(100), idempotencyKey)
           .input("rhash", sql.NVarChar(80), requestHash)
           .input("case", sql.NVarChar(200), caseRef)
           .input("mode", sql.NVarChar(40), mode)
+          .input("purpose", sql.NVarChar(20), purpose)
           .input("state", sql.NVarChar(20), result.state)
           .input("outcome", sql.NVarChar(20), result.outcome)
           .input("result", sql.NVarChar(sql.MAX), JSON.stringify(result))
           .input("user", sql.UniqueIdentifier, user.id)
           .query<{ id: string }>(
             `INSERT INTO studio.agent_runs (tenant_id, agent_id, candidate_id, snapshot_id, idempotency_key, request_hash, case_ref, execution_mode, purpose, state, outcome, result, created_by, finished_at)
-             OUTPUT inserted.id VALUES (@tenant, @agent, @cand, @snap, @key, @rhash, @case, @mode, N'test', @state, @outcome, @result, @user, SYSUTCDATETIME())`,
+             OUTPUT inserted.id VALUES (@tenant, @agent, @cand, @snap, @key, @rhash, @case, @mode, @purpose, @state, @outcome, @result, @user, SYSUTCDATETIME())`,
           )
       ).recordset[0].id.toLowerCase();
       // Audit lists identifiers and statuses, not clinical narrative.
@@ -180,7 +193,7 @@ export class RunService {
         action: "run.completed",
         entityType: "agent_run",
         entityId: runId,
-        details: { agentId: body.agentId, candidateId: body.candidateId, manifestHash: cand.manifest_hash, snapshotHash: snapHash, state: result.state, outcome: result.outcome },
+        details: { agentId: body.agentId, candidateId: lower(cand.id), purpose, manifestHash: cand.manifest_hash, snapshotHash: snapHash, state: result.state, outcome: result.outcome },
       });
       return { runId, replayed: false };
     });
@@ -240,6 +253,47 @@ export class RunService {
         outcome: x.outcome,
         candidateNo: x.candidate_no,
         createdAt: x.created_at,
+      }));
+    });
+  }
+
+  /** Run Inspector: recent runs across agents, filtered. Identifiers and statuses only. */
+  async search(user: StudioUser, f: { agentId?: string; outcome?: string; purpose?: string; caseRef?: string; limit?: number }) {
+    return withTenant(this.db, user.tenantId, async (tx) => {
+      const q = new sql.Request(tx);
+      const where: string[] = [];
+      if (f.agentId) {
+        q.input("agent", sql.UniqueIdentifier, f.agentId);
+        where.push("r.agent_id = @agent");
+      }
+      if (f.outcome) {
+        q.input("outcome", sql.NVarChar(20), f.outcome);
+        where.push("r.outcome = @outcome");
+      }
+      if (f.purpose) {
+        q.input("purpose", sql.NVarChar(20), f.purpose);
+        where.push("r.purpose = @purpose");
+      }
+      if (f.caseRef) {
+        q.input("case", sql.NVarChar(200), `%${f.caseRef.replace(/[%_[]/g, "[$&]")}%`);
+        where.push("r.case_ref LIKE @case");
+      }
+      q.input("limit", sql.Int, Math.min(Math.max(f.limit ?? 50, 1), 200));
+      const r = await q.query(
+        `SELECT TOP (@limit) r.id, r.case_ref, r.state, r.outcome, r.purpose, r.created_at, r.agent_id, a.name AS agent_name, c.candidate_no
+         FROM studio.agent_runs r JOIN studio.agents a ON a.id = r.agent_id JOIN studio.agent_candidates c ON c.id = r.candidate_id
+         ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY r.created_at DESC`,
+      );
+      return r.recordset.map((x: Record<string, unknown>) => ({
+        runId: lower(x.id),
+        caseRef: x.case_ref,
+        state: x.state,
+        outcome: x.outcome,
+        purpose: x.purpose,
+        createdAt: x.created_at,
+        agentId: lower(x.agent_id),
+        agentName: x.agent_name,
+        candidateNo: x.candidate_no,
       }));
     });
   }

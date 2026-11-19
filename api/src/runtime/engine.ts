@@ -117,6 +117,8 @@ export interface NodeTrace {
   outputs: Record<string, unknown>;
   unknown: string[];
   note?: string;
+  /** Decisions: the rule that was evaluated and the value it saw (null = unknown). */
+  evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
 }
 
 export interface RunResult {
@@ -295,6 +297,7 @@ export function execute(manifest: Manifest, snapshot: InputSnapshot, knowledge: 
     let state: NodeState = "completed";
     let port: string | undefined;
     let note: string | undefined;
+    let evaluated: NodeTrace["evaluated"];
 
     switch (node.type) {
       case "start":
@@ -392,6 +395,7 @@ export function execute(manifest: Manifest, snapshot: InputSnapshot, knowledge: 
         const src = c ? outputs.get(c.nodeId) : undefined;
         const left: Value = src && c ? (c.field in src ? src[c.field] : UNKNOWN) : UNKNOWN;
         const r = c ? evaluate(left, c.operator, c.value) : UNKNOWN;
+        if (c) evaluated = { nodeId: c.nodeId, field: c.field, operator: c.operator, expected: c.value ?? null, actual: left === UNKNOWN ? null : left };
         if (r === UNKNOWN) {
           state = "awaiting_input";
           port = "unknown";
@@ -458,6 +462,7 @@ export function execute(manifest: Manifest, snapshot: InputSnapshot, knowledge: 
       state,
       ...(port ? { port } : {}),
       ...(note ? { note } : {}),
+      ...(evaluated ? { evaluated } : {}),
       outputs: Object.fromEntries(Object.entries(out).filter(([, v]) => v !== UNKNOWN)),
       unknown: Object.entries(out)
         .filter(([, v]) => v === UNKNOWN)

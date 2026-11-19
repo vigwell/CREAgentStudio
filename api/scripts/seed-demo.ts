@@ -16,6 +16,7 @@ import type { StudioUser } from "../src/services/users.js";
 import { KnowledgeService } from "../src/knowledge/service.js";
 import { AgentService } from "../src/agents/service.js";
 import { RunService } from "../src/runtime/service.js";
+import { ReleaseService } from "../src/release/service.js";
 
 const TENANT = process.env.AUTO_PROVISION_TENANT_ID || "a6da57a3-bfe5-592d-a9a6-6c840a27d7a0";
 const log = (...a: unknown[]) => console.log(...a);
@@ -255,7 +256,7 @@ try {
     true,
   );
 
-  await agent(
+  const contrast = await agent(
     "DEMO · Contrast safety check",
     "cds",
     "Flag contrast safety points (renal function, allergy) for clinician review before a contrast CT.",
@@ -332,6 +333,47 @@ try {
       const r = await runs.start(author, `seed-${caseRef}`, { agentId: referral.id, candidateId: referral.candidateId, caseRef, inputs: { manualValues } });
       const d = await runs.get(author, r.runId);
       log(`  ${caseRef}: ${d.outcome}`);
+    }
+  }
+  // ---------------------------------------------------------------- release
+  const release = new ReleaseService(db);
+  async function cases(agentId: string, list: { name: string; values: Record<string, unknown>; expected: Record<string, unknown> }[]) {
+    const have = await release.listTestCases(author, agentId);
+    for (const c of list) {
+      if (have.some((h) => h.name === c.name)) continue;
+      await release.createTestCase(author, agentId, { name: c.name, inputs: { manualValues: c.values }, expected: c.expected as never });
+    }
+  }
+  log("Release");
+  await cases(referral.id, [
+    { name: "Stroke matches the head protocol", values: { indicationCode: "DEMO-STROKE", ageYears: 67 }, expected: { outcome: "findings", findingCodes: ["PROTOCOL_MATCH_REVIEW"], path: [{ nodeId: "hasInd", state: "completed", port: "yes" }] } },
+    { name: "PE matches two rows: needs review", values: { indicationCode: "DEMO-PE", ageYears: 52 }, expected: { outcome: "needs_review", findingCodes: ["PROTOCOL_CONFLICT"] } },
+    { name: "Unlisted indication: no default", values: { indicationCode: "DEMO-UNLISTED", ageYears: 30 }, expected: { outcome: "needs_review", findingCodes: ["PROTOCOL_NO_MATCH"] } },
+    { name: "No indication: ask the referrer", values: { hasIndication: false }, expected: { outcome: "findings", findingCodes: ["INSTRUCTION"], path: [{ nodeId: "hasInd", state: "completed", port: "no" }] } },
+    { name: "Nothing entered: waits for input", values: {}, expected: { outcome: "needs_input", path: [{ nodeId: "hasInd", state: "awaiting_input" }] } },
+  ]);
+  if (referral.candidateId) {
+    const versions = await release.listCandidates(author, referral.id);
+    const v1 = versions.find((v) => v.id === referral.candidateId);
+    if (v1?.status === "candidate") {
+      const t = await release.runTests(author, v1.id);
+      log(`  referral check: tests ${t.passed ? "passed" : "FAILED"} (${t.caseCount})`);
+      if (t.passed) {
+        await release.approve(approver, v1.id);
+        await release.activate(approver, v1.id);
+        log("  referral check: version 1 approved and active");
+      }
+    } else log(`  referral check: version 1 is ${v1?.status}`);
+  }
+  await cases(contrast.id, [
+    { name: "PE with low eGFR: renal flag", values: { indicationCode: "DEMO-PE", egfr: 25 }, expected: { outcome: "findings", findingCodes: ["GUIDANCE_MATCH_REVIEW", "INSTRUCTION"], path: [{ nodeId: "lowEgfr", state: "completed", port: "yes" }] } },
+    { name: "PE without eGFR: waits for input", values: { indicationCode: "DEMO-PE" }, expected: { outcome: "needs_input", path: [{ nodeId: "lowEgfr", state: "awaiting_input" }] } },
+  ]);
+  if (contrast.candidateId) {
+    const v = (await release.listCandidates(author, contrast.id)).find((x) => x.id === contrast.candidateId);
+    if (v?.status === "candidate" && !v.lastTest) {
+      const t = await release.runTests(author, v.id);
+      log(`  contrast check: tests ${t.passed ? "passed" : "FAILED"}; left for you to approve and activate`);
     }
   }
   log("Done. Sign in and look for the items named DEMO ·");

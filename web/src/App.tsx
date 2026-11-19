@@ -1,11 +1,13 @@
 import { Suspense, useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Library, Stethoscope, Workflow } from "lucide-react";
+import { Activity, Library, Stethoscope, Workflow } from "lucide-react";
 import { AppShell } from "./ui/AppShell";
 import { LanguageMenu } from "./ui/LanguageMenu";
 import { EditorSkeleton, ListPageSkeleton, Skeleton } from "./ui/Skeleton";
 import { prefetch } from "./api/query";
 import { AgentEditorPage } from "./pages/lazy";
+import { AgentRelease } from "./pages/AgentRelease";
+import { RunDetailPage, RunInspector } from "./pages/RunInspector";
 import { useTranslation } from "react-i18next";
 import { api, ApiError, type StudioUser } from "./api/client";
 import { signIn, signOut } from "./auth/msal";
@@ -62,6 +64,7 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
     { to: "/knowledge", label: t("nav.knowledge"), icon: Library, warm: () => prefetch("/knowledge/sources") },
     { to: "/agents", label: t("nav.agents"), icon: Workflow, warm: () => prefetch("/agents") },
     { to: "/clinic-profiles", label: t("nav.profiles"), icon: Stethoscope, warm: () => prefetch("/clinic-profiles") },
+    { to: "/runs", label: t("nav.runs"), icon: Activity, warm: () => prefetch("/runs") },
   ];
   return (
     <AppShell
@@ -84,6 +87,9 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
           }
         />
         <Route path="/agents/:agentId/runs" element={<AgentRuns />} />
+        <Route path="/agents/:agentId/release" element={<AgentRelease user={user} />} />
+        <Route path="/runs" element={<RunInspector />} />
+        <Route path="/runs/:runId" element={<RunDetailPage />} />
         <Route path="/clinic-profiles" element={<ClinicProfiles user={user} />} />
         <Route path="*" element={<Navigate to="/knowledge" replace />} />
       </Routes>

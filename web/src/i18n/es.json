@@ -16,7 +16,8 @@
     "close": "Cerrar menú",
     "menu": "Abrir menú",
     "collapse": "Contraer barra lateral",
-    "expand": "Expandir barra lateral"
+    "expand": "Expandir barra lateral",
+    "runs": "Inspector de ejecuciones"
   },
   "roles": {
     "admin": "Administrador",
@@ -265,7 +266,10 @@
     },
     "tookBranch": "Siguió la rama {{branch}}",
     "unknownValues": "Desconocido: {{fields}}",
-    "noFindings": "No hay hallazgos para este caso."
+    "noFindings": "No hay hallazgos para este caso.",
+    "rule": "Regla: {{field}} {{op}} {{expected}}. Valor leído: {{actual}}.",
+    "unknown": "desconocido",
+    "candidateShort": "Versión {{no}}"
   },
   "theme": {
     "system": "Tema: según el sistema",
@@ -372,5 +376,106 @@
     "aiExtraction": "La extracción con IA aún no está configurada; solo se usaron los valores introducidos.",
     "knowledge": "La revisión de conocimiento está {{status}}, así que este paso no puede ejecutarse.",
     "knowledgeMissing": "La revisión de conocimiento no está disponible, así que este paso no puede ejecutarse."
+  },
+  "inspector": {
+    "title": "Inspector de ejecuciones",
+    "intro": "Cada ejecución de prueba y clínica, con la versión exacta, los datos, las reglas evaluadas y la evidencia. Abra una ejecución para ver cada paso.",
+    "agent": "Agente",
+    "all": "Todos",
+    "purpose": "Tipo de ejecución",
+    "purposes": {
+      "test": "Ejecución de prueba",
+      "clinical": "Ejecución clínica"
+    },
+    "empty": "Ninguna ejecución coincide con estos filtros.",
+    "inspect": "Inspeccionar",
+    "version": "Versión",
+    "snapshot": "Instantánea de datos"
+  },
+  "release": {
+    "title": "Versiones y publicación",
+    "short": "Publicación",
+    "intro": "Una versión congelada solo se activa cuando sus casos de prueba pasan y otro usuario la aprueba. Solo hay una versión activa; activar una versión aprobada anterior es volver atrás.",
+    "voiceLater": "Los agentes de voz se publican tras las pruebas de llamada, aún no disponibles.",
+    "versions": "Versiones",
+    "noVersions": "Aún no hay versiones congeladas. Congele un candidato en el editor.",
+    "version": "Versión",
+    "status": "Estado",
+    "tests": "Pruebas",
+    "statuses": {
+      "candidate": "Candidato",
+      "approved": "Aprobada",
+      "active": "Activa",
+      "retired": "Retirada",
+      "withdrawn": "Anulada"
+    },
+    "notTested": "Sin probar",
+    "testsPassed": "{{count}} superadas",
+    "testsFailed": "{{failed}} de {{count}} fallaron",
+    "runTests": "Ejecutar pruebas",
+    "testing": "Probando…",
+    "results": "Resultados",
+    "changes": "Cambios",
+    "approve": "Aprobar",
+    "activate": "Activar",
+    "rollback": "Volver a esta",
+    "withdraw": "Anular",
+    "withdrawReason": "Motivo de la anulación",
+    "notOwn": "Usted congeló esta versión; debe aprobarla otro aprobador.",
+    "needTests": "Primero ejecute los casos de prueba y consiga que todos pasen.",
+    "resultsFor": "Resultados de las pruebas, versión {{no}}",
+    "changesFor": "Cambios en la versión {{no}}",
+    "noResults": "Aún no hay resultados.",
+    "comparedWith": "Comparada con la versión activa ({{no}}).",
+    "firstVersion": "Aún no hay versión activa: todo es nuevo.",
+    "noChanges": "Sin cambios de significado.",
+    "added": "Añadido",
+    "changed": "Modificado",
+    "removed": "Eliminado",
+    "block": "Bloque",
+    "connection": "Conexión",
+    "parts": {
+      "agentPrompt": "Instrucciones del agente",
+      "effectivePolicy": "Prohibiciones",
+      "sourceBindings": "Conocimiento usado",
+      "clinicProfiles": "Perfiles de clínica",
+      "scope": "Ámbito",
+      "budget": "Presupuesto de IA"
+    },
+    "problems": {
+      "outcome": "Resultado: se esperaba {{expected}}, se obtuvo {{actual}}",
+      "findings": "Hallazgos: se esperaba {{expected}}, se obtuvo {{actual}}",
+      "step_missing": "{{step}}: no existe en esta versión",
+      "step_state": "{{step}}: se esperaba {{expected}}, se obtuvo {{actual}}",
+      "step_port": "{{step}}: se esperaba {{expected}}, se obtuvo {{actual}}",
+      "blocked": "Se esperaba que una prohibición retuviera {{expected}}",
+      "error": "No se pudo ejecutar: {{actual}}"
+    },
+    "testCases": "Casos de prueba",
+    "testCasesIntro": "Situaciones de paciente guardadas con el resultado que el agente debe dar. Se ejecutan en cada versión antes de aprobarla: cubra una coincidencia, datos faltantes, ninguna coincidencia y filas contradictorias.",
+    "addCase": "Añadir caso de prueba",
+    "caseName": "Nombre",
+    "expected": "Resultado esperado",
+    "expectedOutcome": "Resultado esperado",
+    "anyBranch": "No se comprueba",
+    "expectedFindings": "Hallazgos esperados",
+    "findingsHint": "Deje todo sin marcar para comprobar solo el resultado.",
+    "codes": {
+      "PROTOCOL_MATCH_REVIEW": "Coincidencia de protocolo",
+      "PROTOCOL_CONFLICT": "Varias filas de protocolo",
+      "PROTOCOL_NO_MATCH": "Ninguna fila de protocolo",
+      "GUIDANCE_MATCH_REVIEW": "Coincidencia de guía",
+      "GUIDANCE_CONFLICT": "Varias filas de guía",
+      "GUIDANCE_NO_MATCH": "Ninguna fila de guía",
+      "INSTRUCTION": "Instrucción",
+      "MISSING_INPUT": "Dato faltante"
+    },
+    "noCases": "Aún no hay casos de prueba. Añada uno o guarde una ejecución de prueba como caso.",
+    "checks": "También comprueba",
+    "outcomeOnly": "Solo el resultado",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "saveAsCase": "Guardar como caso de prueba",
+    "savedAsCase": "Guardado como caso de prueba."
   }
 }

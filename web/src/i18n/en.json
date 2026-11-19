@@ -16,7 +16,8 @@
     "close": "Close menu",
     "menu": "Open menu",
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "runs": "Run Inspector"
   },
   "roles": {
     "admin": "Admin",
@@ -265,7 +266,10 @@
     },
     "tookBranch": "Went the {{branch}} way",
     "unknownValues": "Not known: {{fields}}",
-    "noFindings": "No findings for this case."
+    "noFindings": "No findings for this case.",
+    "rule": "Rule: {{field}} {{op}} {{expected}}. Value seen: {{actual}}.",
+    "unknown": "not known",
+    "candidateShort": "Version {{no}}"
   },
   "theme": {
     "system": "Theme: follows the system",
@@ -372,5 +376,106 @@
     "aiExtraction": "AI extraction isn't set up yet; only entered values were used.",
     "knowledge": "The knowledge revision is {{status}}, so this step can't run.",
     "knowledgeMissing": "The knowledge revision is not available, so this step can't run."
+  },
+  "inspector": {
+    "title": "Run Inspector",
+    "intro": "Every test and clinical run, with the exact version, inputs, rules evaluated and evidence. Open a run to see each step.",
+    "agent": "Agent",
+    "all": "All",
+    "purpose": "Run type",
+    "purposes": {
+      "test": "Test run",
+      "clinical": "Clinical run"
+    },
+    "empty": "No runs match these filters.",
+    "inspect": "Inspect",
+    "version": "Version",
+    "snapshot": "Input snapshot"
+  },
+  "release": {
+    "title": "Versions and release",
+    "short": "Release",
+    "intro": "A frozen version goes live only after its test cases pass and a different user approves it. One version is active at a time; activating an earlier approved version rolls back.",
+    "voiceLater": "Voice agents are released after call testing, which is not available yet.",
+    "versions": "Versions",
+    "noVersions": "No frozen versions yet. Freeze a candidate in the editor.",
+    "version": "Version",
+    "status": "Status",
+    "tests": "Tests",
+    "statuses": {
+      "candidate": "Candidate",
+      "approved": "Approved",
+      "active": "Active",
+      "retired": "Retired",
+      "withdrawn": "Withdrawn"
+    },
+    "notTested": "Not tested",
+    "testsPassed": "{{count}} passed",
+    "testsFailed": "{{failed}} of {{count}} failed",
+    "runTests": "Run tests",
+    "testing": "Testing…",
+    "results": "Results",
+    "changes": "Changes",
+    "approve": "Approve",
+    "activate": "Activate",
+    "rollback": "Roll back to this",
+    "withdraw": "Withdraw",
+    "withdrawReason": "Reason to withdraw",
+    "notOwn": "You froze this version; another approver must approve it.",
+    "needTests": "Run the test cases and get them all passing first.",
+    "resultsFor": "Test results, version {{no}}",
+    "changesFor": "Changes in version {{no}}",
+    "noResults": "No test results yet.",
+    "comparedWith": "Compared with the active version ({{no}}).",
+    "firstVersion": "Nothing is active yet: everything is new.",
+    "noChanges": "No changes in meaning.",
+    "added": "Added",
+    "changed": "Changed",
+    "removed": "Removed",
+    "block": "Block",
+    "connection": "Connection",
+    "parts": {
+      "agentPrompt": "Agent instructions",
+      "effectivePolicy": "Prohibitions",
+      "sourceBindings": "Knowledge used",
+      "clinicProfiles": "Clinic profiles",
+      "scope": "Scope",
+      "budget": "AI budget"
+    },
+    "problems": {
+      "outcome": "Result: expected {{expected}}, got {{actual}}",
+      "findings": "Findings: expected {{expected}}, got {{actual}}",
+      "step_missing": "{{step}}: not in this version",
+      "step_state": "{{step}}: expected {{expected}}, got {{actual}}",
+      "step_port": "{{step}}: expected {{expected}}, went {{actual}}",
+      "blocked": "Expected {{expected}} to be withheld by a prohibition",
+      "error": "Could not run: {{actual}}"
+    },
+    "testCases": "Test cases",
+    "testCasesIntro": "Saved patient situations with the result the agent must give. They run on every version before approval: cover a match, missing data, no match and conflicting rows.",
+    "addCase": "Add test case",
+    "caseName": "Name",
+    "expected": "Expected result",
+    "expectedOutcome": "Expected result",
+    "anyBranch": "Not checked",
+    "expectedFindings": "Expected findings",
+    "findingsHint": "Leave all unticked to check the result only.",
+    "codes": {
+      "PROTOCOL_MATCH_REVIEW": "Protocol match",
+      "PROTOCOL_CONFLICT": "Several protocol rows match",
+      "PROTOCOL_NO_MATCH": "No protocol row matches",
+      "GUIDANCE_MATCH_REVIEW": "Guidance match",
+      "GUIDANCE_CONFLICT": "Several guidance rows match",
+      "GUIDANCE_NO_MATCH": "No guidance row matches",
+      "INSTRUCTION": "Instruction",
+      "MISSING_INPUT": "Missing input"
+    },
+    "noCases": "No test cases yet. Add one, or save a test run as a test case.",
+    "checks": "Also checks",
+    "outcomeOnly": "Result only",
+    "edit": "Edit",
+    "delete": "Delete",
+    "saveAsCase": "Save as test case",
+    "savedAsCase": "Saved as a test case."
   }
 }

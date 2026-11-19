@@ -7,7 +7,7 @@ import { api, ApiError, type Agent, type AgentDraft, type Catalog, type ClinicPr
 import { ErrorNote } from "../components/ErrorNote";
 import { invalidate, setQueryData, useQuery } from "../api/query";
 import { EditorSkeleton } from "../ui/Skeleton";
-import { FlaskConical, ListChecks, Plus, Save, Snowflake } from "lucide-react";
+import { FlaskConical, ListChecks, Plus, Rocket, Save, Snowflake } from "lucide-react";
 import { PageHeader } from "../ui/PageHeader";
 import { StatusPill } from "../ui/StatusPill";
 import { useDarkTheme, useMedia } from "../ui/useMedia";
@@ -187,10 +187,16 @@ export function AgentEditor({ user }: { user: StudioUser }) {
         actions={
           <>
             {agent.kind === "cds" && (
-              <Link className="btn" to={`/agents/${agent.id}/runs`}>
-                <FlaskConical size={16} />
-                {t("runs.title")}
-              </Link>
+              <>
+                <Link className="btn" to={`/agents/${agent.id}/runs`}>
+                  <FlaskConical size={16} />
+                  {t("runs.title")}
+                </Link>
+                <Link className="btn" to={`/agents/${agent.id}/release`}>
+                  <Rocket size={16} />
+                  {t("release.short")}
+                </Link>
+              </>
             )}
             {!readOnly && (
               <button className="btn" disabled={!dirty || busy} onClick={() => void save()}>

@@ -16,7 +16,8 @@
     "close": "Fermer le menu",
     "menu": "Ouvrir le menu",
     "collapse": "Réduire la barre latérale",
-    "expand": "Développer la barre latérale"
+    "expand": "Développer la barre latérale",
+    "runs": "Inspecteur d’exécutions"
   },
   "roles": {
     "admin": "Administrateur",
@@ -265,7 +266,10 @@
     },
     "tookBranch": "Branche suivie : {{branch}}",
     "unknownValues": "Inconnu : {{fields}}",
-    "noFindings": "Aucun résultat pour ce dossier."
+    "noFindings": "Aucun résultat pour ce dossier.",
+    "rule": "Règle : {{field}} {{op}} {{expected}}. Valeur lue : {{actual}}.",
+    "unknown": "inconnue",
+    "candidateShort": "Version {{no}}"
   },
   "theme": {
     "system": "Thème : selon le système",
@@ -372,5 +376,106 @@
     "aiExtraction": "L’extraction par IA n’est pas encore configurée ; seules les valeurs saisies ont été utilisées.",
     "knowledge": "La révision de connaissances est {{status}} : cette étape ne peut pas s’exécuter.",
     "knowledgeMissing": "La révision de connaissances n’est pas disponible : cette étape ne peut pas s’exécuter."
+  },
+  "inspector": {
+    "title": "Inspecteur d’exécutions",
+    "intro": "Chaque exécution de test et clinique, avec la version exacte, les données, les règles évaluées et les preuves. Ouvrez une exécution pour voir chaque étape.",
+    "agent": "Agent",
+    "all": "Tous",
+    "purpose": "Type d’exécution",
+    "purposes": {
+      "test": "Exécution de test",
+      "clinical": "Exécution clinique"
+    },
+    "empty": "Aucune exécution ne correspond à ces filtres.",
+    "inspect": "Inspecter",
+    "version": "Version",
+    "snapshot": "Instantané des données"
+  },
+  "release": {
+    "title": "Versions et mise en service",
+    "short": "Mise en service",
+    "intro": "Une version figée n’est mise en service qu’après la réussite de ses cas de test et l’approbation par un autre utilisateur. Une seule version est active ; réactiver une version approuvée antérieure permet un retour arrière.",
+    "voiceLater": "Les agents vocaux sont mis en service après les tests d’appel, pas encore disponibles.",
+    "versions": "Versions",
+    "noVersions": "Aucune version figée. Figez un candidat dans l’éditeur.",
+    "version": "Version",
+    "status": "Statut",
+    "tests": "Tests",
+    "statuses": {
+      "candidate": "Candidat",
+      "approved": "Approuvée",
+      "active": "Active",
+      "retired": "Retirée",
+      "withdrawn": "Annulée"
+    },
+    "notTested": "Non testée",
+    "testsPassed": "{{count}} réussis",
+    "testsFailed": "{{failed}} sur {{count}} en échec",
+    "runTests": "Lancer les tests",
+    "testing": "Tests en cours…",
+    "results": "Résultats",
+    "changes": "Modifications",
+    "approve": "Approuver",
+    "activate": "Activer",
+    "rollback": "Revenir à cette version",
+    "withdraw": "Annuler",
+    "withdrawReason": "Motif d’annulation",
+    "notOwn": "Vous avez figé cette version ; un autre approbateur doit l’approuver.",
+    "needTests": "Lancez les cas de test et obtenez leur réussite d’abord.",
+    "resultsFor": "Résultats des tests, version {{no}}",
+    "changesFor": "Modifications de la version {{no}}",
+    "noResults": "Aucun résultat de test.",
+    "comparedWith": "Comparée à la version active ({{no}}).",
+    "firstVersion": "Aucune version active : tout est nouveau.",
+    "noChanges": "Aucune modification de sens.",
+    "added": "Ajouté",
+    "changed": "Modifié",
+    "removed": "Supprimé",
+    "block": "Bloc",
+    "connection": "Liaison",
+    "parts": {
+      "agentPrompt": "Instructions de l’agent",
+      "effectivePolicy": "Interdictions",
+      "sourceBindings": "Connaissances utilisées",
+      "clinicProfiles": "Profils cliniques",
+      "scope": "Périmètre",
+      "budget": "Budget IA"
+    },
+    "problems": {
+      "outcome": "Résultat : attendu {{expected}}, obtenu {{actual}}",
+      "findings": "Constats : attendu {{expected}}, obtenu {{actual}}",
+      "step_missing": "{{step}} : absent de cette version",
+      "step_state": "{{step}} : attendu {{expected}}, obtenu {{actual}}",
+      "step_port": "{{step}} : attendu {{expected}}, obtenu {{actual}}",
+      "blocked": "{{expected}} devait être retenu par une interdiction",
+      "error": "Exécution impossible : {{actual}}"
+    },
+    "testCases": "Cas de test",
+    "testCasesIntro": "Situations patient enregistrées avec le résultat que l’agent doit donner. Elles s’exécutent sur chaque version avant approbation : couvrez une correspondance, des données manquantes, aucune correspondance et des lignes contradictoires.",
+    "addCase": "Ajouter un cas de test",
+    "caseName": "Nom",
+    "expected": "Résultat attendu",
+    "expectedOutcome": "Résultat attendu",
+    "anyBranch": "Non vérifié",
+    "expectedFindings": "Constats attendus",
+    "findingsHint": "Ne cochez rien pour ne vérifier que le résultat.",
+    "codes": {
+      "PROTOCOL_MATCH_REVIEW": "Correspondance de protocole",
+      "PROTOCOL_CONFLICT": "Plusieurs lignes de protocole",
+      "PROTOCOL_NO_MATCH": "Aucune ligne de protocole",
+      "GUIDANCE_MATCH_REVIEW": "Correspondance de recommandation",
+      "GUIDANCE_CONFLICT": "Plusieurs lignes de recommandation",
+      "GUIDANCE_NO_MATCH": "Aucune ligne de recommandation",
+      "INSTRUCTION": "Consigne",
+      "MISSING_INPUT": "Donnée manquante"
+    },
+    "noCases": "Aucun cas de test. Ajoutez-en un, ou enregistrez une exécution de test comme cas.",
+    "checks": "Vérifie aussi",
+    "outcomeOnly": "Résultat seulement",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "saveAsCase": "Enregistrer comme cas de test",
+    "savedAsCase": "Enregistré comme cas de test."
   }
 }

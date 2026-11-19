@@ -294,10 +294,13 @@ export interface NodeTrace {
   outputs: Record<string, unknown>;
   unknown: string[];
   note?: string;
+  evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
 }
 
 export interface RunDetail {
   runId: string;
+  snapshot?: { facts: Record<string, { status: string; value?: unknown }> };
+  purpose: "test" | "clinical";
   agentId: string;
   agentName: string;
   candidateNo: number;
@@ -322,4 +325,94 @@ export interface RunSummary {
   outcome: string;
   candidateNo: number;
   createdAt: string;
+}
+
+// ------------------------------------------------------------ release (week 4)
+
+export interface TestInputs {
+  manualValues: Record<string, unknown>;
+  deviceId?: string | null;
+}
+
+export interface PathStep {
+  nodeId: string;
+  state: string;
+  port?: string;
+}
+
+export interface Expected {
+  outcome: string;
+  findingCodes?: string[];
+  path?: PathStep[];
+  blockedCategories?: string[];
+}
+
+export interface TestCase {
+  id: string;
+  name: string;
+  inputs: TestInputs;
+  expected: Expected;
+  version: number;
+  updatedAt: string;
+}
+
+export interface TestProblem {
+  kind: "outcome" | "findings" | "step_missing" | "step_state" | "step_port" | "blocked" | "error";
+  nodeId?: string;
+  expected?: unknown;
+  actual?: unknown;
+}
+
+export interface CaseResult {
+  testCaseId: string;
+  name: string;
+  passed: boolean;
+  problems: TestProblem[];
+  actual: { outcome: string; findingCodes: string[]; path: PathStep[]; blockedCategories: string[] };
+}
+
+export interface TestRun {
+  id: string;
+  candidateId: string;
+  passed: boolean;
+  caseCount: number;
+  failedCount: number;
+  results: CaseResult[];
+  at?: string;
+}
+
+export type VersionStatus = "candidate" | "approved" | "active" | "retired" | "withdrawn";
+
+export interface AgentVersion {
+  id: string;
+  candidateNo: number;
+  manifestHash: string;
+  draftVersion: number;
+  status: VersionStatus;
+  statusReason: string | null;
+  createdBy: string;
+  createdAt: string;
+  approvedBy: string | null;
+  approvedAt: string | null;
+  activatedAt: string | null;
+  lastTest: { id: string; passed: boolean; caseCount: number; failedCount: number; at: string } | null;
+}
+
+export interface VersionDiff {
+  against: { id: string; candidateNo: number } | null;
+  added: string[];
+  removed: string[];
+  changed: string[];
+}
+
+export interface RunListItem {
+  runId: string;
+  caseRef: string;
+  state: string;
+  outcome: string;
+  purpose: "test" | "clinical";
+  createdAt: string;
+  agentId: string;
+  agentName: string;
+  candidateNo: number;
 }

@@ -16,7 +16,8 @@
     "close": "סגירת התפריט",
     "menu": "פתיחת התפריט",
     "collapse": "כיווץ סרגל הצד",
-    "expand": "הרחבת סרגל הצד"
+    "expand": "הרחבת סרגל הצד",
+    "runs": "בודק הרצות"
   },
   "roles": {
     "admin": "מנהל",
@@ -268,7 +269,10 @@
     "unknownValues": "לא ידוע: {{fields}}",
     "findingsTitle_two": "{{count}} ממצאים לבדיקה",
     "blockedText_two": "{{count}} ממצאים נחסמו על ידי איסורים {{rules}}.",
-    "noFindings": "אין ממצאים למקרה זה."
+    "noFindings": "אין ממצאים למקרה זה.",
+    "rule": "כלל: {{field}} {{op}} {{expected}}. ערך שנמצא: {{actual}}.",
+    "unknown": "לא ידוע",
+    "candidateShort": "גרסה {{no}}"
   },
   "theme": {
     "system": "ערכת נושא: לפי המערכת",
@@ -375,5 +379,106 @@
     "aiExtraction": "חילוץ AI עדיין לא הוגדר; נעשה שימוש רק בערכים שהוזנו.",
     "knowledge": "גרסת הידע במצב {{status}}, ולכן שלב זה אינו יכול לרוץ.",
     "knowledgeMissing": "גרסת הידע אינה זמינה, ולכן שלב זה אינו יכול לרוץ."
+  },
+  "inspector": {
+    "title": "בודק הרצות",
+    "intro": "כל הרצת בדיקה והרצה קלינית, עם הגרסה המדויקת, הקלטים, הכללים שנבדקו והראיות. פתח הרצה כדי לראות כל שלב.",
+    "agent": "סוכן",
+    "all": "הכול",
+    "purpose": "סוג הרצה",
+    "purposes": {
+      "test": "הרצת בדיקה",
+      "clinical": "הרצה קלינית"
+    },
+    "empty": "אין הרצות שמתאימות לסינון.",
+    "inspect": "בדיקה",
+    "version": "גרסה",
+    "snapshot": "תמונת קלט"
+  },
+  "release": {
+    "title": "גרסאות ושחרור",
+    "short": "שחרור",
+    "intro": "גרסה מוקפאת עולה לפעולה רק אחרי שמקרי הבדיקה עוברים ומשתמש אחר מאשר אותה. רק גרסה אחת פעילה בכל פעם; הפעלת גרסה מאושרת קודמת מחזירה אחורה.",
+    "voiceLater": "סוכנים קוליים משוחררים אחרי בדיקות שיחה, שעדיין אינן זמינות.",
+    "versions": "גרסאות",
+    "noVersions": "עדיין אין גרסאות מוקפאות. הקפא מועמד בעורך.",
+    "version": "גרסה",
+    "status": "סטטוס",
+    "tests": "בדיקות",
+    "statuses": {
+      "candidate": "מועמד",
+      "approved": "מאושר",
+      "active": "פעיל",
+      "retired": "הוצא משימוש",
+      "withdrawn": "בוטל"
+    },
+    "notTested": "לא נבדק",
+    "testsPassed": "{{count}} עברו",
+    "testsFailed": "{{failed}} מתוך {{count}} נכשלו",
+    "runTests": "הרצת בדיקות",
+    "testing": "בודק…",
+    "results": "תוצאות",
+    "changes": "שינויים",
+    "approve": "אישור",
+    "activate": "הפעלה",
+    "rollback": "חזרה לגרסה זו",
+    "withdraw": "ביטול",
+    "withdrawReason": "סיבת הביטול",
+    "notOwn": "אתה הקפאת את הגרסה; מאשר אחר צריך לאשר אותה.",
+    "needTests": "הרץ את מקרי הבדיקה ווודא שכולם עוברים.",
+    "resultsFor": "תוצאות בדיקה, גרסה {{no}}",
+    "changesFor": "שינויים בגרסה {{no}}",
+    "noResults": "עדיין אין תוצאות בדיקה.",
+    "comparedWith": "בהשוואה לגרסה הפעילה ({{no}}).",
+    "firstVersion": "עדיין אין גרסה פעילה: הכול חדש.",
+    "noChanges": "אין שינויים במשמעות.",
+    "added": "נוסף",
+    "changed": "שונה",
+    "removed": "הוסר",
+    "block": "בלוק",
+    "connection": "חיבור",
+    "parts": {
+      "agentPrompt": "הנחיות הסוכן",
+      "effectivePolicy": "איסורים",
+      "sourceBindings": "ידע בשימוש",
+      "clinicProfiles": "פרופילי מרפאה",
+      "scope": "היקף",
+      "budget": "תקציב AI"
+    },
+    "problems": {
+      "outcome": "תוצאה: צפוי {{expected}}, התקבל {{actual}}",
+      "findings": "ממצאים: צפוי {{expected}}, התקבל {{actual}}",
+      "step_missing": "{{step}}: לא קיים בגרסה זו",
+      "step_state": "{{step}}: צפוי {{expected}}, התקבל {{actual}}",
+      "step_port": "{{step}}: צפוי {{expected}}, התקבל {{actual}}",
+      "blocked": "צפוי ש-{{expected}} ייחסם על ידי איסור",
+      "error": "לא ניתן להריץ: {{actual}}"
+    },
+    "testCases": "מקרי בדיקה",
+    "testCasesIntro": "מצבי מטופל שמורים עם התוצאה שהסוכן חייב לתת. הם רצים על כל גרסה לפני אישור: כסה התאמה, נתונים חסרים, אין התאמה ושורות סותרות.",
+    "addCase": "הוספת מקרה בדיקה",
+    "caseName": "שם",
+    "expected": "תוצאה צפויה",
+    "expectedOutcome": "תוצאה צפויה",
+    "anyBranch": "לא נבדק",
+    "expectedFindings": "ממצאים צפויים",
+    "findingsHint": "השאר הכול לא מסומן כדי לבדוק את התוצאה בלבד.",
+    "codes": {
+      "PROTOCOL_MATCH_REVIEW": "התאמת פרוטוקול",
+      "PROTOCOL_CONFLICT": "כמה שורות פרוטוקול מתאימות",
+      "PROTOCOL_NO_MATCH": "אין שורת פרוטוקול מתאימה",
+      "GUIDANCE_MATCH_REVIEW": "התאמת הנחיה",
+      "GUIDANCE_CONFLICT": "כמה שורות הנחיה מתאימות",
+      "GUIDANCE_NO_MATCH": "אין שורת הנחיה מתאימה",
+      "INSTRUCTION": "הנחיה",
+      "MISSING_INPUT": "קלט חסר"
+    },
+    "noCases": "עדיין אין מקרי בדיקה. הוסף אחד, או שמור הרצת בדיקה כמקרה בדיקה.",
+    "checks": "בודק גם",
+    "outcomeOnly": "תוצאה בלבד",
+    "edit": "עריכה",
+    "delete": "מחיקה",
+    "saveAsCase": "שמירה כמקרה בדיקה",
+    "savedAsCase": "נשמר כמקרה בדיקה."
   }
 }
