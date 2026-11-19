@@ -173,8 +173,16 @@ export function AgentRuns() {
               </div>
               <div className="field-grid sm:grid-cols-2">
                 {FIELDS.map((f) => (
-                  <Field key={f.name} label={t(`fields.${f.name}`)}>
-                    {f.kind === "bool" || f.kind === "sex" ? (
+                  <Field key={f.name} label={t(`fields.${f.name}`)} hint={f.kind === "note" ? t("runs.noteHint") : undefined} className={f.kind === "note" ? "sm:col-span-2" : ""}>
+                    {f.kind === "note" ? (
+                      <textarea
+                        className="input min-h-28"
+                        dir="auto"
+                        maxLength={8000}
+                        value={form[f.name] ?? ""}
+                        onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
+                      />
+                    ) : f.kind === "bool" || f.kind === "sex" ? (
                       <select className="input" value={form[f.name] ?? ""} onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}>
                         <option value="">{t("runs.notGiven")}</option>
                         {(f.kind === "bool" ? ["true", "false"] : ["female", "male", "unknown"]).map((v) => (

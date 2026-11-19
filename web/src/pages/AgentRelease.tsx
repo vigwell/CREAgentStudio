@@ -294,7 +294,8 @@ export function AgentRelease({ user }: { user: StudioUser }) {
             <section className="space-y-3 border-t border-line pt-5">
               <h3 className="text-sm font-semibold text-ink">{t("runs.patientSection")}</h3>
               <div className="field-grid sm:grid-cols-2 lg:grid-cols-4">
-                {FIELDS.map((f) => (
+                {/* Release tests run the deterministic logic only, so no clinical note here. */}
+                {FIELDS.filter((f) => f.kind !== "note").map((f) => (
                   <Field key={f.name} label={t(`fields.${f.name}`)}>
                     {f.kind === "bool" || f.kind === "sex" ? (
                       <select className="input" value={form.values[f.name] ?? ""} onChange={(e) => setForm({ ...form, values: { ...form.values, [f.name]: e.target.value } })}>

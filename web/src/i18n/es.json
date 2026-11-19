@@ -273,7 +273,15 @@
     "noFindings": "No hay hallazgos para este caso.",
     "rule": "Regla: {{field}} {{op}} {{expected}}. Valor leído: {{actual}}.",
     "unknown": "desconocido",
-    "candidateShort": "Versión {{no}}"
+    "candidateShort": "Versión {{no}}",
+    "noteHint": "Texto libre, p. ej. la solicitud. Solo la lee un paso de IA de información del paciente; los valores encontrados se muestran con las palabras de origen.",
+    "fromNoteByAi": "de la nota clínica, por IA",
+    "summaryAi": {
+      "not_configured": "La redacción con IA aún no está configurada; el resumen lista los hallazgos tal cual.",
+      "used": "Redactado por IA a partir de los hallazgos anteriores. Los hallazgos son el resultado; compruebe el resumen con ellos.",
+      "unavailable": "El servicio de IA no respondió; el resumen lista los hallazgos tal cual.",
+      "rejected": "No se usó el resumen de IA porque contenía un valor que no está en los hallazgos. Los hallazgos se listan tal cual."
+    }
   },
   "theme": {
     "system": "Tema: según el sistema",
@@ -334,7 +342,8 @@
     "slotId": "Cita",
     "chosen": "Elegida",
     "confirmed": "Confirmado",
-    "bookingId": "Reserva"
+    "bookingId": "Reserva",
+    "clinicalNote": "Nota clínica"
   },
   "values": {
     "true": "Sí",
@@ -379,7 +388,26 @@
     "aiSynthesis": "La redacción con IA aún no está configurada; el resumen muestra los hallazgos tal cual.",
     "aiExtraction": "La extracción con IA aún no está configurada; solo se usaron los valores introducidos.",
     "knowledge": "La revisión de conocimiento está {{status}}, así que este paso no puede ejecutarse.",
-    "knowledgeMissing": "La revisión de conocimiento no está disponible, así que este paso no puede ejecutarse."
+    "knowledgeMissing": "La revisión de conocimiento no está disponible, así que este paso no puede ejecutarse.",
+    "ai": {
+      "extraction": {
+        "used": "La IA encontró en la nota clínica: {{fields}}.",
+        "nothing_found": "La IA no encontró más valores en la nota clínica.",
+        "no_note": "No se indicó nota clínica; solo se usaron los valores introducidos.",
+        "not_configured": "La extracción con IA aún no está configurada; solo se usaron los valores introducidos.",
+        "unavailable": "El servicio de IA no respondió; solo se usaron los valores introducidos.",
+        "rejected": "La respuesta de la IA no era utilizable; solo se usaron los valores introducidos.",
+        "budget": "Se alcanzó el límite de llamadas de IA; solo se usaron los valores introducidos."
+      },
+      "synthesis": {
+        "used": "Resumen redactado por IA.",
+        "not_configured": "La redacción con IA aún no está configurada; el resumen lista los hallazgos tal cual.",
+        "unavailable": "El servicio de IA no respondió; el resumen lista los hallazgos tal cual.",
+        "rejected": "No se usó el resumen de IA; el resumen lista los hallazgos tal cual.",
+        "budget": "Se alcanzó el límite de llamadas de IA; el resumen lista los hallazgos tal cual.",
+        "prompt_unavailable": "Este paso no tiene texto de prompt (solo un enlace a Prompt Builder); el resumen lista los hallazgos tal cual."
+      }
+    }
   },
   "inspector": {
     "title": "Inspector de ejecuciones",

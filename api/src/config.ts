@@ -15,6 +15,15 @@ const schema = z.object({
     .optional()
     .transform((v) => (v && v.trim() ? v.trim() : undefined))
     .pipe(z.string().uuid().optional()),
+  // AI steps (Azure AI Foundry, OpenAI v1 Responses API). No key = AI steps
+  // are reported as not configured and runs stay deterministic.
+  AI_ENDPOINT: z.string().url().default("https://cre-openai-service-resource.services.ai.azure.com/openai/v1"),
+  AI_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.trim() ? v.trim() : undefined)),
+  AI_DEPLOYMENT: z.string().min(1).default("CREAgentStudio__gpt-6.1-sol"),
+  AI_TIMEOUT_MS: z.coerce.number().int().positive().default(20000),
 });
 
 export type Config = z.infer<typeof schema>;

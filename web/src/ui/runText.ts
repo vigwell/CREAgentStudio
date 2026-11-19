@@ -30,6 +30,11 @@ export function findingTitle(t: TFunction, f: Finding): string {
 }
 
 export function stepNote(t: TFunction, n: NodeTrace): string | null {
+  if (n.ai) {
+    const fields = (n.ai.fields ?? []).map((x) => t(`fields.${x}`, { defaultValue: x })).join(", ");
+    const kind = n.type === "final_synthesis" ? "synthesis" : "extraction";
+    return t(`notes.ai.${kind}.${n.ai.status}`, { fields, defaultValue: t(`notes.ai.${n.ai.status}`, { defaultValue: n.ai.status }) });
+  }
   if (!n.note) return null;
   if (/^AI synthesis/i.test(n.note)) return t("notes.aiSynthesis");
   if (/^AI extraction/i.test(n.note)) return t("notes.aiExtraction");

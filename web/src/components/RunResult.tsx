@@ -7,7 +7,7 @@ import { StatusPill, type Tone } from "../ui/StatusPill";
 import { Field } from "../ui/Field";
 import { findingTitle, stepNote } from "../ui/runText";
 
-export const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" }[] = [
+export const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" | "note" }[] = [
   { name: "indicationCode", kind: "text" },
   { name: "hasIndication", kind: "bool" },
   { name: "ageYears", kind: "number" },
@@ -15,6 +15,7 @@ export const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" }[
   { name: "egfr", kind: "number" },
   { name: "contrastAllergy", kind: "bool" },
   { name: "pregnant", kind: "bool" },
+  { name: "clinicalNote", kind: "note" },
 ];
 
 export const OUTCOME_TONE: Record<string, Tone> = {
@@ -144,7 +145,14 @@ export function RunResult({
                           <dd key={o.field} className="flex flex-wrap gap-x-2">
                             <span className="text-ink-muted">{fieldName(o.field)}:</span>
                             <span className="font-medium text-ink">{valueText(o.value)}</span>
-                            <span className="text-ink-subtle">({o.attribution.startsWith("manual") ? t("runs.enteredManually") : t("runs.fromSource")})</span>
+                            <span className="text-ink-subtle">
+                              ({o.attribution === "ai" ? t("runs.fromNoteByAi") : o.attribution.startsWith("manual") ? t("runs.enteredManually") : t("runs.fromSource")})
+                            </span>
+                            {o.quote && (
+                              <q className="basis-full text-ink-muted" dir="auto">
+                                {o.quote}
+                              </q>
+                            )}
                           </dd>
                         ))}
                       </div>
@@ -184,14 +192,16 @@ export function RunResult({
       {run.summary && (
         <div>
           <h3 className="mb-2 text-sm font-semibold text-ink">{t("runs.summary")}</h3>
-          {run.summary.ai === "not_configured" ? (
+          {run.summary.ai !== "used" ? (
             <ul className="list-disc space-y-1 rounded-control bg-surface-sunken py-3 pe-4 ps-8 text-sm text-ink">
               {run.findings.length ? run.findings.map((f, i) => <li key={i}>{findingTitle(t, f)}</li>) : <li className="list-none">{t("runs.noFindings")}</li>}
             </ul>
           ) : (
-            <p className="whitespace-pre-line rounded-control bg-surface-sunken px-4 py-3 text-sm text-ink">{run.summary.text}</p>
+            <p className="whitespace-pre-line rounded-control bg-surface-sunken px-4 py-3 text-sm text-ink" dir="auto">
+              {run.summary.text}
+            </p>
           )}
-          {run.summary.ai === "not_configured" && <p className="hint">{t("runs.aiNotConfigured")}</p>}
+          <p className="hint">{t(`runs.summaryAi.${run.summary.ai}`, { defaultValue: "" })}</p>
         </div>
       )}
 

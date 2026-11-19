@@ -273,7 +273,15 @@
     "noFindings": "Aucun résultat pour ce dossier.",
     "rule": "Règle : {{field}} {{op}} {{expected}}. Valeur lue : {{actual}}.",
     "unknown": "inconnue",
-    "candidateShort": "Version {{no}}"
+    "candidateShort": "Version {{no}}",
+    "noteHint": "Texte libre, p. ex. la demande. Lu uniquement par une étape IA d’informations patient ; les valeurs trouvées sont affichées avec les mots d’origine.",
+    "fromNoteByAi": "tiré de la note clinique, par l’IA",
+    "summaryAi": {
+      "not_configured": "La rédaction par IA n’est pas encore configurée ; le résumé liste les constats tels quels.",
+      "used": "Rédigé par l’IA à partir des constats ci-dessus. Les constats font foi ; vérifiez le résumé par rapport à eux.",
+      "unavailable": "Le service IA n’a pas répondu ; le résumé liste les constats tels quels.",
+      "rejected": "Le résumé IA n’a pas été utilisé car il contenait une valeur absente des constats. Les constats sont listés tels quels."
+    }
   },
   "theme": {
     "system": "Thème : selon le système",
@@ -334,7 +342,8 @@
     "slotId": "Créneau",
     "chosen": "Choisi",
     "confirmed": "Confirmé",
-    "bookingId": "Réservation"
+    "bookingId": "Réservation",
+    "clinicalNote": "Note clinique"
   },
   "values": {
     "true": "Oui",
@@ -379,7 +388,26 @@
     "aiSynthesis": "La rédaction par IA n’est pas encore configurée ; le résumé reprend les résultats tels quels.",
     "aiExtraction": "L’extraction par IA n’est pas encore configurée ; seules les valeurs saisies ont été utilisées.",
     "knowledge": "La révision de connaissances est {{status}} : cette étape ne peut pas s’exécuter.",
-    "knowledgeMissing": "La révision de connaissances n’est pas disponible : cette étape ne peut pas s’exécuter."
+    "knowledgeMissing": "La révision de connaissances n’est pas disponible : cette étape ne peut pas s’exécuter.",
+    "ai": {
+      "extraction": {
+        "used": "L’IA a trouvé dans la note clinique : {{fields}}.",
+        "nothing_found": "L’IA n’a trouvé aucune autre valeur dans la note clinique.",
+        "no_note": "Aucune note clinique fournie ; seules les valeurs saisies ont été utilisées.",
+        "not_configured": "L’extraction par IA n’est pas encore configurée ; seules les valeurs saisies ont été utilisées.",
+        "unavailable": "Le service IA n’a pas répondu ; seules les valeurs saisies ont été utilisées.",
+        "rejected": "La réponse de l’IA était inutilisable ; seules les valeurs saisies ont été utilisées.",
+        "budget": "La limite d’appels IA est atteinte ; seules les valeurs saisies ont été utilisées."
+      },
+      "synthesis": {
+        "used": "Résumé rédigé par l’IA.",
+        "not_configured": "La rédaction par IA n’est pas encore configurée ; le résumé liste les constats tels quels.",
+        "unavailable": "Le service IA n’a pas répondu ; le résumé liste les constats tels quels.",
+        "rejected": "Le résumé IA n’a pas été utilisé ; le résumé liste les constats tels quels.",
+        "budget": "La limite d’appels IA est atteinte ; le résumé liste les constats tels quels.",
+        "prompt_unavailable": "Cette étape n’a pas de texte d’invite (seulement un lien Prompt Builder) ; le résumé liste les constats tels quels."
+      }
+    }
   },
   "inspector": {
     "title": "Inspecteur d’exécutions",

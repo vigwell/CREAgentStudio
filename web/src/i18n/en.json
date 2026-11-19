@@ -273,7 +273,15 @@
     "noFindings": "No findings for this case.",
     "rule": "Rule: {{field}} {{op}} {{expected}}. Value seen: {{actual}}.",
     "unknown": "not known",
-    "candidateShort": "Version {{no}}"
+    "candidateShort": "Version {{no}}",
+    "noteHint": "Free text, e.g. the referral. Read only by an AI patient information step; values it finds are shown with the words they came from.",
+    "fromNoteByAi": "from the clinical note, by AI",
+    "summaryAi": {
+      "not_configured": "AI wording isn't set up yet, so the summary lists the findings as they are.",
+      "used": "Written by AI from the findings above. The findings are the result; check the summary against them.",
+      "unavailable": "The AI service didn't answer, so the summary lists the findings as they are.",
+      "rejected": "The AI summary was not used because it contained a value that isn’t in the findings. The findings are listed as they are."
+    }
   },
   "theme": {
     "system": "Theme: follows the system",
@@ -334,7 +342,8 @@
     "slotId": "Slot",
     "chosen": "Chosen",
     "confirmed": "Confirmed",
-    "bookingId": "Booking"
+    "bookingId": "Booking",
+    "clinicalNote": "Clinical note"
   },
   "values": {
     "true": "Yes",
@@ -379,7 +388,26 @@
     "aiSynthesis": "AI wording isn't set up yet; the summary lists the findings as they are.",
     "aiExtraction": "AI extraction isn't set up yet; only entered values were used.",
     "knowledge": "The knowledge revision is {{status}}, so this step can't run.",
-    "knowledgeMissing": "The knowledge revision is not available, so this step can't run."
+    "knowledgeMissing": "The knowledge revision is not available, so this step can't run.",
+    "ai": {
+      "extraction": {
+        "used": "AI found in the clinical note: {{fields}}.",
+        "nothing_found": "AI found no further values in the clinical note.",
+        "no_note": "No clinical note was given; only entered values were used.",
+        "not_configured": "AI extraction isn't set up yet; only entered values were used.",
+        "unavailable": "The AI service didn't answer; only entered values were used.",
+        "rejected": "The AI reply was not usable; only entered values were used.",
+        "budget": "The AI call limit was reached; only entered values were used."
+      },
+      "synthesis": {
+        "used": "Summary written by AI.",
+        "not_configured": "AI wording isn't set up yet; the summary lists the findings as they are.",
+        "unavailable": "The AI service didn't answer; the summary lists the findings as they are.",
+        "rejected": "The AI summary was not used; the summary lists the findings as they are.",
+        "budget": "The AI call limit was reached; the summary lists the findings as they are.",
+        "prompt_unavailable": "This step has no prompt text (only a Prompt Builder link); the summary lists the findings as they are."
+      }
+    }
   },
   "inspector": {
     "title": "Run Inspector",

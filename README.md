@@ -15,6 +15,7 @@ cp .env.example .env      # fill DB_USER / DB_PASSWORD
 npm install
 npm run migrate           # applies pending migrations to XCreAgents
 npm run seed:demo         # optional: demo knowledge, profiles, agents and runs (DEMO ·)
+npm run ai:check          # optional: one synthetic request to the AI deployment (needs AI_API_KEY)
 npm test                  # unit tests, plus database tests when .env is present
 npm run dev               # API on http://localhost:4000
 npm run dev:web           # web app on https://localhost:3000 (/api → API)
@@ -72,9 +73,8 @@ Requires Node.js 20 or later.
   `needs_input`) and names the missing fields. One matching row gives a
   finding with that row as evidence; several or none give `needs_review` and
   no default. A withdrawn or expired source blocks the run. Findings in a
-  denied output category are dropped and recorded. AI steps are not
-  configured yet: the summary lists the deterministic findings and says so.
-  Test values are entered manually and attributed to the user.
+  denied output category are dropped and recorded. Test values are entered
+  manually and attributed to the user.
 
   | Endpoint | |
   |---|---|
@@ -100,6 +100,32 @@ Requires Node.js 20 or later.
   | `POST /candidates/:id/approve · activate · withdraw` | release lifecycle |
   | `GET /candidates/:id/diff?against=` | blocks, connections, instructions, prohibitions, knowledge changed |
   | `GET /runs?agentId=&outcome=&purpose=&caseRef=` | Run Inspector list |
+
+- **AI steps** (week 5): Azure AI Foundry, OpenAI v1 Responses API
+  (`AI_ENDPOINT`, `AI_API_KEY`, `AI_DEPLOYMENT`, default
+  `CREAgentStudio__gpt-6.1-sol`). The key stays in the server `.env`; the
+  browser never calls the model. At most the candidate's AI budget (2) calls
+  per run, within a 30 s active budget; every call uses a strict JSON schema.
+  - *Patient information, AI step*: reads the optional clinical note and
+    fills only fields the entered values don't have. A value is kept only if
+    the model quotes the note verbatim and the quote contains the value;
+    entered values always win. Kept values feed decisions and lookups and are
+    shown as "from the clinical note, by AI" with the quote.
+  - *Final synthesis, AI step*: rewrites the policy-filtered findings as a
+    short summary in the agent's language. It gets the platform rules and the
+    denied categories, can't add findings, and a summary with a number that
+    isn't in the findings is rejected. The findings stay the result.
+  - The note and findings are sent as data (instructions inside them are
+    ignored); no case reference or user id is sent. A timeout, error or
+    rejected reply falls back to the deterministic summary with a step note;
+    AI never fails a run. Each run stores per-call status, model, time and
+    tokens (`aiCalls`); the audit records status and model only.
+  - Runs no longer hold a database transaction during AI calls (prepare,
+    run, then store; a concurrent request with the same key replays).
+  - Release tests run the deterministic logic only, so approval evidence is
+    reproducible; AI steps are exercised in test runs.
+  - A step linked only to a Prompt Builder record (no text) isn't sent until
+    Prompt Builder integration resolves the text.
 
 First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is for development. Leave it empty in production, where a Studio admin adds users. The Medilis tenant (migration 0005) is `a6da57a3-bfe5-592d-a9a6-6c840a27d7a0`: with that id, the first user who signs in becomes admin and later users authors.
 

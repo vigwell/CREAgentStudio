@@ -279,7 +279,7 @@ export interface Finding {
   title: string;
   detail: string | null;
   nodeId: string;
-  observedInputs: { field: string; value: unknown; sourceRef: string | null; observedAt: string | null; attribution: string }[];
+  observedInputs: { field: string; value: unknown; sourceRef: string | null; observedAt: string | null; attribution: string; quote?: string }[];
   evidence: Evidence[];
   missingInputs: string[];
   allowedActions: string[];
@@ -295,6 +295,8 @@ export interface NodeTrace {
   unknown: string[];
   note?: string;
   evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
+  /** AI step outcome: used, nothing_found, no_note, not_configured, unavailable, rejected, budget, prompt_unavailable. */
+  ai?: { status: string; fields?: string[]; reason?: string };
 }
 
 export interface RunDetail {
@@ -313,7 +315,8 @@ export interface RunDetail {
   blockedFindings: { code: string; category: string; ruleIds: string[] }[];
   missingInputs: string[];
   trace: NodeTrace[];
-  summary: { text: string; ai: string } | null;
+  summary: { text: string; ai: string; model?: string | null } | null;
+  aiCalls?: { nodeId: string; purpose: string; status: string; model: string | null; ms: number | null; reason?: string }[];
   reviews: { findingIndex: number; findingCode: string; action: string; reason: string | null; by: string; at: string }[];
   createdAt: string;
 }

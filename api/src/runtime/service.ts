@@ -16,11 +16,13 @@ import { writeAudit } from "../services/audit.js";
 import type { StudioUser } from "../services/users.js";
 import { effectiveStatus } from "../knowledge/service.js";
 import { canonicalJson } from "../agents/compiler.js";
-import { execute, snapshotHash, type Fact, type InputSnapshot, type KnowledgeBinding, type Manifest, type RunResult } from "./engine.js";
+import { snapshotHash, type Fact, type InputSnapshot, type KnowledgeBinding, type Manifest, type RunResult } from "./engine.js";
+import type { AiClient } from "./aiClient.js";
+import { NOTE_FIELD, NOTE_MAX_CHARS, runAgent } from "./aiSteps.js";
 
 const lower = (x: unknown) => (x ? String(x).toLowerCase() : null);
 const REVIEW_ACTIONS = new Set(["acknowledge", "dismiss", "defer"]);
-const MANUAL_FIELDS: Record<string, "code" | "boolean" | "number"> = {
+const MANUAL_FIELDS: Record<string, "code" | "boolean" | "number" | "text"> = {
   indicationCode: "code",
   hasIndication: "boolean",
   ageYears: "number",
@@ -28,6 +30,8 @@ const MANUAL_FIELDS: Record<string, "code" | "boolean" | "number"> = {
   egfr: "number",
   contrastAllergy: "boolean",
   pregnant: "boolean",
+  /** Free-text clinical note; read only by an AI extraction step. */
+  [NOTE_FIELD]: "text",
 };
 
 export interface RunRequest {
@@ -53,10 +57,18 @@ export function factsFromManual(values: Record<string, unknown>, userId: string,
     let value: unknown = raw;
     if (type === "number") value = typeof raw === "number" ? raw : Number(raw);
     if (type === "boolean") value = raw === true || raw === "true" ? true : raw === false || raw === "false" ? false : undefined;
+    if (type === "text") {
+      if (typeof raw !== "string") throw new AppError(422, "bad_input", `${field}: expected text`);
+      if (raw.length > NOTE_MAX_CHARS) throw new AppError(422, "bad_input", `${field}: at most ${NOTE_MAX_CHARS} characters`);
+      if (!raw.trim()) {
+        facts[field] = { status: "missing" };
+        continue;
+      }
+    }
     if ((type === "number" && !Number.isFinite(value as number)) || value === undefined) {
       throw new AppError(422, "bad_input", `${field}: expected a ${type}`);
     }
-    facts[field] = { value: type === "code" ? String(value).trim() : value, status: "present", sourceRef: "manual", observedAt: at, attribution: { kind: "manual", userId } };
+    facts[field] = { value: type === "code" || type === "text" ? String(value).trim() : value, status: "present", sourceRef: "manual", observedAt: at, attribution: { kind: "manual", userId } };
   }
   for (const k of Object.keys(values)) if (!(k in MANUAL_FIELDS)) throw new AppError(422, "bad_input", `${k} is not an approved input field`);
   return facts;
@@ -93,8 +105,18 @@ export async function loadKnowledge(tx: sql.Transaction, revisionIds: string[]):
 }
 
 export class RunService {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly ai: AiClient | null = null,
+  ) {}
 
+  /**
+   * Phase 1 (transaction): idempotency check, candidate, knowledge.
+   * Phase 2 (no transaction): run, including any AI calls, so a slow AI
+   * service never holds database locks.
+   * Phase 3 (transaction): store snapshot, run and audit. A concurrent request
+   * with the same key that finished first wins; this one replays it.
+   */
   async start(user: StudioUser, idempotencyKey: string | undefined, body: RunRequest) {
     if (!idempotencyKey || idempotencyKey.length > 100) throw new AppError(428, "idempotency_key_required", "Send an Idempotency-Key header (up to 100 characters)");
     const caseRef = String(body.caseRef ?? "").trim();
@@ -102,18 +124,21 @@ export class RunService {
     const mode = body.executionMode ?? "standalone_cds";
     if (mode === "standalone_cds" && body.reportContext !== undefined) throw new AppError(422, "report_context_not_allowed", "reportContext is not allowed in standalone mode");
     const requestHash = `sha256:${createHash("sha256").update(canonicalJson(body)).digest("hex")}`;
-
-    return withTenant(this.db, user.tenantId, async (tx) => {
-      const prior = (
+    const findPrior = async (tx: sql.Transaction) =>
+      (
         await new sql.Request(tx)
           .input("user", sql.UniqueIdentifier, user.id)
           .input("key", sql.NVarChar(100), idempotencyKey)
           .query("SELECT id, request_hash FROM studio.agent_runs WHERE created_by = @user AND idempotency_key = @key")
       ).recordset[0];
-      if (prior) {
-        if (prior.request_hash !== requestHash) throw new AppError(409, "idempotency_conflict", "This Idempotency-Key was used for a different request");
-        return { runId: lower(prior.id)!, replayed: true };
-      }
+    const replay = (prior: { id: string; request_hash: string }) => {
+      if (prior.request_hash !== requestHash) throw new AppError(409, "idempotency_conflict", "This Idempotency-Key was used for a different request");
+      return { runId: lower(prior.id)!, replayed: true };
+    };
+
+    const prep = await withTenant(this.db, user.tenantId, async (tx) => {
+      const prior = await findPrior(tx);
+      if (prior) return { replayed: replay(prior) } as const;
 
       const purpose = body.candidateId ? "test" : "clinical";
       const cand = (
@@ -137,66 +162,93 @@ export class RunService {
 
       // Knowledge exactly as bound by the candidate, with its status now.
       const knowledge = await loadKnowledge(tx, manifest.sourceBindings ?? []);
-
-      const now = new Date().toISOString();
-      const snapshot: InputSnapshot = {
-        caseRef,
-        requestedAt: now,
-        deviceId: body.deviceId ?? null,
-        facts: factsFromManual(body.inputs?.manualValues ?? {}, user.id, now),
-      };
-      const snapHash = snapshotHash(snapshot);
-      const snapId = (
-        await new sql.Request(tx)
-          .input("tenant", sql.UniqueIdentifier, user.tenantId)
-          .input("case", sql.NVarChar(200), caseRef)
-          .input("content", sql.NVarChar(sql.MAX), JSON.stringify(snapshot))
-          .input("hash", sql.NVarChar(80), snapHash)
-          .input("user", sql.UniqueIdentifier, user.id)
-          .query<{ id: string }>(
-            "INSERT INTO studio.input_snapshots (tenant_id, case_ref, content, content_hash, created_by) OUTPUT inserted.id VALUES (@tenant, @case, @content, @hash, @user)",
-          )
-      ).recordset[0].id;
-
-      let result: RunResult;
-      try {
-        result = execute(manifest, snapshot, knowledge);
-      } catch {
-        // An engine fault fails the run; it never produces a partial clinical result.
-        result = { state: "failed", outcome: "unavailable", findings: [], blockedFindings: [], missingInputs: [], trace: [], summary: null };
-      }
-
-      const runId = (
-        await new sql.Request(tx)
-          .input("tenant", sql.UniqueIdentifier, user.tenantId)
-          .input("agent", sql.UniqueIdentifier, body.agentId)
-          .input("cand", sql.UniqueIdentifier, String(cand.id))
-          .input("snap", sql.UniqueIdentifier, snapId)
-          .input("key", sql.NVarChar(100), idempotencyKey)
-          .input("rhash", sql.NVarChar(80), requestHash)
-          .input("case", sql.NVarChar(200), caseRef)
-          .input("mode", sql.NVarChar(40), mode)
-          .input("purpose", sql.NVarChar(20), purpose)
-          .input("state", sql.NVarChar(20), result.state)
-          .input("outcome", sql.NVarChar(20), result.outcome)
-          .input("result", sql.NVarChar(sql.MAX), JSON.stringify(result))
-          .input("user", sql.UniqueIdentifier, user.id)
-          .query<{ id: string }>(
-            `INSERT INTO studio.agent_runs (tenant_id, agent_id, candidate_id, snapshot_id, idempotency_key, request_hash, case_ref, execution_mode, purpose, state, outcome, result, created_by, finished_at)
-             OUTPUT inserted.id VALUES (@tenant, @agent, @cand, @snap, @key, @rhash, @case, @mode, @purpose, @state, @outcome, @result, @user, SYSUTCDATETIME())`,
-          )
-      ).recordset[0].id.toLowerCase();
-      // Audit lists identifiers and statuses, not clinical narrative.
-      await writeAudit(tx, {
-        tenantId: user.tenantId,
-        userId: user.id,
-        action: "run.completed",
-        entityType: "agent_run",
-        entityId: runId,
-        details: { agentId: body.agentId, candidateId: lower(cand.id), purpose, manifestHash: cand.manifest_hash, snapshotHash: snapHash, state: result.state, outcome: result.outcome },
-      });
-      return { runId, replayed: false };
+      return { cand: { id: String(cand.id), manifestHash: String(cand.manifest_hash) }, manifest, knowledge, purpose } as const;
     });
+    if ("replayed" in prep) return prep.replayed!;
+    const { cand, manifest, knowledge, purpose } = prep;
+
+    const now = new Date().toISOString();
+    const snapshot: InputSnapshot = {
+      caseRef,
+      requestedAt: now,
+      deviceId: body.deviceId ?? null,
+      facts: factsFromManual(body.inputs?.manualValues ?? {}, user.id, now),
+    };
+    const snapHash = snapshotHash(snapshot);
+
+    let result: RunResult;
+    try {
+      result = await runAgent(manifest, snapshot, knowledge, this.ai);
+    } catch {
+      // An engine fault fails the run; it never produces a partial clinical result.
+      result = { state: "failed", outcome: "unavailable", findings: [], blockedFindings: [], missingInputs: [], trace: [], summary: null };
+    }
+
+    try {
+      return await withTenant(this.db, user.tenantId, async (tx) => {
+        const prior = await findPrior(tx);
+        if (prior) return replay(prior);
+        const snapId = (
+          await new sql.Request(tx)
+            .input("tenant", sql.UniqueIdentifier, user.tenantId)
+            .input("case", sql.NVarChar(200), caseRef)
+            .input("content", sql.NVarChar(sql.MAX), JSON.stringify(snapshot))
+            .input("hash", sql.NVarChar(80), snapHash)
+            .input("user", sql.UniqueIdentifier, user.id)
+            .query<{ id: string }>(
+              "INSERT INTO studio.input_snapshots (tenant_id, case_ref, content, content_hash, created_by) OUTPUT inserted.id VALUES (@tenant, @case, @content, @hash, @user)",
+            )
+        ).recordset[0].id;
+
+        const runId = (
+          await new sql.Request(tx)
+            .input("tenant", sql.UniqueIdentifier, user.tenantId)
+            .input("agent", sql.UniqueIdentifier, body.agentId)
+            .input("cand", sql.UniqueIdentifier, cand.id)
+            .input("snap", sql.UniqueIdentifier, snapId)
+            .input("key", sql.NVarChar(100), idempotencyKey)
+            .input("rhash", sql.NVarChar(80), requestHash)
+            .input("case", sql.NVarChar(200), caseRef)
+            .input("mode", sql.NVarChar(40), mode)
+            .input("purpose", sql.NVarChar(20), purpose)
+            .input("state", sql.NVarChar(20), result.state)
+            .input("outcome", sql.NVarChar(20), result.outcome)
+            .input("result", sql.NVarChar(sql.MAX), JSON.stringify(result))
+            .input("user", sql.UniqueIdentifier, user.id)
+            .query<{ id: string }>(
+              `INSERT INTO studio.agent_runs (tenant_id, agent_id, candidate_id, snapshot_id, idempotency_key, request_hash, case_ref, execution_mode, purpose, state, outcome, result, created_by, finished_at)
+               OUTPUT inserted.id VALUES (@tenant, @agent, @cand, @snap, @key, @rhash, @case, @mode, @purpose, @state, @outcome, @result, @user, SYSUTCDATETIME())`,
+            )
+        ).recordset[0].id.toLowerCase();
+        // Audit lists identifiers and statuses, not clinical narrative.
+        await writeAudit(tx, {
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: "run.completed",
+          entityType: "agent_run",
+          entityId: runId,
+          details: {
+            agentId: body.agentId,
+            candidateId: lower(cand.id),
+            purpose,
+            manifestHash: cand.manifestHash,
+            snapshotHash: snapHash,
+            state: result.state,
+            outcome: result.outcome,
+            ...(result.aiCalls ? { ai: result.aiCalls.map((c) => ({ purpose: c.purpose, status: c.status, model: c.model })) } : {}),
+          },
+        });
+        return { runId, replayed: false };
+      });
+    } catch (err) {
+      // Same key stored by a concurrent request in the meantime (unique index).
+      const num = (err as { number?: number; originalError?: { info?: { number?: number } } }).number ?? (err as { originalError?: { info?: { number?: number } } }).originalError?.info?.number;
+      if (num === 2601 || num === 2627) {
+        const prior = await withTenant(this.db, user.tenantId, findPrior);
+        if (prior) return replay(prior);
+      }
+      throw err;
+    }
   }
 
   async get(user: StudioUser, runId: string) {

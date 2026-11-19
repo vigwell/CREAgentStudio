@@ -25,8 +25,8 @@ export interface Fact {
   status: FactStatus;
   sourceRef?: string | null;
   observedAt?: string | null;
-  /** "manual" values carry the user who entered them. */
-  attribution?: { kind: "source" | "manual"; userId?: string | null };
+  /** "manual" values carry the user who entered them; "ai" values the verbatim quote they came from. */
+  attribution?: { kind: "source" | "manual" | "ai"; userId?: string | null; quote?: string };
 }
 
 export interface InputSnapshot {
@@ -92,6 +92,8 @@ export interface ObservedInput {
   sourceRef: string | null;
   observedAt: string | null;
   attribution: string;
+  /** AI-extracted values: the words in the clinical note that state them. */
+  quote?: string;
 }
 
 export interface Finding {
@@ -119,6 +121,8 @@ export interface NodeTrace {
   note?: string;
   /** Decisions: the rule that was evaluated and the value it saw (null = unknown). */
   evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
+  /** AI steps: what the AI call did (see aiSteps.ts). */
+  ai?: { status: string; fields?: string[]; reason?: string };
 }
 
 export interface RunResult {
@@ -128,7 +132,9 @@ export interface RunResult {
   blockedFindings: { code: string; category: string; ruleIds: string[] }[];
   missingInputs: string[];
   trace: NodeTrace[];
-  summary: { text: string; ai: "not_configured" | "used" } | null;
+  summary: { text: string; ai: "not_configured" | "used" | "unavailable" | "rejected"; model?: string | null } | null;
+  /** One record per AI step (status, model, timing, tokens); no clinical text. */
+  aiCalls?: { nodeId: string; purpose: string; status: string; model: string | null; ms: number | null; inputTokens: number | null; outputTokens: number | null; reason?: string }[];
 }
 
 const UNKNOWN = Symbol("unknown");
@@ -154,6 +160,7 @@ function observed(snapshot: InputSnapshot, field: string): ObservedInput {
     sourceRef: f?.sourceRef ?? null,
     observedAt: f?.observedAt ?? null,
     attribution: f?.attribution?.kind === "manual" ? `manual:${f.attribution.userId ?? "unknown"}` : (f?.attribution?.kind ?? "source"),
+    ...(f?.attribution?.kind === "ai" && f.attribution.quote ? { quote: f.attribution.quote } : {}),
   };
 }
 

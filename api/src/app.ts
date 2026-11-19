@@ -10,6 +10,7 @@ import { ReleaseService } from "./release/service.js";
 import { registerReleaseRoutes } from "./release/routes.js";
 import { registerKnowledgeRoutes } from "./knowledge/routes.js";
 import type { Db } from "./db/pool.js";
+import type { AiClient } from "./runtime/aiClient.js";
 import { AuthError, bearerToken, type CreIdentity } from "./auth/creToken.js";
 import { resolveUser, type StudioUser } from "./services/users.js";
 
@@ -26,6 +27,8 @@ export interface AppDeps {
   logLevel?: string;
   /** How long a resolved Studio user (role, tenant) is reused; 0 = every request. */
   userCacheMs?: number;
+  /** AI steps; null/undefined = not configured (deterministic runs). */
+  ai?: AiClient | null;
 }
 
 export function buildApp(deps: AppDeps) {
@@ -93,7 +96,7 @@ export function buildApp(deps: AppDeps) {
   app.register(multipart);
   app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
   app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db), requireUser));
-  app.register(async (scope) => registerRunRoutes(scope, new RunService(deps.db), requireUser));
+  app.register(async (scope) => registerRunRoutes(scope, new RunService(deps.db, deps.ai ?? null), requireUser));
   app.register(async (scope) => registerReleaseRoutes(scope, new ReleaseService(deps.db), requireUser));
 
   return app;
