@@ -123,7 +123,7 @@ export function manifestDiff(
   const edgesB = new Set(((b.edges as E[]) ?? []).map(key));
   for (const e of edgesB) if (!edgesA.has(e)) out.added.push(`connection ${e}`);
   for (const e of edgesA) if (!edgesB.has(e)) out.removed.push(`connection ${e}`);
-  for (const field of ["agentPrompt", "effectivePolicy", "sourceBindings", "clinicProfiles", "scope", "budget"]) {
+  for (const field of ["agentPrompt", "effectivePolicy", "sourceBindings", "clinicProfiles", "scope", "budget", "aiModel"]) {
     if (JSON.stringify(a?.[field] ?? null) !== JSON.stringify(b[field] ?? null)) out.changed.push(field);
   }
   return out;

@@ -280,7 +280,8 @@
       "not_configured": "AI wording isn't set up yet, so the summary lists the findings as they are.",
       "used": "Written by AI from the findings above. The findings are the result; check the summary against them.",
       "unavailable": "The AI service didn't answer, so the summary lists the findings as they are.",
-      "rejected": "The AI summary was not used because it contained a value that isn’t in the findings. The findings are listed as they are."
+      "rejected": "The AI summary was not used because it contained a value that isn’t in the findings. The findings are listed as they are.",
+      "model_changed": "This version was frozen with a different AI model, so AI wasn't used. Freeze, test and approve a new version to use the current model."
     }
   },
   "theme": {
@@ -397,7 +398,8 @@
         "not_configured": "AI extraction isn't set up yet; only entered values were used.",
         "unavailable": "The AI service didn't answer; only entered values were used.",
         "rejected": "The AI reply was not usable; only entered values were used.",
-        "budget": "The AI call limit was reached; only entered values were used."
+        "budget": "The AI call limit was reached; only entered values were used.",
+        "model_changed": "This version was approved with a different AI model; only entered values were used."
       },
       "synthesis": {
         "used": "Summary written by AI.",
@@ -405,7 +407,8 @@
         "unavailable": "The AI service didn't answer; the summary lists the findings as they are.",
         "rejected": "The AI summary was not used; the summary lists the findings as they are.",
         "budget": "The AI call limit was reached; the summary lists the findings as they are.",
-        "prompt_unavailable": "This step has no prompt text (only a Prompt Builder link); the summary lists the findings as they are."
+        "prompt_unavailable": "This step has no prompt text (only a Prompt Builder link); the summary lists the findings as they are.",
+        "model_changed": "This version was approved with a different AI model; the summary lists the findings as they are."
       }
     }
   },
@@ -472,7 +475,8 @@
       "sourceBindings": "Knowledge used",
       "clinicProfiles": "Clinic profiles",
       "scope": "Scope",
-      "budget": "AI budget"
+      "budget": "AI budget",
+      "aiModel": "AI model"
     },
     "problems": {
       "outcome": "Result: expected {{expected}}, got {{actual}}",

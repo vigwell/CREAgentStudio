@@ -63,6 +63,8 @@ export interface CompileContext {
   /** Clinic & exam profiles: id → status. */
   clinicProfiles: Map<string, { status: string }>;
   maxAiCalls?: number;
+  /** The AI deployment this server uses; frozen into versions with AI steps. */
+  aiModel?: { provider: string; deployment: string } | null;
 }
 
 export interface Issue {
@@ -362,6 +364,8 @@ export function compile(graph: AgentGraph, ctx: CompileContext): CompileResult {
       rules: rules.map((r) => ({ id: r.id, origin: r.origin, binding: r.binding })),
     },
     budget: { maxAiCalls: ctx.maxAiCalls ?? DEFAULT_MAX_AI_CALLS, aiCalls: nodes.filter((n) => n.executionKind === "ai").length },
+    // Only versions with AI steps carry a model, so other versions keep their hash.
+    ...(nodes.some((n) => n.executionKind === "ai") ? { aiModel: ctx.aiModel ?? null } : {}),
     missingDataPolicy: ctx.kind === "cds" ? "request_input" : "transfer_to_staff",
     outputPolicy: ctx.kind === "cds" ? "clinician_review_only" : "confirmed_booking_only",
   };

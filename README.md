@@ -122,6 +122,10 @@ Requires Node.js 20 or later.
     tokens (`aiCalls`); the audit records status and model only.
   - Runs no longer hold a database transaction during AI calls (prepare,
     run, then store; a concurrent request with the same key replays).
+  - A frozen version with AI steps records the AI model (`aiModel` in the
+    manifest, shown in the version diff). It runs AI only with that model;
+    after a model change the AI steps are skipped with a note until a new
+    version is tested and approved.
   - Release tests run the deterministic logic only, so approval evidence is
     reproducible; AI steps are exercised in test runs.
   - A step linked only to a Prompt Builder record (no text) isn't sent until

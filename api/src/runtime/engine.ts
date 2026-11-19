@@ -132,7 +132,7 @@ export interface RunResult {
   blockedFindings: { code: string; category: string; ruleIds: string[] }[];
   missingInputs: string[];
   trace: NodeTrace[];
-  summary: { text: string; ai: "not_configured" | "used" | "unavailable" | "rejected"; model?: string | null } | null;
+  summary: { text: string; ai: "not_configured" | "used" | "unavailable" | "rejected" | "model_changed"; model?: string | null } | null;
   /** One record per AI step (status, model, timing, tokens); no clinical text. */
   aiCalls?: { nodeId: string; purpose: string; status: string; model: string | null; ms: number | null; inputTokens: number | null; outputTokens: number | null; reason?: string }[];
 }

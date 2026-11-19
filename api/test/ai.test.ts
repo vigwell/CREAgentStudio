@@ -208,6 +208,21 @@ describe("runAgent", () => {
     expect(r.aiCalls?.[1]).toMatchObject({ status: "budget", reason: "time" });
   });
 
+  it("a version runs AI only with the model it was frozen with", async () => {
+    const ai = fakeAi({ patient_facts: { values: [] }, cds_summary: { summary: "ok" } });
+    const pinned = (deployment: string | null) => ({ ...manifest({ extractAi: true }), aiModel: deployment ? { provider: "azure-openai-v1", deployment } : null }) as unknown as Manifest;
+    const facts = snap({ indicationCode: manual("DEMO-A"), clinicalNote: manual(NOTE) });
+    const other = await runAgent(pinned("gpt-old"), facts, k, ai);
+    expect(ai.calls).toHaveLength(0);
+    expect(other.aiCalls?.map((c) => c.status)).toEqual(["model_changed", "model_changed"]);
+    expect(other.summary?.ai).toBe("model_changed");
+    expect(other.outcome).toBe("findings");
+    const none = await runAgent(pinned(null), facts, k, ai); // frozen while AI wasn't set up
+    expect(none.aiCalls?.[0].status).toBe("model_changed");
+    await runAgent(pinned("fake-model"), facts, k, ai);
+    expect(ai.calls).toHaveLength(2);
+  });
+
   it("a synthesis step without prompt text (Prompt Builder link only) isn't sent", async () => {
     const ai = fakeAi({ cds_summary: { summary: "ok" } });
     const r = await runAgent(manifest({ synthPrompt: null }), snap({ indicationCode: manual("DEMO-A") }), k, ai);

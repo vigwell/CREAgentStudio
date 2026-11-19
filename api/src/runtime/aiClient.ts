@@ -8,6 +8,9 @@
  *   AiError; callers fall back to the deterministic result.
  */
 
+/** Provider tag frozen into versions with AI steps. */
+export const AI_PROVIDER = "azure-openai-v1";
+
 export interface AiCallInput {
   /** System-level instructions (platform rules + agent + step prompt). */
   instructions: string;

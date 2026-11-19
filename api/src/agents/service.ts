@@ -71,7 +71,11 @@ function checkDraft(d: DraftInput) {
 }
 
 export class AgentService {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    /** The AI deployment in use; frozen into new versions that have AI steps. */
+    private readonly aiModel: { provider: string; deployment: string } | null = null,
+  ) {}
 
   async list(user: StudioUser) {
     return withTenant(this.db, user.tenantId, async (tx) => {
@@ -215,6 +219,7 @@ export class AgentService {
       prohibitions: agent.draft.prohibitions,
       knowledge,
       clinicProfiles,
+      aiModel: this.aiModel,
     });
     return { ...result, draftVersion: agent.draft.version };
   }

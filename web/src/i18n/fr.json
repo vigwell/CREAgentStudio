@@ -280,7 +280,8 @@
       "not_configured": "La rédaction par IA n’est pas encore configurée ; le résumé liste les constats tels quels.",
       "used": "Rédigé par l’IA à partir des constats ci-dessus. Les constats font foi ; vérifiez le résumé par rapport à eux.",
       "unavailable": "Le service IA n’a pas répondu ; le résumé liste les constats tels quels.",
-      "rejected": "Le résumé IA n’a pas été utilisé car il contenait une valeur absente des constats. Les constats sont listés tels quels."
+      "rejected": "Le résumé IA n’a pas été utilisé car il contenait une valeur absente des constats. Les constats sont listés tels quels.",
+      "model_changed": "Cette version a été figée avec un autre modèle d’IA, l’IA n’a donc pas été utilisée. Figez, testez et approuvez une nouvelle version pour utiliser le modèle actuel."
     }
   },
   "theme": {
@@ -397,7 +398,8 @@
         "not_configured": "L’extraction par IA n’est pas encore configurée ; seules les valeurs saisies ont été utilisées.",
         "unavailable": "Le service IA n’a pas répondu ; seules les valeurs saisies ont été utilisées.",
         "rejected": "La réponse de l’IA était inutilisable ; seules les valeurs saisies ont été utilisées.",
-        "budget": "La limite d’appels IA est atteinte ; seules les valeurs saisies ont été utilisées."
+        "budget": "La limite d’appels IA est atteinte ; seules les valeurs saisies ont été utilisées.",
+        "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; seules les valeurs saisies ont été utilisées."
       },
       "synthesis": {
         "used": "Résumé rédigé par l’IA.",
@@ -405,7 +407,8 @@
         "unavailable": "Le service IA n’a pas répondu ; le résumé liste les constats tels quels.",
         "rejected": "Le résumé IA n’a pas été utilisé ; le résumé liste les constats tels quels.",
         "budget": "La limite d’appels IA est atteinte ; le résumé liste les constats tels quels.",
-        "prompt_unavailable": "Cette étape n’a pas de texte d’invite (seulement un lien Prompt Builder) ; le résumé liste les constats tels quels."
+        "prompt_unavailable": "Cette étape n’a pas de texte d’invite (seulement un lien Prompt Builder) ; le résumé liste les constats tels quels.",
+        "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; le résumé liste les constats tels quels."
       }
     }
   },
@@ -472,7 +475,8 @@
       "sourceBindings": "Connaissances utilisées",
       "clinicProfiles": "Profils cliniques",
       "scope": "Périmètre",
-      "budget": "Budget IA"
+      "budget": "Budget IA",
+      "aiModel": "Modèle d’IA"
     },
     "problems": {
       "outcome": "Résultat : attendu {{expected}}, obtenu {{actual}}",

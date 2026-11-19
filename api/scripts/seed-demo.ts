@@ -17,6 +17,7 @@ import { KnowledgeService } from "../src/knowledge/service.js";
 import { AgentService } from "../src/agents/service.js";
 import { RunService } from "../src/runtime/service.js";
 import { ReleaseService } from "../src/release/service.js";
+import { AI_PROVIDER } from "../src/runtime/aiClient.js";
 
 const TENANT = process.env.AUTO_PROVISION_TENANT_ID || "a6da57a3-bfe5-592d-a9a6-6c840a27d7a0";
 const log = (...a: unknown[]) => console.log(...a);
@@ -28,7 +29,8 @@ async function xlsx(sheet: string, rows: (string | number | null)[][]): Promise<
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 
-const db = await createPool(loadConfig());
+const config = loadConfig();
+const db = await createPool(config);
 try {
   // ---------------------------------------------------------------- demo users
   const users = await withTenant(db, TENANT, async (tx) => {
@@ -58,7 +60,8 @@ try {
   const approver = users["demo-approver"];
 
   const knowledge = new KnowledgeService(db);
-  const agents = new AgentService(db);
+  // Versions with AI steps freeze the AI model in use (none when AI isn't set up).
+  const agents = new AgentService(db, config.AI_API_KEY ? { provider: AI_PROVIDER, deployment: config.AI_DEPLOYMENT } : null);
   const runs = new RunService(db);
 
   // ---------------------------------------------------------------- knowledge

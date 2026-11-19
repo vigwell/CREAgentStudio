@@ -92,6 +92,17 @@ describe("CDS graph", () => {
     expect(r.preview.join("\n")).toContain("Indication present? (Decision) — if Patient data.hasIndication eq true; yes → CT 01 protocol, no → Ask for indication");
   });
 
+  it("versions with AI steps freeze the AI model; a different model changes the hash", () => {
+    const m = { provider: "azure-openai-v1", deployment: "dep-a" };
+    const a = compile(cdsGraph(), { ...ctx(), aiModel: m });
+    expect(a.manifest!.aiModel).toEqual(m);
+    expect(compile(cdsGraph(), { ...ctx(), aiModel: { ...m, deployment: "dep-b" } }).manifestHash).not.toBe(a.manifestHash);
+    expect(compile(cdsGraph(), ctx()).manifest!.aiModel).toBeNull(); // AI steps, but no AI configured
+    const plain = cdsGraph();
+    plain.nodes.forEach((n) => (n.executionKind = "deterministic"));
+    expect("aiModel" in compile(plain, { ...ctx(), aiModel: m }).manifest!).toBe(false);
+  });
+
   it("moving blocks doesn't change the hash; changing a label or prompt does", () => {
     const a = compile(cdsGraph(), ctx()).manifestHash;
     const moved = cdsGraph();

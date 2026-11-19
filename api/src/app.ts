@@ -10,7 +10,7 @@ import { ReleaseService } from "./release/service.js";
 import { registerReleaseRoutes } from "./release/routes.js";
 import { registerKnowledgeRoutes } from "./knowledge/routes.js";
 import type { Db } from "./db/pool.js";
-import type { AiClient } from "./runtime/aiClient.js";
+import { AI_PROVIDER, type AiClient } from "./runtime/aiClient.js";
 import { AuthError, bearerToken, type CreIdentity } from "./auth/creToken.js";
 import { resolveUser, type StudioUser } from "./services/users.js";
 
@@ -95,7 +95,7 @@ export function buildApp(deps: AppDeps) {
 
   app.register(multipart);
   app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
-  app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db), requireUser));
+  app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db, deps.ai ? { provider: AI_PROVIDER, deployment: deps.ai.model } : null), requireUser));
   app.register(async (scope) => registerRunRoutes(scope, new RunService(deps.db, deps.ai ?? null), requireUser));
   app.register(async (scope) => registerReleaseRoutes(scope, new ReleaseService(deps.db), requireUser));
 

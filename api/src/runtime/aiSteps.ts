@@ -22,7 +22,7 @@ import { AiError } from "./aiClient.js";
 import { MANDATORY_RULES } from "../agents/policy.js";
 import { execute, type Fact, type InputSnapshot, type KnowledgeBinding, type Manifest, type RunResult } from "./engine.js";
 
-export type AiStepStatus = "used" | "nothing_found" | "no_note" | "not_configured" | "unavailable" | "rejected" | "budget" | "prompt_unavailable";
+export type AiStepStatus = "used" | "nothing_found" | "no_note" | "not_configured" | "unavailable" | "rejected" | "budget" | "prompt_unavailable" | "model_changed";
 
 export interface AiCallRecord {
   nodeId: string;
@@ -52,7 +52,21 @@ const SUMMARY_MAX_CHARS = 1500;
 
 type PromptRef = { promptId?: string | null; revisionId?: string | null; draftText?: string | null } | null | undefined;
 type AiNode = Manifest["nodes"][number] & { prompt?: PromptRef };
-type AiManifest = Manifest & { agentPrompt?: PromptRef; budget?: { maxAiCalls?: number } };
+type AiManifest = Manifest & {
+  agentPrompt?: PromptRef;
+  budget?: { maxAiCalls?: number };
+  /** Frozen at candidate creation; absent on versions frozen before model pinning. */
+  aiModel?: { provider: string; deployment: string } | null;
+};
+
+/**
+ * A version runs AI only with the model it was frozen (tested, approved)
+ * with. Versions frozen before pinning carry no aiModel and use the current one.
+ */
+export function modelMatches(m: AiManifest, ai: AiClient): boolean {
+  if (!("aiModel" in m)) return true;
+  return !!m.aiModel && m.aiModel.deployment === ai.model;
+}
 
 const squash = (s: string) => s.normalize("NFKC").replace(/\s+/g, " ").trim().toLowerCase();
 
@@ -284,6 +298,7 @@ export async function runAgent(
   const maxCalls = m.budget?.maxAiCalls ?? 2;
   let calls = 0;
   const records: AiCallRecord[] = [];
+  const modelOk = !ai || modelMatches(m, ai);
   const deadline = Date.now() + (opts.activeBudgetMs ?? 30_000);
   const timeLeft = () => deadline - Date.now();
   const offline = (nodeId: string, purpose: AiCallRecord["purpose"], status: AiStepStatus): AiCallRecord => ({
@@ -301,6 +316,7 @@ export async function runAgent(
   const extractNode = nodes.find((n) => n.type === "patient_service" && n.executionKind === "ai");
   if (extractNode && useAi) {
     if (!ai) records.push(offline(extractNode.id, "extraction", "not_configured"));
+    else if (!modelOk) records.push(offline(extractNode.id, "extraction", "model_changed"));
     else if (calls >= maxCalls) records.push(offline(extractNode.id, "extraction", "budget"));
     else {
       // Leave time for the summary call when there is one.
@@ -319,7 +335,10 @@ export async function runAgent(
   const reached = synthNode && result.trace.some((t) => t.nodeId === synthNode.id && t.state === "completed");
   if (synthNode && reached && useAi && result.summary) {
     if (!ai) records.push(offline(synthNode.id, "synthesis", "not_configured"));
-    else if (!promptText(synthNode.prompt)) records.push(offline(synthNode.id, "synthesis", "prompt_unavailable"));
+    else if (!modelOk) {
+      records.push(offline(synthNode.id, "synthesis", "model_changed"));
+      result.summary = { ...result.summary, ai: "model_changed" };
+    } else if (!promptText(synthNode.prompt)) records.push(offline(synthNode.id, "synthesis", "prompt_unavailable"));
     else if (calls >= maxCalls) records.push(offline(synthNode.id, "synthesis", "budget"));
     else if (timeLeft() < MIN_CALL_MS) records.push({ ...offline(synthNode.id, "synthesis", "budget"), reason: "time" });
     else {

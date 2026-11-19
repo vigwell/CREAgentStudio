@@ -280,7 +280,8 @@
       "not_configured": "La redacción con IA aún no está configurada; el resumen lista los hallazgos tal cual.",
       "used": "Redactado por IA a partir de los hallazgos anteriores. Los hallazgos son el resultado; compruebe el resumen con ellos.",
       "unavailable": "El servicio de IA no respondió; el resumen lista los hallazgos tal cual.",
-      "rejected": "No se usó el resumen de IA porque contenía un valor que no está en los hallazgos. Los hallazgos se listan tal cual."
+      "rejected": "No se usó el resumen de IA porque contenía un valor que no está en los hallazgos. Los hallazgos se listan tal cual.",
+      "model_changed": "Esta versión se congeló con otro modelo de IA, por lo que no se usó la IA. Congele, pruebe y apruebe una nueva versión para usar el modelo actual."
     }
   },
   "theme": {
@@ -397,7 +398,8 @@
         "not_configured": "La extracción con IA aún no está configurada; solo se usaron los valores introducidos.",
         "unavailable": "El servicio de IA no respondió; solo se usaron los valores introducidos.",
         "rejected": "La respuesta de la IA no era utilizable; solo se usaron los valores introducidos.",
-        "budget": "Se alcanzó el límite de llamadas de IA; solo se usaron los valores introducidos."
+        "budget": "Se alcanzó el límite de llamadas de IA; solo se usaron los valores introducidos.",
+        "model_changed": "Esta versión se aprobó con otro modelo de IA; solo se usaron los valores introducidos."
       },
       "synthesis": {
         "used": "Resumen redactado por IA.",
@@ -405,7 +407,8 @@
         "unavailable": "El servicio de IA no respondió; el resumen lista los hallazgos tal cual.",
         "rejected": "No se usó el resumen de IA; el resumen lista los hallazgos tal cual.",
         "budget": "Se alcanzó el límite de llamadas de IA; el resumen lista los hallazgos tal cual.",
-        "prompt_unavailable": "Este paso no tiene texto de prompt (solo un enlace a Prompt Builder); el resumen lista los hallazgos tal cual."
+        "prompt_unavailable": "Este paso no tiene texto de prompt (solo un enlace a Prompt Builder); el resumen lista los hallazgos tal cual.",
+        "model_changed": "Esta versión se aprobó con otro modelo de IA; el resumen lista los hallazgos tal cual."
       }
     }
   },
@@ -472,7 +475,8 @@
       "sourceBindings": "Conocimiento usado",
       "clinicProfiles": "Perfiles de clínica",
       "scope": "Ámbito",
-      "budget": "Presupuesto de IA"
+      "budget": "Presupuesto de IA",
+      "aiModel": "Modelo de IA"
     },
     "problems": {
       "outcome": "Resultado: se esperaba {{expected}}, se obtuvo {{actual}}",

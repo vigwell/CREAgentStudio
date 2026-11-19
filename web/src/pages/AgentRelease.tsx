@@ -452,7 +452,7 @@ function DiffView({ diff }: { diff: VersionDiff | undefined }) {
   const { t } = useTranslation();
   if (!diff) return null;
   const empty = !diff.added.length && !diff.removed.length && !diff.changed.length;
-  const label = (x: string) => x.replace(/^block /, `${t("release.block")} `).replace(/^connection /, `${t("release.connection")} `).replace(/^(agentPrompt|effectivePolicy|sourceBindings|clinicProfiles|scope|budget)$/, (m) => t(`release.parts.${m}`));
+  const label = (x: string) => x.replace(/^block /, `${t("release.block")} `).replace(/^connection /, `${t("release.connection")} `).replace(/^(agentPrompt|effectivePolicy|sourceBindings|clinicProfiles|scope|budget|aiModel)$/, (m) => t(`release.parts.${m}`));
   return (
     <div className="space-y-3 text-sm">
       <p className="text-ink-muted">{diff.against ? t("release.comparedWith", { no: diff.against.candidateNo }) : t("release.firstVersion")}</p>
