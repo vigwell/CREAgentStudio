@@ -15,6 +15,7 @@ export const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" | 
   { name: "egfr", kind: "number" },
   { name: "contrastAllergy", kind: "bool" },
   { name: "pregnant", kind: "bool" },
+  { name: "pediatric", kind: "bool" },
   { name: "clinicalNote", kind: "note" },
 ];
 
@@ -101,7 +102,23 @@ export function RunResult({
                       <h4 className="font-medium text-ink">{findingTitle(t, f)}</h4>
                       <StatusPill tone={SEVERITY_TONE[f.severity] ?? "neutral"}>{t(`runs.severity.${f.severity}`)}</StatusPill>
                     </div>
-                    {f.detail && <p className="mt-1 text-sm text-ink-muted">{f.detail}</p>}
+                    {f.detail && (
+                      <p className="mt-1 whitespace-pre-line text-sm text-ink-muted" dir="auto">
+                        {f.detail}
+                      </p>
+                    )}
+                    {f.details && f.details.length > 0 && (
+                      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-sm">
+                        {f.details.map((d) => (
+                          <div key={d.label} className="contents">
+                            <dt className="text-ink-muted">{fieldName(d.label)}</dt>
+                            <dd className="text-ink" dir="auto">
+                              {d.value}
+                            </dd>
+                          </div>
+                        ))}
+                      </dl>
+                    )}
                   </div>
                   {onReview && reviewed.length === 0 && !asking && (
                     <div className="flex shrink-0 flex-wrap gap-2">
@@ -236,6 +253,14 @@ export function RunResult({
                   </p>
                 )}
                 {stepNote(t, n) && <p className="mt-0.5 text-sm text-ink-muted">{stepNote(t, n)}</p>}
+                {n.ai?.answer && (
+                  <details className="mt-1 text-sm">
+                    <summary className="cursor-pointer text-ink-muted">{t("runs.aiAnswer")}</summary>
+                    <p className="mt-1 whitespace-pre-line rounded-control bg-surface-sunken px-3 py-2 text-ink" dir="auto">
+                      {n.ai.answer}
+                    </p>
+                  </details>
+                )}
                 {n.unknown.length > 0 && <p className="mt-0.5 text-sm text-ink-subtle">{t("runs.unknownValues", { fields: n.unknown.map(fieldName).join(", ") })}</p>}
               </div>
             </li>

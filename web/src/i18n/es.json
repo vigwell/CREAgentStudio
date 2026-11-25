@@ -177,7 +177,8 @@
     "freezing": "Congelando…",
     "blockOutput": "Bloquear salida: {{category}}",
     "problems_one": "1 problema",
-    "problems_other": "{{count}} problemas"
+    "problems_other": "{{count}} problemas",
+    "defaultPromptHint": "Empieza con el prompt V2 de Medilis. La lista de la tabla se añade al ejecutar."
   },
   "profiles": {
     "title": "Perfiles de clínica y examen",
@@ -283,7 +284,8 @@
       "unavailable": "El servicio de IA no respondió; el resumen lista los hallazgos tal cual.",
       "rejected": "No se usó el resumen de IA porque contenía un valor que no está en los hallazgos. Los hallazgos se listan tal cual.",
       "model_changed": "Esta versión se congeló con otro modelo de IA, por lo que no se usó la IA. Congele, pruebe y apruebe una nueva versión para usar el modelo actual."
-    }
+    },
+    "aiAnswer": "Respuesta de la IA (tal como llegó)"
   },
   "theme": {
     "system": "Tema: según el sistema",
@@ -307,7 +309,9 @@
     "confirmation": "Repetir y confirmar",
     "book": "Reservar en el RIS",
     "transfer_staff": "Transferir al personal",
-    "end_call": "Finalizar llamada"
+    "end_call": "Finalizar llamada",
+    "anatomy_detection": "Detección de anatomía (IA, derivación)",
+    "protocol_selection": "Selección de protocolo (IA, derivación)"
   },
   "fields": {
     "indicationCode": "Código de indicación",
@@ -345,7 +349,16 @@
     "chosen": "Elegida",
     "confirmed": "Confirmado",
     "bookingId": "Reserva",
-    "clinicalNote": "Nota clínica"
+    "clinicalNote": "Nota clínica / texto de la derivación",
+    "pediatric": "Paciente pediátrico",
+    "anatomy": "Anatomía",
+    "protocolName": "Nombre del protocolo",
+    "protocol_number": "Número de protocolo",
+    "protocol_name": "Nombre del protocolo",
+    "anathomy": "Anatomía",
+    "domain": "Dominio",
+    "contrast": "Contraste",
+    "Tesla": "Tesla"
   },
   "values": {
     "true": "Sí",
@@ -384,7 +397,10 @@
     "PROTOCOL_NO_MATCH": "Ninguna fila de protocolo coincide; no se elige ninguna por defecto",
     "GUIDANCE_CONFLICT": "{{count}} filas de guía coinciden: revíselas juntas",
     "GUIDANCE_NO_MATCH": "Ninguna fila de guía coincide",
-    "MISSING_INPUT": "{{step}} necesita: {{fields}}"
+    "MISSING_INPUT": "{{step}} necesita: {{fields}}",
+    "PROTOCOL_SELECTED": "Revisar el protocolo seleccionado {{code}}: {{name}}",
+    "ANATOMY_UNRESOLVED": "No se pudo determinar la anatomía a partir de la derivación; no se elige ningún protocolo",
+    "PROTOCOL_UNRESOLVED": "No se pudo seleccionar un protocolo para esta anatomía; revise la derivación"
   },
   "notes": {
     "aiSynthesis": "La redacción con IA aún no está configurada; el resumen muestra los hallazgos tal cual.",
@@ -410,8 +426,34 @@
         "budget": "Se alcanzó el límite de llamadas de IA; el resumen lista los hallazgos tal cual.",
         "prompt_unavailable": "Este paso no tiene texto de prompt (solo un enlace a Prompt Builder); el resumen lista los hallazgos tal cual.",
         "model_changed": "Esta versión se aprobó con otro modelo de IA; el resumen lista los hallazgos tal cual."
+      },
+      "anatomy": {
+        "used": "La IA eligió la anatomía de la tabla de protocolos.",
+        "unknown": "La IA no encontró una anatomía específica en la derivación.",
+        "invalid": "La respuesta de la IA no es uno de los valores de anatomía de la tabla, así que no se usó.",
+        "no_note": "No se indicó el texto de la derivación.",
+        "no_candidates": "La tabla no tiene valores de anatomía para este grupo de pacientes.",
+        "not_configured": "La IA no está configurada, así que no se determinó la anatomía.",
+        "not_run": "Los pasos de IA no se ejecutan en las pruebas de versión.",
+        "unavailable": "El servicio de IA no respondió, así que no se determinó la anatomía.",
+        "rejected": "La respuesta de la IA no se pudo usar.",
+        "budget": "Se alcanzó el límite de llamadas o de tiempo.",
+        "model_changed": "Esta versión se aprobó con otro modelo de IA; no se usó la IA."
+      },
+      "selection": {
+        "used": "La IA eligió el protocolo entre las filas de esta anatomía.",
+        "invalid": "La respuesta de la IA no es uno de los protocolos de esta anatomía, así que no se usó.",
+        "two_names": "La IA devolvió dos protocolos; esta configuración selecciona solo uno, así que no se usó ninguno.",
+        "no_candidates": "La tabla no tiene protocolos para esta anatomía.",
+        "not_configured": "La IA no está configurada, así que no se seleccionó ningún protocolo.",
+        "not_run": "Los pasos de IA no se ejecutan en las pruebas de versión.",
+        "unavailable": "El servicio de IA no respondió, así que no se seleccionó ningún protocolo.",
+        "rejected": "La respuesta de la IA no se pudo usar.",
+        "budget": "Se alcanzó el límite de llamadas o de tiempo.",
+        "model_changed": "Esta versión se aprobó con otro modelo de IA; no se usó la IA."
       }
-    }
+    },
+    "noAnatomy": "No se determinó la anatomía, así que no se selecciona ningún protocolo."
   },
   "inspector": {
     "title": "Inspector de ejecuciones",
@@ -505,7 +547,10 @@
       "GUIDANCE_CONFLICT": "Varias filas de guía",
       "GUIDANCE_NO_MATCH": "Ninguna fila de guía",
       "INSTRUCTION": "Instrucción",
-      "MISSING_INPUT": "Dato faltante"
+      "MISSING_INPUT": "Dato faltante",
+      "PROTOCOL_SELECTED": "Protocolo seleccionado",
+      "ANATOMY_UNRESOLVED": "Anatomía no determinada",
+      "PROTOCOL_UNRESOLVED": "Ningún protocolo seleccionado"
     },
     "noCases": "Aún no hay casos de prueba. Añada uno o guarde una ejecución de prueba como caso.",
     "checks": "También comprueba",
@@ -557,7 +602,12 @@
       "rejected": "Respuesta no usada",
       "budget": "Límite de llamadas o de tiempo alcanzado",
       "prompt_unavailable": "Sin texto de prompt",
-      "model_changed": "Otro modelo de IA"
+      "model_changed": "Otro modelo de IA",
+      "unknown": "Sin anatomía",
+      "invalid": "Respuesta fuera de la tabla",
+      "two_names": "Dos protocolos devueltos",
+      "no_candidates": "Nada en la tabla",
+      "not_run": "No ejecutado (prueba de versión)"
     }
   }
 }

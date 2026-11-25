@@ -177,7 +177,8 @@
     "freezing": "Freezing…",
     "blockOutput": "Block output: {{category}}",
     "problems_one": "1 problem",
-    "problems_other": "{{count}} problems"
+    "problems_other": "{{count}} problems",
+    "defaultPromptHint": "Starts with the Medilis V2 prompt. The table's list is added when the step runs."
   },
   "profiles": {
     "title": "Clinic & exam profiles",
@@ -283,7 +284,8 @@
       "unavailable": "The AI service didn't answer, so the summary lists the findings as they are.",
       "rejected": "The AI summary was not used because it contained a value that isn’t in the findings. The findings are listed as they are.",
       "model_changed": "This version was frozen with a different AI model, so AI wasn't used. Freeze, test and approve a new version to use the current model."
-    }
+    },
+    "aiAnswer": "AI answer (as returned)"
   },
   "theme": {
     "system": "Theme: follows the system",
@@ -307,7 +309,9 @@
     "confirmation": "Read back and confirm",
     "book": "Book in RIS",
     "transfer_staff": "Transfer to staff",
-    "end_call": "End call"
+    "end_call": "End call",
+    "anatomy_detection": "Anatomy detection (AI, referral)",
+    "protocol_selection": "Protocol selection (AI, referral)"
   },
   "fields": {
     "indicationCode": "Indication code",
@@ -345,7 +349,16 @@
     "chosen": "Chosen",
     "confirmed": "Confirmed",
     "bookingId": "Booking",
-    "clinicalNote": "Clinical note"
+    "clinicalNote": "Clinical note / referral text",
+    "pediatric": "Pediatric patient",
+    "anatomy": "Anatomy",
+    "protocolName": "Protocol name",
+    "protocol_number": "Protocol number",
+    "protocol_name": "Protocol name",
+    "anathomy": "Anatomy",
+    "domain": "Domain",
+    "contrast": "Contrast",
+    "Tesla": "Tesla"
   },
   "values": {
     "true": "Yes",
@@ -384,7 +397,10 @@
     "PROTOCOL_NO_MATCH": "No protocol row matches; none is chosen by default",
     "GUIDANCE_CONFLICT": "{{count}} guidance rows match: review them together",
     "GUIDANCE_NO_MATCH": "No guidance row matches",
-    "MISSING_INPUT": "{{step}} needs {{fields}}"
+    "MISSING_INPUT": "{{step}} needs {{fields}}",
+    "PROTOCOL_SELECTED": "Review selected protocol {{code}}: {{name}}",
+    "ANATOMY_UNRESOLVED": "The anatomy could not be determined from the referral; no protocol is chosen",
+    "PROTOCOL_UNRESOLVED": "No protocol could be selected for this anatomy; review the referral"
   },
   "notes": {
     "aiSynthesis": "AI wording isn't set up yet; the summary lists the findings as they are.",
@@ -410,8 +426,34 @@
         "budget": "The AI call limit was reached; the summary lists the findings as they are.",
         "prompt_unavailable": "This step has no prompt text (only a Prompt Builder link); the summary lists the findings as they are.",
         "model_changed": "This version was approved with a different AI model; the summary lists the findings as they are."
+      },
+      "anatomy": {
+        "used": "AI chose the anatomy from the protocol table.",
+        "unknown": "AI found no specific anatomy in the referral.",
+        "invalid": "AI's answer is not one of the table's anatomy values, so it was not used.",
+        "no_note": "No referral text was given.",
+        "no_candidates": "The protocol table has no anatomy values for this patient group.",
+        "not_configured": "AI isn't set up, so the anatomy wasn't determined.",
+        "not_run": "AI steps don't run in release tests.",
+        "unavailable": "The AI service didn't answer, so the anatomy wasn't determined.",
+        "rejected": "The AI reply was not usable.",
+        "budget": "The AI call or time limit was reached.",
+        "model_changed": "This version was approved with a different AI model; AI was not used."
+      },
+      "selection": {
+        "used": "AI chose the protocol from the rows of this anatomy.",
+        "invalid": "AI's answer is not one of this anatomy's protocol names, so it was not used.",
+        "two_names": "AI returned two protocols; this setup selects exactly one, so none was used.",
+        "no_candidates": "The protocol table has no protocols for this anatomy.",
+        "not_configured": "AI isn't set up, so no protocol was selected.",
+        "not_run": "AI steps don't run in release tests.",
+        "unavailable": "The AI service didn't answer, so no protocol was selected.",
+        "rejected": "The AI reply was not usable.",
+        "budget": "The AI call or time limit was reached.",
+        "model_changed": "This version was approved with a different AI model; AI was not used."
       }
-    }
+    },
+    "noAnatomy": "No anatomy was determined, so no protocol is selected."
   },
   "inspector": {
     "title": "Run Inspector",
@@ -505,7 +547,10 @@
       "GUIDANCE_CONFLICT": "Several guidance rows match",
       "GUIDANCE_NO_MATCH": "No guidance row matches",
       "INSTRUCTION": "Instruction",
-      "MISSING_INPUT": "Missing input"
+      "MISSING_INPUT": "Missing input",
+      "PROTOCOL_SELECTED": "Protocol selected",
+      "ANATOMY_UNRESOLVED": "Anatomy not determined",
+      "PROTOCOL_UNRESOLVED": "No protocol selected"
     },
     "noCases": "No test cases yet. Add one, or save a test run as a test case.",
     "checks": "Also checks",
@@ -557,7 +602,12 @@
       "rejected": "Reply not used",
       "budget": "Call or time limit reached",
       "prompt_unavailable": "No prompt text",
-      "model_changed": "Different AI model"
+      "model_changed": "Different AI model",
+      "unknown": "No anatomy found",
+      "invalid": "Answer not in the table",
+      "two_names": "Two protocols returned",
+      "no_candidates": "Nothing in the table",
+      "not_run": "Not run (release test)"
     }
   }
 }

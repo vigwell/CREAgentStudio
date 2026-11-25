@@ -133,6 +133,23 @@ Deploying (one server hosts the web app and the API): see [DEPLOY.md](DEPLOY.md)
   - A step linked only to a Prompt Builder record (no text) isn't sent until
     Prompt Builder integration resolves the text.
 
+- **MRI protocol workflow** (Medilis handoff, 22 Nov 2026, V2): two AI blocks
+  bound to an approved protocol table. *Anatomy detection* sends the referral
+  text and the table's anatomy list (pediatric values containing "ילדים" for a
+  pediatric case: the `pediatric` input, else age under 18; adult otherwise) and
+  accepts only a listed value. *Protocol selection* sends only the protocol names
+  of that anatomy and accepts exactly one of them, with a short Hebrew
+  explanation. Unknown anatomy, a value or name outside the list, two names, or
+  no AI give an unresolved result for review, never a guess. The selected
+  protocol is shown with its row (number, name, contrast, Tesla) and the model's
+  raw answers are kept on the run. The V2 prompts are built in
+  (`api/src/runtime/mriPrompts.ts`; anatomy prompt without the editorial
+  preamble, selection prompt limited to one protocol) and can be edited per
+  block. `npm run seed:mri` imports `assets/mri/protocolsnewlastversion.xlsx`
+  (254 rows, 80 anatomy values) and creates a ready test agent. Scanned
+  referrals (upload and OCR through CRE's `/api/Protocol/ExtractReferralText`)
+  are the next step, once the CRE test environment and access are available.
+
 - **Monitoring** (`GET /monitoring?days=&agentId=&purpose=`, page
   *Monitoring*): runs, results, run time (median, 95%), stops for missing data
   and the fields most often missing, policy blocks by rule, clinician reviews,

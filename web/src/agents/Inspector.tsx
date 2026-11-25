@@ -44,7 +44,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
         <input className="input" value={node.label} onChange={(e) => onChange({ label: e.target.value })} />
       </Field>
 
-      {def?.aiCapable && !def.terminal && (
+      {def?.aiCapable && !def.terminal && !def.aiRequired && (
         <Field label={t("editor.execution")}>
           <select className="input" value={node.executionKind ?? "deterministic"} onChange={(e) => onChange({ executionKind: e.target.value as "deterministic" | "ai" })}>
             <option value="deterministic">{t("editor.deterministic")}</option>
@@ -64,7 +64,14 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
             </Field>
           </div>
           <Field label={t("editor.draftPrompt")}>
-            <textarea className="input" rows={4} value={node.prompt?.draftText ?? ""} onChange={(e) => onChange({ prompt: { ...node.prompt, draftText: e.target.value || null } })} />
+            <textarea
+              className="input"
+              rows={def?.defaultPrompt ? 10 : 4}
+              dir="auto"
+              value={node.prompt?.draftText ?? ""}
+              onChange={(e) => onChange({ prompt: { ...node.prompt, draftText: e.target.value || null } })}
+            />
+            {def?.defaultPrompt && <span className="hint">{t("editor.defaultPromptHint")}</span>}
           </Field>
         </div>
       )}

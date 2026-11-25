@@ -177,7 +177,8 @@
     "freezing": "Gel en cours…",
     "blockOutput": "Bloquer la sortie : {{category}}",
     "problems_one": "1 problème",
-    "problems_other": "{{count}} problèmes"
+    "problems_other": "{{count}} problèmes",
+    "defaultPromptHint": "Commence avec le prompt V2 de Medilis. La liste du tableau est ajoutée à l’exécution."
   },
   "profiles": {
     "title": "Profils clinique et examen",
@@ -283,7 +284,8 @@
       "unavailable": "Le service IA n’a pas répondu ; le résumé liste les constats tels quels.",
       "rejected": "Le résumé IA n’a pas été utilisé car il contenait une valeur absente des constats. Les constats sont listés tels quels.",
       "model_changed": "Cette version a été figée avec un autre modèle d’IA, l’IA n’a donc pas été utilisée. Figez, testez et approuvez une nouvelle version pour utiliser le modèle actuel."
-    }
+    },
+    "aiAnswer": "Réponse de l’IA (telle que reçue)"
   },
   "theme": {
     "system": "Thème : selon le système",
@@ -307,7 +309,9 @@
     "confirmation": "Relire et confirmer",
     "book": "Réserver dans le RIS",
     "transfer_staff": "Transférer au personnel",
-    "end_call": "Fin d’appel"
+    "end_call": "Fin d’appel",
+    "anatomy_detection": "Détection de l’anatomie (IA, demande)",
+    "protocol_selection": "Choix du protocole (IA, demande)"
   },
   "fields": {
     "indicationCode": "Code d’indication",
@@ -345,7 +349,16 @@
     "chosen": "Choisi",
     "confirmed": "Confirmé",
     "bookingId": "Réservation",
-    "clinicalNote": "Note clinique"
+    "clinicalNote": "Note clinique / texte de la demande",
+    "pediatric": "Patient pédiatrique",
+    "anatomy": "Anatomie",
+    "protocolName": "Nom du protocole",
+    "protocol_number": "Numéro de protocole",
+    "protocol_name": "Nom du protocole",
+    "anathomy": "Anatomie",
+    "domain": "Domaine",
+    "contrast": "Produit de contraste",
+    "Tesla": "Tesla"
   },
   "values": {
     "true": "Oui",
@@ -384,7 +397,10 @@
     "PROTOCOL_NO_MATCH": "Aucune ligne de protocole ne correspond ; rien n’est choisi par défaut",
     "GUIDANCE_CONFLICT": "{{count}} lignes de recommandation correspondent : examinez-les ensemble",
     "GUIDANCE_NO_MATCH": "Aucune ligne de recommandation ne correspond",
-    "MISSING_INPUT": "{{step}} a besoin de : {{fields}}"
+    "MISSING_INPUT": "{{step}} a besoin de : {{fields}}",
+    "PROTOCOL_SELECTED": "Vérifier le protocole choisi {{code}} : {{name}}",
+    "ANATOMY_UNRESOLVED": "L’anatomie n’a pas pu être déterminée à partir de la demande ; aucun protocole n’est choisi",
+    "PROTOCOL_UNRESOLVED": "Aucun protocole n’a pu être choisi pour cette anatomie ; vérifiez la demande"
   },
   "notes": {
     "aiSynthesis": "La rédaction par IA n’est pas encore configurée ; le résumé reprend les résultats tels quels.",
@@ -410,8 +426,34 @@
         "budget": "La limite d’appels IA est atteinte ; le résumé liste les constats tels quels.",
         "prompt_unavailable": "Cette étape n’a pas de texte d’invite (seulement un lien Prompt Builder) ; le résumé liste les constats tels quels.",
         "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; le résumé liste les constats tels quels."
+      },
+      "anatomy": {
+        "used": "L’IA a choisi l’anatomie dans le tableau des protocoles.",
+        "unknown": "L’IA n’a trouvé aucune anatomie précise dans la demande.",
+        "invalid": "La réponse de l’IA ne fait pas partie des anatomies du tableau ; elle n’a pas été utilisée.",
+        "no_note": "Aucun texte de demande n’a été saisi.",
+        "no_candidates": "Le tableau n’a pas d’anatomie pour ce groupe de patients.",
+        "not_configured": "L’IA n’est pas configurée ; l’anatomie n’a pas été déterminée.",
+        "not_run": "Les étapes d’IA ne s’exécutent pas dans les tests de version.",
+        "unavailable": "Le service d’IA n’a pas répondu ; l’anatomie n’a pas été déterminée.",
+        "rejected": "La réponse de l’IA n’était pas utilisable.",
+        "budget": "La limite d’appels ou de temps a été atteinte.",
+        "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; l’IA n’a pas été utilisée."
+      },
+      "selection": {
+        "used": "L’IA a choisi le protocole parmi les lignes de cette anatomie.",
+        "invalid": "La réponse de l’IA ne fait pas partie des protocoles de cette anatomie ; elle n’a pas été utilisée.",
+        "two_names": "L’IA a renvoyé deux protocoles ; ce réglage en choisit un seul, donc aucun n’a été utilisé.",
+        "no_candidates": "Le tableau n’a pas de protocole pour cette anatomie.",
+        "not_configured": "L’IA n’est pas configurée ; aucun protocole n’a été choisi.",
+        "not_run": "Les étapes d’IA ne s’exécutent pas dans les tests de version.",
+        "unavailable": "Le service d’IA n’a pas répondu ; aucun protocole n’a été choisi.",
+        "rejected": "La réponse de l’IA n’était pas utilisable.",
+        "budget": "La limite d’appels ou de temps a été atteinte.",
+        "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; l’IA n’a pas été utilisée."
       }
-    }
+    },
+    "noAnatomy": "Aucune anatomie n’a été déterminée, donc aucun protocole n’est choisi."
   },
   "inspector": {
     "title": "Inspecteur d’exécutions",
@@ -505,7 +547,10 @@
       "GUIDANCE_CONFLICT": "Plusieurs lignes de recommandation",
       "GUIDANCE_NO_MATCH": "Aucune ligne de recommandation",
       "INSTRUCTION": "Consigne",
-      "MISSING_INPUT": "Donnée manquante"
+      "MISSING_INPUT": "Donnée manquante",
+      "PROTOCOL_SELECTED": "Protocole choisi",
+      "ANATOMY_UNRESOLVED": "Anatomie non déterminée",
+      "PROTOCOL_UNRESOLVED": "Aucun protocole choisi"
     },
     "noCases": "Aucun cas de test. Ajoutez-en un, ou enregistrez une exécution de test comme cas.",
     "checks": "Vérifie aussi",
@@ -557,7 +602,12 @@
       "rejected": "Réponse non utilisée",
       "budget": "Limite d’appels ou de temps atteinte",
       "prompt_unavailable": "Pas de texte d’invite",
-      "model_changed": "Autre modèle d’IA"
+      "model_changed": "Autre modèle d’IA",
+      "unknown": "Aucune anatomie",
+      "invalid": "Réponse hors tableau",
+      "two_names": "Deux protocoles renvoyés",
+      "no_candidates": "Rien dans le tableau",
+      "not_run": "Non exécuté (test de version)"
     }
   }
 }

@@ -139,6 +139,10 @@ export interface BlockDef {
   ports: string[];
   outputs: BlockOutput[];
   aiCapable: boolean;
+  /** Always an AI step. */
+  aiRequired?: boolean;
+  /** Built-in prompt, used when the prompt is left empty. */
+  defaultPrompt?: string;
   knowledgeKind?: SourceKind;
   terminal?: boolean;
   start?: boolean;
@@ -283,6 +287,8 @@ export interface Finding {
   evidence: Evidence[];
   missingInputs: string[];
   allowedActions: string[];
+  /** Columns of the evidence row shown with the finding (e.g. protocol number, contrast, Tesla). */
+  details?: { label: string; value: string }[];
 }
 
 export interface NodeTrace {
@@ -296,7 +302,7 @@ export interface NodeTrace {
   note?: string;
   evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
   /** AI step outcome: used, nothing_found, no_note, not_configured, unavailable, rejected, budget, prompt_unavailable. */
-  ai?: { status: string; fields?: string[]; reason?: string };
+  ai?: { status: string; fields?: string[]; reason?: string; answer?: string };
 }
 
 export interface RunDetail {
