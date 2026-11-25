@@ -36,7 +36,20 @@ export function AgentEditor({ user }: { user: StudioUser }) {
   const [compiled, setCompiled] = useState<CompileResult | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [rfNodes, setRfNodes] = useState<BlockFlowNode[]>([]);
-  const [dirty, setDirty] = useState(false);
+  const [dirty, setDirtyState] = useState(false);
+  // Latest draft and edit count, read by saves that finish after more edits.
+  const draftRef = useRef<AgentDraft | null>(null);
+  draftRef.current = draft;
+  const dirtyRef = useRef(false);
+  const editSeq = useRef(0);
+  const saving = useRef<Promise<AgentDraft | null> | null>(null);
+  /** Server version of the draft: the source of truth for the next save (a render can show an older copy). */
+  const versionRef = useRef<number | null>(null);
+  const setDirty = useCallback((v: boolean) => {
+    if (v) editSeq.current += 1;
+    dirtyRef.current = v;
+    setDirtyState(v);
+  }, []);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<unknown>(null);
@@ -52,6 +65,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
   useEffect(() => {
     if (agent && loadedFor.current !== agent.id) {
       loadedFor.current = agent.id;
+      versionRef.current = agent.draft.version;
       setDraft(agent.draft);
       setDirty(false);
     }
@@ -108,25 +122,52 @@ export function AgentEditor({ user }: { user: StudioUser }) {
     [setGraph],
   );
 
-  const save = async (): Promise<AgentDraft | null> => {
-    if (!draft || !agent) return null;
+  /**
+   * One save at a time, always with the latest version number: a second save
+   * (Ctrl/⌘ S twice, Compile during a save) waits for the first and then saves
+   * again only if there were edits meanwhile. Edits made while a save is on
+   * its way stay unsaved (and are not overwritten by the older copy).
+   */
+  const saveNow = async (): Promise<AgentDraft | null> => {
+    const current = draftRef.current;
+    if (!current || !agent) return null;
+    const snapshot = { ...current, version: versionRef.current ?? current.version };
+    const seq = editSeq.current;
     setError(null);
     setPending((p) => p ?? "save");
     try {
-      const r = await api<{ version: number }>(`/agents/${agent.id}/draft`, { method: "PUT", body: draft });
-      const next = { ...draft, version: r.version };
-      setDraft(next);
-      setDirty(false);
+      const r = await api<{ version: number }>(`/agents/${agent.id}/draft`, { method: "PUT", body: snapshot });
+      versionRef.current = r.version;
+      const saved = { ...snapshot, version: r.version };
+      setDraft((d) => (d ? { ...d, version: r.version } : d));
+      if (editSeq.current === seq) setDirty(false);
       setNotice(t("editor.saved", { v: r.version }));
       // Keep the cache in step, so coming back to this agent opens the saved draft instantly.
-      setQueryData<Agent>(`/agents/${agent.id}`, (old) => (old ? { ...old, draft: next } : old!));
+      setQueryData<Agent>(`/agents/${agent.id}`, (old) => (old ? { ...old, draft: saved } : old!));
       invalidate("/agents");
-      return next;
+      return saved;
     } catch (err) {
       setError(err instanceof ApiError && err.status === 409 ? new Error(t("editor.stale")) : err);
       return null;
     } finally {
       setPending((p) => (p === "save" ? null : p));
+    }
+  };
+
+  const save = async (): Promise<AgentDraft | null> => {
+    while (saving.current) {
+      const before = saving.current;
+      const r = await before;
+      if (saving.current === before) saving.current = null;
+      if (!r) return null;
+      if (!dirtyRef.current) return r;
+    }
+    const p = saveNow();
+    saving.current = p;
+    try {
+      return await p;
+    } finally {
+      if (saving.current === p) saving.current = null;
     }
   };
 
@@ -149,7 +190,7 @@ export function AgentEditor({ user }: { user: StudioUser }) {
     setBusy(true);
     setPending(what);
     try {
-      if (dirty && !(await save())) return;
+      if ((dirtyRef.current || saving.current) && !(await save())) return;
       const c = await api<CompileResult>(`/agents/${agent.id}/compile`, { method: "POST" });
       setCompiled(c);
       setTab("problems");
