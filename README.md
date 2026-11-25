@@ -151,8 +151,9 @@ First-time users get access only through `AUTO_PROVISION_TENANT_ID`, which is fo
 
 ## Web app
 
-Sign-in uses the CRE account (same Entra External ID app and API scope as CRE web);
-the dev server runs on `https://localhost:3000`, the redirect URI CRE already has.
+Sign-in uses the CRE account (same Entra External ID tenant and API scope as CRE web)
+through Studio's own app registration "CRE AgentStudio" (`8936e09d-…`, see DEPLOY.md);
+the dev server runs on `https://localhost:3000`, which must be one of its redirect URIs.
 Screens (week 1): Knowledge Library list, new source, import wizard
 (file → sheet and header row with preview → column mapping with suggestions →
 owner, dates and scope) and the revision page (rows, cell-level problems,

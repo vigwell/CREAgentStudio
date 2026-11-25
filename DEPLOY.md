@@ -65,14 +65,23 @@ repository root (never commit it). `.env.example` lists them all.
 | `PORT` | no | provided by App Service; default `4000` |
 | `WEB_DIR` | no | the built web app. Default: `web/dist` in this repository (when started with `npm start`; `npm run dev` keeps the API at `/` for Vite's proxy). |
 
-## Sign-in: add the Studio URL to CRE's app registration
+## Sign-in: the Studio app registration
 
-The web app signs in with the same Entra External ID app as CRE web (client id
-`c279b90c-a9e9-4934-9721-9fcd08c465a4`, tenant `creenterprise`). It uses the page
-address as the redirect URI. After the first deploy, add the Studio URL (for
-example `https://<studio-host>`, no trailing path) to that app registration under
-**Authentication → Single-page application → Redirect URIs**. Without it, sign-in
-stops with a redirect URI error.
+The web app signs in to the CRE tenant (`creenterprise`) with its own app
+registration, **CRE AgentStudio** (client id `8936e09d-4506-41ba-b51e-63796364d70e`).
+It asks for the CRE API scope
+`api://790433ef-9282-4ca5-91df-bbb9369bb43e/access_as_user`, the same one as CRE web.
+The API checks that the token is meant for that scope.
+
+On that app registration:
+
+- **Authentication → Single-page application → Redirect URIs:** add the Studio
+  address, exactly as the browser shows it but without a path or trailing slash
+  (`https://<studio-host>`), and `https://localhost:3000` for development. The page
+  address is used as the redirect URI after login and after logout.
+- **API permissions:** add the CRE API's delegated permission `access_as_user`
+  and grant admin consent. Without it, sign-in fails with a consent or scope
+  error.
 
 ## First users
 
