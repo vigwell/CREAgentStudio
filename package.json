@@ -10,6 +10,7 @@
   },
   "scripts": {
     "dev": "npm run dev -w api",
+    "start": "npm run start -w api",
     "build": "npm run build -w api && npm run build -w web",
     "test": "npm test -w api && npm test -w web",
     "migrate": "npm run migrate -w api",

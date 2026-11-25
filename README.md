@@ -23,6 +23,8 @@ npm run dev:web           # web app on https://localhost:3000 (/api → API)
 
 Requires Node.js 20 or later.
 
+Deploying (one server hosts the web app and the API): see [DEPLOY.md](DEPLOY.md).
+
 ## What is in place
 
 - **Sign-in:** the API accepts the same CRE access tokens as CRE web (Entra External ID tenant `creenterprise`, API scope `access_as_user`). A token is checked for signature, issuer, audience, expiry and scope.

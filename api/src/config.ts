@@ -27,6 +27,11 @@ const schema = z.object({
   // Optional: USD per million tokens, for the cost estimate on Monitoring.
   AI_PRICE_INPUT_PER_MTOK: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
   AI_PRICE_OUTPUT_PER_MTOK: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
+  // Built web app served by this server (web/dist). Empty = API only. Default: ../web/dist when it exists.
+  WEB_DIR: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.trim() ? v.trim() : undefined)),
 });
 
 export type Config = z.infer<typeof schema>;

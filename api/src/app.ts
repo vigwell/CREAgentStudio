@@ -1,5 +1,8 @@
-import Fastify, { type FastifyRequest } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyRequest } from "fastify";
 import multipart from "@fastify/multipart";
+import fastifyStatic from "@fastify/static";
+import fs from "node:fs";
+import path from "node:path";
 import { KnowledgeService } from "./knowledge/service.js";
 import { AppError } from "./errors.js";
 import { AgentService } from "./agents/service.js";
@@ -32,6 +35,12 @@ export interface AppDeps {
   ai?: AiClient | null;
   /** AI token prices for the monitoring cost estimate; null = tokens only. */
   aiPrice?: AiPrice | null;
+  /**
+   * Built web app (web/dist). When set, one server hosts both: the web app at
+   * "/" (any unknown page → index.html) and the API under "/api", the same
+   * paths the web app uses in development. Without it the API is at "/".
+   */
+  webDir?: string | null;
 }
 
 export function buildApp(deps: AppDeps) {
@@ -73,12 +82,21 @@ export function buildApp(deps: AppDeps) {
     forbidden: (m: string) => Object.assign(new Error(m), { statusCode: 403 }),
   });
 
+  const webDir = deps.webDir && fs.existsSync(path.join(deps.webDir, "index.html")) ? path.resolve(deps.webDir) : null;
+
+  const api = async (app: FastifyInstance) => {
   app.get("/health", async () => {
     await deps.db.request().query("SELECT 1 AS ok");
     return { status: "ok" };
   });
 
   app.get("/me", { preHandler: requireUser }, async (req) => ({ user: req.user }));
+
+  app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
+  app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db, deps.ai ? { provider: AI_PROVIDER, deployment: deps.ai.model } : null), requireUser));
+  app.register(async (scope) => registerRunRoutes(scope, new RunService(deps.db, deps.ai ?? null), requireUser, new MonitoringService(deps.db, deps.aiPrice ?? null)));
+  app.register(async (scope) => registerReleaseRoutes(scope, new ReleaseService(deps.db), requireUser));
+  };
 
   // Known errors keep their status and code; anything else is a 500 without details.
   app.setErrorHandler((err, req, reply) => {
@@ -97,10 +115,35 @@ export function buildApp(deps: AppDeps) {
   });
 
   app.register(multipart);
-  app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
-  app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db, deps.ai ? { provider: AI_PROVIDER, deployment: deps.ai.model } : null), requireUser));
-  app.register(async (scope) => registerRunRoutes(scope, new RunService(deps.db, deps.ai ?? null), requireUser, new MonitoringService(deps.db, deps.aiPrice ?? null)));
-  app.register(async (scope) => registerReleaseRoutes(scope, new ReleaseService(deps.db), requireUser));
+
+  if (!webDir) {
+    app.register(api);
+    return app;
+  }
+
+  app.register(api, { prefix: "/api" });
+  // index.html is never cached (a new deploy is picked up at once); hashed assets are.
+  app.register(fastifyStatic, {
+    root: webDir,
+    wildcard: false,
+    index: false,
+    cacheControl: false, // set below
+    setHeaders: (res, file) => {
+      res.setHeader(
+        "Cache-Control",
+        file.includes(`${path.sep}assets${path.sep}`) ? "public, max-age=31536000, immutable" : "no-cache",
+      );
+    },
+  });
+  app.setNotFoundHandler((req, reply) => {
+    const url = req.url.split("?")[0];
+    const isApi = url === "/api" || url.startsWith("/api/");
+    // A page of the web app (e.g. /agents/…) → the app itself; a missing file or API route → 404.
+    if (req.method === "GET" && !isApi && !path.extname(url)) {
+      return reply.header("Cache-Control", "no-cache").type("text/html").sendFile("index.html");
+    }
+    return reply.code(404).send({ error: "not_found", message: "Not found" });
+  });
 
   return app;
 }
