@@ -17,6 +17,7 @@
     "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
     "dev:web": "npm run dev -w web",
     "seed:demo": "npm run seed:demo -w api",
+    "seed:mri": "npm run seed:mri -w api --",
     "ai:check": "npm run ai:check -w api",
     "set-role": "npm run set-role -w api --",
     "set-role": "npm run set-role -w api --"

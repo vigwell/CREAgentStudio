@@ -15,6 +15,7 @@
  */
 import { createHash } from "node:crypto";
 import { canonicalJson } from "../agents/compiler.js";
+import type { AnatomyOutcome, SelectionOutcome } from "./protocolAi.js";
 
 // ------------------------------------------------------------ inputs
 
@@ -42,6 +43,8 @@ export interface KnowledgeRow {
   originalRow: number;
   mapped: Record<string, unknown>;
   hasErrors: boolean;
+  /** Every column of the row as written in the sheet (display only, never evaluated). */
+  cells?: Record<string, string>;
 }
 
 export interface KnowledgeBinding {
@@ -107,6 +110,8 @@ export interface Finding {
   evidence: Evidence[];
   missingInputs: string[];
   allowedActions: string[];
+  /** Values of the evidence row to show with the finding (e.g. protocol number, contrast, Tesla). */
+  details?: { label: string; value: string }[];
 }
 
 export interface NodeTrace {
@@ -122,7 +127,7 @@ export interface NodeTrace {
   /** Decisions: the rule that was evaluated and the value it saw (null = unknown). */
   evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
   /** AI steps: what the AI call did (see aiSteps.ts). */
-  ai?: { status: string; fields?: string[]; reason?: string };
+  ai?: { status: string; fields?: string[]; reason?: string; answer?: string };
 }
 
 export interface RunResult {
@@ -270,7 +275,28 @@ function topoOrder(m: Manifest): string[] {
   return out;
 }
 
-export function execute(manifest: Manifest, snapshot: InputSnapshot, knowledge: Map<string, KnowledgeBinding>): RunResult {
+/** Results of the AI protocol steps, computed before the engine runs (aiSteps.ts). */
+export type ProtocolAiResults = Map<string, AnatomyOutcome | SelectionOutcome>;
+
+const NOTE = "clinicalNote";
+
+/** The row's columns to show next to a selected protocol (all columns, in sheet order). */
+function rowDetails(row: KnowledgeRow): { label: string; value: string }[] {
+  const out: { label: string; value: string }[] = [];
+  if (row.cells && Object.keys(row.cells).length) {
+    for (const [label, value] of Object.entries(row.cells)) if (String(value).trim()) out.push({ label, value: String(value) });
+    return out;
+  }
+  for (const f of ["anatomy", "protocolCode", "protocolName"]) if (row.mapped[f] != null) out.push({ label: f, value: String(row.mapped[f]) });
+  return out;
+}
+
+export function execute(
+  manifest: Manifest,
+  snapshot: InputSnapshot,
+  knowledge: Map<string, KnowledgeBinding>,
+  protocolAi: ProtocolAiResults = new Map(),
+): RunResult {
   const byId = new Map(manifest.nodes.map((n) => [n.id, n]));
   const outputs = new Map<string, Record<string, Value>>();
   const activeEdges = new Set<string>();
@@ -391,6 +417,116 @@ export function execute(manifest: Manifest, snapshot: InputSnapshot, knowledge: 
             detail: null,
             nodeId: id,
             observedInputs: inputsUsed,
+            evidence: ev,
+            missingInputs: [],
+            allowedActions: ACTIONS,
+          });
+        }
+        break;
+      }
+
+      case "anatomy_detection":
+      case "protocol_selection": {
+        const binding = node.knowledgeRevisionId ? knowledge.get(node.knowledgeRevisionId) : undefined;
+        if (!binding || binding.status !== "approved") {
+          state = "blocked";
+          note = binding ? `Knowledge revision is ${binding.status}` : "Knowledge revision is not available";
+          halted = { state: "completed", outcome: "blocked" };
+          break;
+        }
+        if (factValue(snapshot.facts[NOTE]) === UNKNOWN) {
+          state = "awaiting_input";
+          missing.add(NOTE);
+          halted = { state: "awaiting_input", outcome: "needs_input" };
+          findings.push({
+            code: "MISSING_INPUT",
+            category: "missing_data_notice",
+            severity: "review",
+            title: `${node.label}: required inputs are missing`,
+            detail: null,
+            nodeId: id,
+            observedInputs: [],
+            evidence: [],
+            missingInputs: [NOTE],
+            allowedActions: ACTIONS,
+          });
+          break;
+        }
+        const pedInput: ObservedInput[] = ["pediatric", "ageYears"].filter((f) => snapshot.facts[f]?.status === "present").map((f) => observed(snapshot, f)).slice(0, 1);
+
+        if (node.type === "anatomy_detection") {
+          const r = protocolAi.get(id) as AnatomyOutcome | undefined;
+          out.pediatric = r ? r.pediatric : UNKNOWN;
+          if (r?.status === "used" && r.anatomy) {
+            out.found = true;
+            out.anatomy = r.anatomy;
+          } else {
+            out.found = false;
+            out.anatomy = UNKNOWN;
+            needsReview = true;
+            findings.push({
+              code: "ANATOMY_UNRESOLVED",
+              category: "protocol_match",
+              severity: "review",
+              title: "The anatomy could not be determined from the referral; no protocol is chosen",
+              detail: null,
+              nodeId: id,
+              observedInputs: pedInput,
+              evidence: [],
+              missingInputs: [],
+              allowedActions: ACTIONS,
+            });
+          }
+          break;
+        }
+
+        // protocol_selection: only within the rows of the detected anatomy.
+        const detector = manifest.nodes.find((n) => n.type === "anatomy_detection");
+        const a = detector ? outputs.get(detector.id) : undefined;
+        if (!a || a.found !== true) {
+          out.matched = false;
+          out.matchCount = 0;
+          out.protocolCode = UNKNOWN;
+          out.protocolName = UNKNOWN;
+          note = "No anatomy was determined, so no protocol is selected.";
+          break;
+        }
+        const r = protocolAi.get(id) as SelectionOutcome | undefined;
+        const rows = r?.status === "used" && r.rowIds ? binding.rows.filter((x) => r.rowIds!.includes(x.rowId)) : [];
+        const anatomyInput: ObservedInput = { field: "anatomy", value: a.anatomy, sourceRef: NOTE, observedAt: null, attribution: "ai" };
+        const ev = evidenceOf(binding, rows);
+        out.rows = rows.map((x) => x.rowId);
+        out.matchCount = rows.length;
+        out.matched = rows.length === 1;
+        if (rows.length === 1) {
+          const m = rows[0].mapped;
+          out.protocolCode = m.protocolCode ?? UNKNOWN;
+          out.protocolName = m.protocolName ?? UNKNOWN;
+          findings.push({
+            code: "PROTOCOL_SELECTED",
+            category: "protocol_match",
+            severity: "review",
+            title: `Review selected protocol ${String(m.protocolCode ?? "")}`.trim(),
+            detail: r?.explanation || null,
+            nodeId: id,
+            observedInputs: [anatomyInput, ...pedInput],
+            evidence: ev,
+            missingInputs: [],
+            allowedActions: ACTIONS,
+            details: rowDetails(rows[0]),
+          });
+        } else {
+          out.protocolCode = UNKNOWN;
+          out.protocolName = UNKNOWN;
+          needsReview = true;
+          findings.push({
+            code: rows.length ? "PROTOCOL_CONFLICT" : "PROTOCOL_UNRESOLVED",
+            category: "protocol_match",
+            severity: "review",
+            title: rows.length ? `${rows.length} rows match; choose with clinical review` : "No protocol could be selected for this anatomy; review the referral",
+            detail: rows.length ? (r?.explanation ?? null) : null,
+            nodeId: id,
+            observedInputs: [anatomyInput, ...pedInput],
             evidence: ev,
             missingInputs: [],
             allowedActions: ACTIONS,

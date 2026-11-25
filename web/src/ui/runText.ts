@@ -14,6 +14,16 @@ export function findingTitle(t: TFunction, f: Finding): string {
       // Isolate the code so it reads correctly inside Hebrew / Arabic text.
       return t("findings.PROTOCOL_MATCH_REVIEW", { code: code ? `\u2068${code}\u2069` : "" }).trim();
     }
+    case "PROTOCOL_SELECTED": {
+      const code = /protocol\s+(\S+)$/i.exec(f.title)?.[1] ?? "";
+      const name = f.details?.find((d) => /protocol_?name|שם/i.test(d.label))?.value ?? "";
+      return t("findings.PROTOCOL_SELECTED", { code: code ? `\u2068${code}\u2069` : "", name: name ? `\u2068${name}\u2069` : "" })
+        .replace(/[:：]\s*$/, "")
+        .trim();
+    }
+    case "ANATOMY_UNRESOLVED":
+    case "PROTOCOL_UNRESOLVED":
+      return t(`findings.${f.code}`);
     case "PROTOCOL_CONFLICT":
     case "GUIDANCE_CONFLICT":
       return t(`findings.${f.code}`, { count: f.evidence.length });
@@ -32,12 +42,13 @@ export function findingTitle(t: TFunction, f: Finding): string {
 export function stepNote(t: TFunction, n: NodeTrace): string | null {
   if (n.ai) {
     const fields = (n.ai.fields ?? []).map((x) => t(`fields.${x}`, { defaultValue: x })).join(", ");
-    const kind = n.type === "final_synthesis" ? "synthesis" : "extraction";
+    const kind = n.type === "final_synthesis" ? "synthesis" : n.type === "anatomy_detection" ? "anatomy" : n.type === "protocol_selection" ? "selection" : "extraction";
     return t(`notes.ai.${kind}.${n.ai.status}`, { fields, defaultValue: t(`notes.ai.${n.ai.status}`, { defaultValue: n.ai.status }) });
   }
   if (!n.note) return null;
   if (/^AI synthesis/i.test(n.note)) return t("notes.aiSynthesis");
   if (/^AI extraction/i.test(n.note)) return t("notes.aiExtraction");
+  if (/^No anatomy was determined/i.test(n.note)) return t("notes.noAnatomy");
   const m = /^Knowledge revision is (\w+)/i.exec(n.note);
   if (m) return m[1] === "not" ? t("notes.knowledgeMissing") : t("notes.knowledge", { status: t(`status.${m[1]}`, { defaultValue: m[1] }) });
   return n.note;

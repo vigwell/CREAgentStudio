@@ -30,7 +30,9 @@ const MANUAL_FIELDS: Record<string, "code" | "boolean" | "number" | "text"> = {
   egfr: "number",
   contrastAllergy: "boolean",
   pregnant: "boolean",
-  /** Free-text clinical note; read only by an AI extraction step. */
+  /** MRI protocol workflow: use the pediatric anatomy list (the CRE service's IsInfant). */
+  pediatric: "boolean",
+  /** Free-text clinical note / referral text; read only by AI steps. */
   [NOTE_FIELD]: "text",
 };
 
@@ -74,6 +76,16 @@ export function factsFromManual(values: Record<string, unknown>, userId: string,
   return facts;
 }
 
+/** The row's columns as written ({ header: { v } } → { header: "text" }), for display. */
+function cellText(raw: unknown): Record<string, string> {
+  try {
+    const cells = JSON.parse(String(raw ?? "{}")) as Record<string, { v?: unknown }>;
+    return Object.fromEntries(Object.entries(cells).map(([h, c]) => [h, c?.v == null ? "" : String(c.v)]));
+  } catch {
+    return {};
+  }
+}
+
 /** The knowledge revisions a candidate binds, with their status now and their rows. */
 export async function loadKnowledge(tx: sql.Transaction, revisionIds: string[]): Promise<Map<string, KnowledgeBinding>> {
   const knowledge = new Map<string, KnowledgeBinding>();
@@ -86,7 +98,7 @@ export async function loadKnowledge(tx: sql.Transaction, revisionIds: string[]):
     if (!rev) continue;
     const rows = await new sql.Request(tx)
       .input("id", sql.UniqueIdentifier, revId)
-      .query("SELECT row_id, original_row, mapped, errors FROM studio.knowledge_rows WHERE revision_id = @id ORDER BY original_row");
+      .query("SELECT row_id, original_row, cells, mapped, errors FROM studio.knowledge_rows WHERE revision_id = @id ORDER BY original_row");
     knowledge.set(revId, {
       revisionId: revId,
       sourceName: String(rev.name),
@@ -98,6 +110,7 @@ export async function loadKnowledge(tx: sql.Transaction, revisionIds: string[]):
         originalRow: Number(x.original_row),
         mapped: JSON.parse(String(x.mapped ?? "{}")),
         hasErrors: JSON.parse(String(x.errors ?? "[]")).length > 0,
+        cells: cellText(x.cells),
       })),
     });
   }

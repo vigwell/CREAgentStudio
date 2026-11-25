@@ -29,7 +29,9 @@ export function addBlock(graph: Graph, def: BlockDef): { graph: Graph; id: strin
     type: def.type,
     label: def.label,
     position: { x: 300, y: maxY + 140 },
-    ...(def.aiCapable ? { executionKind: "deterministic" as const } : {}),
+    ...(def.aiCapable ? { executionKind: def.aiRequired ? ("ai" as const) : ("deterministic" as const) } : {}),
+    // Blocks with a built-in prompt start with it, so the author sees and can adjust it.
+    ...(def.defaultPrompt ? { prompt: { promptId: null, revisionId: null, draftText: def.defaultPrompt } } : {}),
   };
   return { graph: { ...graph, nodes: [...graph.nodes, node] }, id };
 }

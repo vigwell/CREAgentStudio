@@ -230,8 +230,20 @@ export function validate(graph: AgentGraph, ctx: CompileContext): Issue[] {
 
     const ai = n.executionKind === "ai";
     if (ai && !def.aiCapable) add("ai_not_allowed", `${n.label}: this block is deterministic and cannot use AI`, { nodeId: n.id });
+    if (def.aiRequired && !ai) add("ai_required", `${n.label}: this block always uses AI; set its execution to AI-assisted`, { nodeId: n.id });
     if (ai) aiCalls += 1;
-    if ((ai || n.type === "final_synthesis") && !hasPrompt(n.prompt)) add("prompt_required", `${n.label}: link a Prompt Builder prompt or write its prompt`, { nodeId: n.id });
+    if ((ai || n.type === "final_synthesis") && !hasPrompt(n.prompt) && !def.defaultPrompt) add("prompt_required", `${n.label}: link a Prompt Builder prompt or write its prompt`, { nodeId: n.id });
+
+    if (def.aiRequired && graph.nodes.filter((x) => x.type === n.type).length > 1 && graph.nodes.find((x) => x.type === n.type)?.id === n.id) {
+      add("one_per_agent", `An agent can have only one ${def.label} block`, { nodeId: n.id });
+    }
+    if (n.type === "protocol_selection") {
+      const detectors = graph.nodes.filter((x) => x.type === "anatomy_detection" && up.has(x.id));
+      if (!detectors.length) add("anatomy_required", `${n.label}: needs an Anatomy detection block before it`, { nodeId: n.id });
+      else if (n.knowledgeRevisionId && detectors.some((d) => d.knowledgeRevisionId !== n.knowledgeRevisionId)) {
+        add("anatomy_knowledge", `${n.label}: use the same protocol table as the Anatomy detection block`, { nodeId: n.id });
+      }
+    }
 
     if (n.type === "final_synthesis") {
       const cats = n.outputCategories ?? [];
@@ -340,7 +352,7 @@ export function compile(graph: AgentGraph, ctx: CompileContext): CompileResult {
       type: n.type,
       label: n.label.trim(),
       executionKind: n.executionKind ?? "deterministic",
-      prompt: n.prompt ? { promptId: n.prompt.promptId ?? null, revisionId: n.prompt.revisionId ?? null, draftText: n.prompt.draftText?.trim() || null } : null,
+      prompt: frozenPrompt(n),
       inputBindings: n.inputBindings ?? {},
       condition: n.condition ?? null,
       knowledgeRevisionId: n.knowledgeRevisionId ?? null,
@@ -371,6 +383,13 @@ export function compile(graph: AgentGraph, ctx: CompileContext): CompileResult {
   };
   const manifestHash = `sha256:${createHash("sha256").update(canonicalJson(manifest)).digest("hex")}`;
   return { ok: true, issues: [], manifest, manifestHash, preview };
+}
+
+/** The node's prompt as frozen; blocks with a built-in prompt get it when the author left it empty. */
+function frozenPrompt(n: GraphNode): PromptRef | null {
+  const fallback = BLOCK_BY_TYPE.get(n.type)?.defaultPrompt;
+  if (fallback && !hasPrompt(n.prompt)) return { promptId: null, revisionId: null, draftText: fallback };
+  return n.prompt ? { promptId: n.prompt.promptId ?? null, revisionId: n.prompt.revisionId ?? null, draftText: n.prompt.draftText?.trim() || null } : null;
 }
 
 /** Readable steps in execution order (documentation only). */

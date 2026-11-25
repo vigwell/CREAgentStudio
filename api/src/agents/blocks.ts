@@ -4,6 +4,8 @@
  * Each block has a typed output contract; inputs bind explicitly to an upstream
  * block's output field. No expressions, scripts or URLs anywhere.
  */
+import { DEFAULT_ANATOMY_PROMPT, DEFAULT_SELECTION_PROMPT } from "../runtime/mriPrompts.js";
+
 export type AgentKind = "cds" | "voice";
 export type FieldType = "string" | "code" | "number" | "boolean" | "date" | "list" | "record";
 
@@ -27,6 +29,10 @@ export interface BlockDef {
   knowledgeKind?: "device_protocol" | "clinical_rule" | "reference_document";
   terminal?: boolean;
   start?: boolean;
+  /** Always an AI step (no deterministic mode). */
+  aiRequired?: boolean;
+  /** Prompt used when the author leaves the prompt empty (frozen into the manifest). */
+  defaultPrompt?: string;
 }
 
 const yesNo = ["yes", "no"] as const;
@@ -80,6 +86,38 @@ export const BLOCKS: readonly BlockDef[] = Object.freeze([
     ],
     aiCapable: false,
     knowledgeKind: "clinical_rule",
+  },
+  // MRI protocol workflow (Medilis handoff, 22 Nov 2026): referral text → anatomy → one protocol of that anatomy.
+  {
+    type: "anatomy_detection",
+    kinds: ["cds"],
+    label: "Anatomy detection (AI, referral)",
+    ports: ["out"],
+    outputs: [
+      { name: "found", type: "boolean" },
+      { name: "anatomy", type: "string" },
+      { name: "pediatric", type: "boolean" },
+    ],
+    aiCapable: true,
+    aiRequired: true,
+    knowledgeKind: "device_protocol",
+    defaultPrompt: DEFAULT_ANATOMY_PROMPT,
+  },
+  {
+    type: "protocol_selection",
+    kinds: ["cds"],
+    label: "Protocol selection (AI, referral)",
+    ports: ["out"],
+    outputs: [
+      { name: "matched", type: "boolean" },
+      { name: "protocolCode", type: "code" },
+      { name: "protocolName", type: "string" },
+      { name: "rows", type: "list" },
+    ],
+    aiCapable: true,
+    aiRequired: true,
+    knowledgeKind: "device_protocol",
+    defaultPrompt: DEFAULT_SELECTION_PROMPT,
   },
   { type: "instruction", kinds: ["cds"], label: "Instruction / finding", ports: ["out"], outputs: [{ name: "finding", type: "record" }], aiCapable: false },
   { type: "final_synthesis", kinds: ["cds"], label: "Final synthesis", ports: [], outputs: [{ name: "summary", type: "record" }], aiCapable: true, terminal: true },

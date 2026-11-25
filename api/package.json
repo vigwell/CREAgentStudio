@@ -12,6 +12,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "seed:demo": "tsx --env-file-if-exists=../.env scripts/seed-demo.ts",
+    "seed:mri": "tsx --env-file-if-exists=../.env scripts/seed-mri.ts",
     "ai:check": "tsx --env-file-if-exists=../.env scripts/ai-check.ts",
     "set-role": "tsx --env-file-if-exists=../.env scripts/set-role.ts"
   },

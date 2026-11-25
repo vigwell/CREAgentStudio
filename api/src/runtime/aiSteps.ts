@@ -20,14 +20,27 @@
 import type { AiClient } from "./aiClient.js";
 import { AiError } from "./aiClient.js";
 import { MANDATORY_RULES } from "../agents/policy.js";
-import { execute, type Fact, type InputSnapshot, type KnowledgeBinding, type Manifest, type RunResult } from "./engine.js";
+import { execute, type Fact, type InputSnapshot, type KnowledgeBinding, type Manifest, type ProtocolAiResults, type RunResult } from "./engine.js";
+import {
+  DEFAULT_ANATOMY_PROMPT,
+  DEFAULT_SELECTION_PROMPT,
+  PEDIATRIC_FIELD,
+  anatomyList,
+  candidateRows,
+  detectAnatomy,
+  promptOrDefault,
+  selectProtocol,
+  type AnatomyOutcome,
+  type ProtocolAiStatus,
+  type SelectionOutcome,
+} from "./protocolAi.js";
 
 export type AiStepStatus = "used" | "nothing_found" | "no_note" | "not_configured" | "unavailable" | "rejected" | "budget" | "prompt_unavailable" | "model_changed";
 
 export interface AiCallRecord {
   nodeId: string;
-  purpose: "extraction" | "synthesis";
-  status: AiStepStatus;
+  purpose: "extraction" | "synthesis" | "anatomy" | "selection";
+  status: AiStepStatus | ProtocolAiStatus;
   model: string | null;
   ms: number | null;
   inputTokens: number | null;
@@ -273,6 +286,15 @@ async function synthesize(ai: AiClient, node: AiNode, manifest: AiManifest, resu
   }
 }
 
+/** Pediatric list: the entered flag, else age under 18, else adult (as the CRE service: unknown = not pediatric). */
+function pediatricOf(s: InputSnapshot): { pediatric: boolean; from: AnatomyOutcome["pediatricFrom"] } {
+  const p = s.facts[PEDIATRIC_FIELD];
+  if (p?.status === "present" && typeof p.value === "boolean") return { pediatric: p.value, from: "entered" };
+  const age = s.facts.ageYears;
+  if (age?.status === "present" && typeof age.value === "number") return { pediatric: age.value < 18, from: "age" };
+  return { pediatric: false, from: "default" };
+}
+
 export interface RunOptions {
   /** false = deterministic only (release tests: reproducible evidence). */
   useAi?: boolean;
@@ -330,7 +352,56 @@ export async function runAgent(
     }
   }
 
-  const result = execute(manifest, effective, knowledge);
+  // 2. MRI protocol workflow (anatomy → protocol), before the engine: the engine turns the results into findings.
+  const protocolAi: ProtocolAiResults = new Map();
+  const anatomyNode = nodes.find((n) => n.type === "anatomy_detection");
+  const selectNode = nodes.find((n) => n.type === "protocol_selection");
+  if (anatomyNode) {
+    const gate = (): ProtocolAiStatus | null =>
+      !useAi ? "not_run" : !ai ? "not_configured" : !modelOk ? "model_changed" : calls >= maxCalls || timeLeft() < MIN_CALL_MS ? "budget" : null;
+    const noteFact = effective.facts[NOTE_FIELD];
+    const referral = noteFact?.status === "present" && typeof noteFact.value === "string" ? noteFact.value.slice(0, NOTE_MAX_CHARS).trim() : "";
+    const ped = pediatricOf(effective);
+    const binding = anatomyNode.knowledgeRevisionId ? knowledge.get(anatomyNode.knowledgeRevisionId) : undefined;
+    const list = binding ? anatomyList(binding, ped.pediatric) : [];
+    const a: AnatomyOutcome = { status: "not_run", pediatric: ped.pediatric, pediatricFrom: ped.from, listSize: list.length };
+    if (!referral) a.status = "no_note";
+    else if (binding?.status === "approved") {
+      const g = gate();
+      if (g) a.status = g;
+      else if (!list.length) {
+        a.status = "no_candidates";
+        a.reason = ped.pediatric ? "no_pediatric_anatomy" : "no_anatomy";
+      } else {
+        calls += 1;
+        const r = await detectAnatomy(ai!, promptOrDefault(promptText(anatomyNode.prompt), DEFAULT_ANATOMY_PROMPT), referral, list, Math.floor(timeLeft() * (selectNode ? 0.5 : 1)));
+        Object.assign(a, { status: r.status, anatomy: r.anatomy, answer: r.answer, reason: r.reason });
+        records.push({ nodeId: anatomyNode.id, purpose: "anatomy", status: r.status, ...r.meta, ...(r.reason ? { reason: r.reason } : {}) });
+      }
+    }
+    protocolAi.set(anatomyNode.id, a);
+
+    if (selectNode) {
+      const sb = selectNode.knowledgeRevisionId ? knowledge.get(selectNode.knowledgeRevisionId) : undefined;
+      const s: SelectionOutcome = { status: "not_run", candidateCount: 0, ...(a.status === "used" ? {} : { reason: "no_anatomy" }) };
+      if (a.status === "used" && a.anatomy && sb?.status === "approved") {
+        const candidates = candidateRows(sb, a.anatomy);
+        s.candidateCount = candidates.length;
+        const g = gate();
+        if (!candidates.length) s.status = "no_candidates";
+        else if (g) s.status = g;
+        else {
+          calls += 1;
+          const r = await selectProtocol(ai!, promptOrDefault(promptText(selectNode.prompt), DEFAULT_SELECTION_PROMPT), referral, a.anatomy, candidates, timeLeft());
+          Object.assign(s, { status: r.status, rowIds: r.rowIds, name: r.name, explanation: r.explanation, answer: r.answer, reason: r.reason });
+          records.push({ nodeId: selectNode.id, purpose: "selection", status: r.status, ...r.meta, ...(r.reason ? { reason: r.reason } : {}) });
+        }
+      }
+      protocolAi.set(selectNode.id, s);
+    }
+  }
+
+  const result = execute(manifest, effective, knowledge, protocolAi);
 
   // 2. Summary wording (after the engine, over the policy-filtered findings).
   const synthNode = nodes.find((n) => n.type === "final_synthesis" && n.executionKind === "ai");
@@ -352,8 +423,18 @@ export async function runAgent(
     }
   }
 
+  // Protocol steps: what each step did, with the model's raw answer for evaluation.
+  for (const [nodeId, o] of protocolAi) {
+    const step = result.trace.find((t) => t.nodeId === nodeId);
+    if (!step || step.state !== "completed") continue;
+    if ("reason" in o && o.reason === "no_anatomy" && step.type === "protocol_selection") continue; // the step note says why
+    step.ai = { status: o.status, ...(o.reason ? { reason: o.reason } : {}), ...(o.answer ? { answer: o.answer } : {}) };
+    delete step.note;
+  }
+
   // Step notes come from the AI records (the UI shows them in its language).
   for (const r of records) {
+    if (r.purpose === "anatomy" || r.purpose === "selection") continue;
     const step = result.trace.find((t) => t.nodeId === r.nodeId);
     if (!step) continue;
     const extracted = r.purpose === "extraction" ? Object.keys(effective.facts).filter((f) => effective.facts[f]?.attribution?.kind === "ai") : [];

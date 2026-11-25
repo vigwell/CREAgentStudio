@@ -23,6 +23,8 @@ export const FIELDS: readonly FieldDef[] = Object.freeze([
   { name: "protocolCode", label: "Protocol code", type: "code" },
   { name: "protocolName", label: "Protocol name", type: "string" },
   { name: "procedureCode", label: "Procedure code", type: "code" },
+  // Anatomy a protocol is for (MRI protocol table: "anathomy"); the AI protocol workflow filters by it.
+  { name: "anatomy", label: "Anatomy", type: "string" },
   // Conditions
   { name: "conditionCode", label: "Condition / indication code", type: "code" },
   { name: "indication", label: "Indication", type: "string" },

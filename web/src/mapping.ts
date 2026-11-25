@@ -4,9 +4,10 @@
  */
 const HINTS: [RegExp, string][] = [
   [/^(row ?id|id|מזהה)$/i, "rowId"],
-  [/protocol.*(code|id|no)|^protocol$|קוד פרוטוקול|^פרוטוקול$/i, "protocolCode"],
+  [/protocol.*(code|id|no|num)|^protocol$|קוד פרוטוקול|מספר פרוטוקול|^פרוטוקול$/i, "protocolCode"],
   [/protocol.*name|שם פרוטוקול/i, "protocolName"],
   [/procedure|cpt|פרוצדורה/i, "procedureCode"],
+  [/anath?omy|אנטומיה|איבר/i, "anatomy"],
   [/(indication|condition).*(code)|icd|קוד התוויה/i, "conditionCode"],
   [/indication|התוויה|condition/i, "indication"],
   [/(min|minimum).*age|age.*(min|from)|גיל מינימ/i, "ageMinYears"],
