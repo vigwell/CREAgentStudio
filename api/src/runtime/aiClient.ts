@@ -98,7 +98,10 @@ export function createAiClient(opts: AiClientOptions): AiClient {
       } catch (err) {
         const name = (err as Error).name;
         if (name === "TimeoutError" || name === "AbortError") throw new AiError("timeout", `No reply within ${limit} ms`);
-        throw new AiError("network", "The AI service could not be reached");
+        // The low-level cause (DNS, TLS, connection) says why; it never contains the key.
+        const cause = (err as { cause?: { code?: string; message?: string } }).cause;
+        const why = cause?.code || cause?.message;
+        throw new AiError("network", `The AI service could not be reached${why ? ` (${String(why).slice(0, 120)})` : ""}`);
       }
       if (!res.ok) {
         // Error bodies may echo the request; keep only the service's code.
