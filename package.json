@@ -15,7 +15,8 @@
     "migrate": "npm run migrate -w api",
     "typecheck": "npm run typecheck -w api && npm run typecheck -w web",
     "dev:web": "npm run dev -w web",
-    "seed:demo": "npm run seed:demo -w api"
+    "seed:demo": "npm run seed:demo -w api",
+    "set-role": "npm run set-role -w api --"
   },
   "overrides": {
     "react": "18.3.1",
