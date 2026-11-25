@@ -227,8 +227,10 @@ export function numbersSupported(summary: string, input: string): boolean {
 
 async function synthesize(ai: AiClient, node: AiNode, manifest: AiManifest, result: RunResult, timeoutMs: number): Promise<{ text: string | null; record: AiCallRecord }> {
   const base = { nodeId: node.id, purpose: "synthesis" as const, model: null, ms: null, inputTokens: null, outputTokens: null };
-  const allowed = new Set(node.outputCategories);
-  const included = result.findings.filter((f) => allowed.has(f.category) || f.category === "missing_data_notice");
+  // Every finding of the result (already filtered by the agent's policy). The
+  // summary describes the findings shown above it, so leaving some out made it
+  // say "no findings" next to a finding (QA 2026-11-19).
+  const included = result.findings;
   const denied = manifest.effectivePolicy.rules.flatMap((r) => (r.binding?.type === "deny_output" && r.binding.category ? [r.binding.category] : []));
   const payload = JSON.stringify({
     outcome: result.outcome,

@@ -191,7 +191,16 @@ describe("runAgent", () => {
     expect(off.summary?.ai).toBe("not_configured");
   });
 
-  it("synthesis gets only allowed findings, the platform rules and denied categories", async () => {
+  it("synthesis gets every finding of the result, even outside the step's own categories", async () => {
+    const ai = fakeAi({ cds_summary: { summary: "ok" } });
+    const m = manifest();
+    for (const n of m.nodes as { type: string; outputCategories: string[] }[]) if (n.type === "final_synthesis") n.outputCategories = ["safety_flag"];
+    const r = await runAgent(m, snap({ indicationCode: manual("DEMO-A") }), k, ai);
+    expect(r.findings.length).toBeGreaterThan(0);
+    expect(JSON.parse(ai.calls[0].input).findings).toHaveLength(r.findings.length);
+  });
+
+  it("synthesis gets the findings, the platform rules and denied categories", async () => {
     const ai = fakeAi({ cds_summary: { summary: "ok" } });
     await runAgent(manifest({ denied: "dose_suggestion" }), snap({ indicationCode: manual("DEMO-A") }), k, ai);
     expect(ai.calls[0].instructions).toContain("dose_suggestion");
