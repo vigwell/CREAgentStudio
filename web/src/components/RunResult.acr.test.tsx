@@ -78,6 +78,17 @@ describe("RunResult: ACR decision support", () => {
     expect(screen.getAllByText("AI answer (as returned)")).toHaveLength(2);
   });
 
+  it("a topic with one rule reads in the singular", async () => {
+    await i18n.changeLanguage("en");
+    const one = { ...run, trace: [{ ...run.trace[1], ai: { status: "used", count: 1, topic: "Seizure", modality: "mri" } }] } as unknown as RunDetail;
+    render(
+      <MemoryRouter>
+        <RunResult run={one} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByText(/AI ranked the only rule of the topic .*Seizure.* \(MRI catalogue\)/)).toBeInTheDocument();
+  });
+
   it("Hebrew: the finding titles in Hebrew, rule ids isolated", async () => {
     await i18n.changeLanguage("he");
     render(
