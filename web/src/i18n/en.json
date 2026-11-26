@@ -285,7 +285,16 @@
       "rejected": "The AI summary was not used because it contained a value that isn’t in the findings. The findings are listed as they are.",
       "model_changed": "This version was frozen with a different AI model, so AI wasn't used. Freeze, test and approve a new version to use the current model."
     },
-    "aiAnswer": "AI answer (as returned)"
+    "aiAnswer": "AI answer (as returned)",
+    "scan": {
+      "read": "Read a scanned referral",
+      "reading": "Reading the scan…",
+      "done": "Text read from {{files}} ({{count}} characters). Check it against the scan before running.",
+      "cut": "The text was longer than {{max}} characters and was shortened.",
+      "empty": "No text was found in the scan. Check the file, or type the referral.",
+      "failed": "The scan could not be read: {{message}}",
+      "hint": "PDF or image, up to 30 MB. Read by CRE's OCR; the text replaces the note."
+    }
   },
   "theme": {
     "system": "Theme: follows the system",

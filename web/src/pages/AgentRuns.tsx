@@ -5,6 +5,7 @@ import { api, type Agent, type Candidate, type RunDetail, type RunSummary } from
 import { ErrorNote } from "../components/ErrorNote";
 import { StatusPill } from "../ui/StatusPill";
 import { FIELDS, OUTCOME_TONE, RunResult, formatDate } from "../components/RunResult";
+import { NOTE_MAX, ScanReader } from "../components/ScanReader";
 import { fetchQuery, invalidate, setQueryData, useQuery } from "../api/query";
 import { DetailSkeleton } from "../ui/Skeleton";
 import { Field } from "../ui/Field";
@@ -175,13 +176,16 @@ export function AgentRuns() {
                 {FIELDS.map((f) => (
                   <Field key={f.name} label={t(`fields.${f.name}`)} hint={f.kind === "note" ? t("runs.noteHint") : undefined} className={f.kind === "note" ? "sm:col-span-2" : ""}>
                     {f.kind === "note" ? (
-                      <textarea
-                        className="input min-h-28"
-                        dir="auto"
-                        maxLength={8000}
-                        value={form[f.name] ?? ""}
-                        onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
-                      />
+                      <div className="space-y-2">
+                        <textarea
+                          className="input min-h-28"
+                          dir="auto"
+                          maxLength={NOTE_MAX}
+                          value={form[f.name] ?? ""}
+                          onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
+                        />
+                        <ScanReader onText={(text) => setForm((cur) => ({ ...cur, [f.name]: text }))} />
+                      </div>
                     ) : f.kind === "bool" || f.kind === "sex" ? (
                       <select className="input" value={form[f.name] ?? ""} onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}>
                         <option value="">{t("runs.notGiven")}</option>

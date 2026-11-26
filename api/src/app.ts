@@ -17,6 +17,7 @@ import type { Db } from "./db/pool.js";
 import { AI_PROVIDER, type AiClient } from "./runtime/aiClient.js";
 import { AuthError, bearerToken, type CreIdentity } from "./auth/creToken.js";
 import { resolveUser, type StudioUser } from "./services/users.js";
+import { REFERRAL_MAX_BYTES, REFERRAL_MAX_FILES, referralType, type CreReferralClient, type ReferralFile } from "./runtime/creReferral.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -41,6 +42,8 @@ export interface AppDeps {
    * paths the web app uses in development. Without it the API is at "/".
    */
   webDir?: string | null;
+  /** Scanned referral → text through CRE's protocol service; null = not set up. */
+  creReferral?: CreReferralClient | null;
 }
 
 export function buildApp(deps: AppDeps) {
@@ -91,6 +94,28 @@ export function buildApp(deps: AppDeps) {
   });
 
   app.get("/me", { preHandler: requireUser }, async (req) => ({ user: req.user }));
+
+  // Scanned referral → text (CRE OCR, with the user's CRE token). The file isn't stored here.
+  app.post("/referrals/text", { preHandler: requireUser }, async (req) => {
+    if (!deps.creReferral) throw new AppError(503, "ocr_not_configured", "Reading scanned referrals is not set up");
+    const files: ReferralFile[] = [];
+    for await (const part of req.files({ limits: { fileSize: REFERRAL_MAX_BYTES, files: REFERRAL_MAX_FILES } })) {
+      if (!referralType(part.filename)) {
+        await part.toBuffer().catch(() => undefined);
+        throw new AppError(415, "file_type", "Use PDF, JPEG, PNG, GIF or BMP files");
+      }
+      const data = await part.toBuffer().catch(() => {
+        throw new AppError(413, "too_large", "A file is larger than 30 MB");
+      });
+      files.push({ name: part.filename, data });
+    }
+    if (!files.length) throw new AppError(400, "file_required", "Upload a scanned referral (PDF or image)");
+    const token = bearerToken(req.headers.authorization)!;
+    const r = await deps.creReferral.extractText(token, files);
+    // Counts only: no text, no token, no file names.
+    req.log.info({ files: files.length, bytes: files.reduce((n, f) => n + f.data.length, 0), chars: r.text.length }, "referral text read");
+    return { fileId: r.fileId, text: r.text, files: files.map((f) => f.name) };
+  });
 
   app.register(async (scope) => registerKnowledgeRoutes(scope, new KnowledgeService(deps.db), requireUser));
   app.register(async (scope) => registerAgentRoutes(scope, new AgentService(deps.db, deps.ai ? { provider: AI_PROVIDER, deployment: deps.ai.model } : null), requireUser));

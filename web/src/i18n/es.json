@@ -285,7 +285,16 @@
       "rejected": "No se usó el resumen de IA porque contenía un valor que no está en los hallazgos. Los hallazgos se listan tal cual.",
       "model_changed": "Esta versión se congeló con otro modelo de IA, por lo que no se usó la IA. Congele, pruebe y apruebe una nueva versión para usar el modelo actual."
     },
-    "aiAnswer": "Respuesta de la IA (tal como llegó)"
+    "aiAnswer": "Respuesta de la IA (tal como llegó)",
+    "scan": {
+      "read": "Leer una derivación escaneada",
+      "reading": "Leyendo el escaneo…",
+      "done": "Texto leído de {{files}} ({{count}} caracteres). Compárelo con el escaneo antes de ejecutar.",
+      "cut": "El texto superaba {{max}} caracteres y se recortó.",
+      "empty": "No se encontró texto en el escaneo. Revise el archivo o escriba la derivación.",
+      "failed": "No se pudo leer el escaneo: {{message}}",
+      "hint": "PDF o imagen, hasta 30 MB. Lo lee el OCR de CRE; el texto sustituye la nota."
+    }
   },
   "theme": {
     "system": "Tema: según el sistema",

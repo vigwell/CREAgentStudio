@@ -146,9 +146,14 @@ Deploying (one server hosts the web app and the API): see [DEPLOY.md](DEPLOY.md)
   (`api/src/runtime/mriPrompts.ts`; anatomy prompt without the editorial
   preamble, selection prompt limited to one protocol) and can be edited per
   block. `npm run seed:mri` imports `assets/mri/protocolsnewlastversion.xlsx`
-  (254 rows, 80 anatomy values) and creates a ready test agent. Scanned
-  referrals (upload and OCR through CRE's `/api/Protocol/ExtractReferralText`)
-  are the next step, once the CRE test environment and access are available.
+  (254 rows, 80 anatomy values) and creates a ready test agent.
+- **Scanned referrals** (`POST /referrals/text`, button "Read a scanned
+  referral" in Test runs): the PDF or image goes to CRE's protocol service
+  (`UploadReferralFile`, then `ExtractReferralText` with the returned fileId,
+  as CRE web does) with the signed-in user's CRE token; the text is put into
+  the referral, visible and editable before the run. The Studio doesn't store
+  the file, and logs counts only. `CRE_API_BASE_URL` (default: CRE production
+  API management, the one CRE web uses).
 
 - **Monitoring** (`GET /monitoring?days=&agentId=&purpose=`, page
   *Monitoring*): runs, results, run time (median, 95%), stops for missing data
