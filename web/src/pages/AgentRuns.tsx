@@ -34,9 +34,10 @@ export function AgentRuns() {
   const runsQ = useQuery<{ runs: RunSummary[] }>(`/agents/${agentId}/runs`);
   const agent = agentQ.data ?? null;
   const candidates = candQ.data?.candidates ?? [];
-  const shownFields = candidates.find((c) => c.id === candidateId)?.inputFields ?? null;
   const runs = runsQ.data?.runs ?? [];
   const [candidateId, setCandidateId] = useState("");
+  // Inputs this version reads (MRI agents: referral, age, pediatric); null = all.
+  const shownFields = candidates.find((c) => c.id === candidateId)?.inputFields ?? null;
   const [caseRef, setCaseRef] = useState("");
   const [deviceId, setDeviceId] = useState("");
   const [form, setForm] = useState<Record<string, string>>({});
