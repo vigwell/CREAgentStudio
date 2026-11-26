@@ -178,7 +178,7 @@
     "blockOutput": "Bloquear salida: {{category}}",
     "problems_one": "1 problema",
     "problems_other": "{{count}} problemas",
-    "defaultPromptHint": "Empieza con el prompt V2 de Medilis. La lista de la tabla se añade al ejecutar.",
+    "defaultPromptHint": "Empieza con el prompt de Medilis de la entrega. La lista de la tabla se añade al ejecutar.",
     "builtinPromptsHint": "Déjelo vacío para usar las instrucciones de selección de Medilis para TC y RM; se usa la de la modalidad detectada. Unas instrucciones escritas aquí se usan para ambas."
   },
   "profiles": {

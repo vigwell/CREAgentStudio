@@ -178,7 +178,7 @@
     "blockOutput": "Block output: {{category}}",
     "problems_one": "1 problem",
     "problems_other": "{{count}} problems",
-    "defaultPromptHint": "Starts with the Medilis V2 prompt. The table's list is added when the step runs.",
+    "defaultPromptHint": "Starts with the Medilis prompt from the handoff. The table's list is added when the step runs.",
     "builtinPromptsHint": "Leave empty to use the Medilis CT and MRI selection prompts; the one for the detected modality is used. A prompt written here is used for both."
   },
   "profiles": {

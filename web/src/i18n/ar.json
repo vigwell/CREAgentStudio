@@ -182,7 +182,7 @@
     "problems_few": "{{count}} مشكلات",
     "problems_many": "{{count}} مشكلة",
     "problems_other": "{{count}} مشكلة",
-    "defaultPromptHint": "يبدأ بموجّه V2 من Medilis. تُضاف قائمة الجدول عند التشغيل.",
+    "defaultPromptHint": "يبدأ بموجّه Medilis من حزمة التسليم. تُضاف قائمة الجدول عند التشغيل.",
     "builtinPromptsHint": "اتركه فارغًا لاستخدام تعليمات الاختيار من Medilis لـ CT وMRI؛ تُستخدم تعليمات الطريقة المكتشفة. التعليمات المكتوبة هنا تُستخدم للاثنتين."
   },
   "profiles": {
