@@ -28,7 +28,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
     ? sources.filter((s) => s.kind === def.knowledgeKind && s.latestRevision?.status === "approved")
     : [];
   const approvedProfiles = profiles.filter((p) => p.status === "approved");
-  const showsOutputs = def?.aiCapable || def?.terminal;
+  const showsOutputs = (def?.aiCapable && !def.aiRequired) || def?.terminal;
 
   return (
     <fieldset disabled={readOnly} className="space-y-4">

@@ -276,14 +276,15 @@
     "rule": "Rule: {{field}} {{op}} {{expected}}. Value seen: {{actual}}.",
     "unknown": "not known",
     "candidateShort": "Version {{no}}",
-    "noteHint": "Free text, e.g. the referral. Read only by an AI patient information step; values it finds are shown with the words they came from.",
+    "noteHint": "Free text, e.g. the referral. Read only by the agent's AI steps (patient information, anatomy and protocol); what they use is shown with the run.",
     "fromNoteByAi": "from the clinical note, by AI",
     "summaryAi": {
       "not_configured": "AI wording isn't set up yet, so the summary lists the findings as they are.",
       "used": "Written by AI from the findings above. The findings are the result; check the summary against them.",
       "unavailable": "The AI service didn't answer, so the summary lists the findings as they are.",
       "rejected": "The AI summary was not used because it contained a value that isn’t in the findings. The findings are listed as they are.",
-      "model_changed": "This version was frozen with a different AI model, so AI wasn't used. Freeze, test and approve a new version to use the current model."
+      "model_changed": "This version was frozen with a different AI model, so AI wasn't used. Freeze, test and approve a new version to use the current model.",
+      "not_used": ""
     },
     "aiAnswer": "AI answer (as returned)",
     "scan": {

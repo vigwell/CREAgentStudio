@@ -266,6 +266,8 @@ export interface Candidate {
   draftVersion: number;
   status: string;
   createdAt: string;
+  /** Test-run inputs this version reads; null/absent = all. */
+  inputFields?: string[] | null;
 }
 
 export interface Evidence {

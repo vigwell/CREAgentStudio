@@ -112,8 +112,8 @@ export function RunResult({
                         {f.details.map((d) => (
                           <div key={d.label} className="contents">
                             <dt className="text-ink-muted">{fieldName(d.label)}</dt>
-                            <dd className="text-ink" dir="auto">
-                              {d.value}
+                            <dd className="text-ink">
+                              <bdi>{d.value}</bdi>
                             </dd>
                           </div>
                         ))}

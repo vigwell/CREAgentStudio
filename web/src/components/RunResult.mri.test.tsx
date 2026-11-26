@@ -63,5 +63,7 @@ describe("RunResult: MRI protocol selection", () => {
     expect(screen.getByText("AI chose the anatomy from the protocol table.")).toBeInTheDocument();
     expect(screen.getByText(/not one of this anatomy's protocol names/)).toBeInTheDocument();
     expect(screen.getAllByText("AI answer (as returned)")).toHaveLength(2);
+    // Hebrew values are isolated so they read correctly next to English labels.
+    expect(screen.getByText("1.5>3").tagName).toBe("BDI");
   });
 });

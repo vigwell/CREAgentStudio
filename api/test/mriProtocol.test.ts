@@ -299,3 +299,19 @@ describe("the Medilis V2 protocol table (assets/mri)", () => {
     expect(candidateRows(binding, SHOULDER).map((r) => r.mapped.protocolName)).toContain("Shoulder MRI - Standard");
   });
 });
+
+describe("test-run inputs and summary (live test 26 Nov)", () => {
+  it("an MRI-only version reads the referral, age and pediatric flag; others read all patient values", async () => {
+    const { inputFieldsOf } = await import("../src/agents/service.js");
+    expect(inputFieldsOf(JSON.stringify(manifest()))).toEqual(["ageYears", "pediatric", "clinicalNote"]);
+    const withLookup = { nodes: [{ type: "start" }, { type: "protocol_lookup" }, { type: "final_synthesis" }] };
+    expect(inputFieldsOf(withLookup)).toBeNull();
+    expect(inputFieldsOf("not json")).toBeNull();
+  });
+
+  it("a summary without AI is marked as not used, not as AI missing", async () => {
+    const ai = fakeAi({ anatomy: "{unknown}" });
+    const r = await runAgent(manifest(), snap({ clinicalNote: manual(BASELINE) }), k, ai);
+    expect(r.summary?.ai).toBe("not_used");
+  });
+});

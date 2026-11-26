@@ -14,9 +14,10 @@ import { FlaskConical, Play } from "lucide-react";
 
 
 /** Only entered values are sent; an empty field stays "missing" (never false). */
-export function manualValues(form: Record<string, string>): Record<string, unknown> {
+export function manualValues(form: Record<string, string>, only?: string[] | null): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const f of FIELDS) {
+    if (only && !only.includes(f.name)) continue;
     const v = (form[f.name] ?? "").trim();
     if (!v) continue;
     out[f.name] = f.kind === "number" ? Number(v) : f.kind === "bool" ? v === "true" : v;
@@ -33,6 +34,7 @@ export function AgentRuns() {
   const runsQ = useQuery<{ runs: RunSummary[] }>(`/agents/${agentId}/runs`);
   const agent = agentQ.data ?? null;
   const candidates = candQ.data?.candidates ?? [];
+  const shownFields = candidates.find((c) => c.id === candidateId)?.inputFields ?? null;
   const runs = runsQ.data?.runs ?? [];
   const [candidateId, setCandidateId] = useState("");
   const [caseRef, setCaseRef] = useState("");
@@ -65,7 +67,7 @@ export function AgentRuns() {
     setError(null);
     try {
       const key = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
-      const body = { agentId, candidateId, caseRef: caseRef.trim(), deviceId: deviceId.trim() || null, inputs: { manualValues: manualValues(form) } };
+      const body = { agentId, candidateId, caseRef: caseRef.trim(), deviceId: deviceId.trim() || null, inputs: { manualValues: manualValues(form, shownFields) } };
       const res = await api<RunDetail>("/runs", { body, headers: { "Idempotency-Key": key } });
       setRun(res);
       setQueryData(`/runs/${res.runId}`, res);
@@ -173,7 +175,7 @@ export function AgentRuns() {
                 <p className="mt-1 text-caption text-ink-subtle">{t("runs.patientHint")}</p>
               </div>
               <div className="field-grid sm:grid-cols-2">
-                {FIELDS.map((f) => (
+                {FIELDS.filter((f) => !shownFields || shownFields.includes(f.name)).map((f) => (
                   <Field key={f.name} label={t(`fields.${f.name}`)} hint={f.kind === "note" ? t("runs.noteHint") : undefined} className={f.kind === "note" ? "sm:col-span-2" : ""}>
                     {f.kind === "note" ? (
                       <div className="space-y-2">
