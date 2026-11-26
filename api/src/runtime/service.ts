@@ -34,6 +34,10 @@ const MANUAL_FIELDS: Record<string, "code" | "boolean" | "number" | "text"> = {
   pediatric: "boolean",
   /** Free-text clinical note / referral text; read only by AI steps. */
   [NOTE_FIELD]: "text",
+  /** ACR decision support: the other referral categories of CRE's ACR screen (read only by the ACR AI steps). */
+  priors: "text",
+  labs: "text",
+  diagnoses: "text",
 };
 
 export interface RunRequest {

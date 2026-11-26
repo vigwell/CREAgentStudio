@@ -305,7 +305,7 @@ describe("test-run inputs and summary (live test 26 Nov)", () => {
     const { inputFieldsOf } = await import("../src/agents/service.js");
     expect(inputFieldsOf(JSON.stringify(manifest()))).toEqual(["ageYears", "pediatric", "clinicalNote"]);
     const withLookup = { nodes: [{ type: "start" }, { type: "protocol_lookup" }, { type: "final_synthesis" }] };
-    expect(inputFieldsOf(withLookup)).toBeNull();
+    expect(inputFieldsOf(withLookup)).toEqual(["indicationCode", "hasIndication", "ageYears", "sex", "egfr", "contrastAllergy", "pregnant", "pediatric", "clinicalNote"]);
     expect(inputFieldsOf("not json")).toBeNull();
   });
 

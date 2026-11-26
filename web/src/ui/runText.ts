@@ -21,6 +21,19 @@ export function findingTitle(t: TFunction, f: Finding): string {
         .replace(/[:：]\s*$/, "")
         .trim();
     }
+    case "ACR_RULE_PRIMARY": {
+      const m = /^Review ACR rule (\S+?)(?::\s*(.*))?$/.exec(f.title);
+      return t("findings.ACR_RULE_PRIMARY", { id: `\u2068${m?.[1] ?? ""}\u2069`, exam: m?.[2] ? `\u2068${m[2]}\u2069` : "" })
+        .replace(/[:：]\s*$/, "")
+        .trim();
+    }
+    case "ACR_RULE_RELATED": {
+      const m = /^Related ACR rule (\S+) \(rank (\d+)\)$/.exec(f.title);
+      return t("findings.ACR_RULE_RELATED", { id: `\u2068${m?.[1] ?? ""}\u2069`, rank: m?.[2] ?? "" });
+    }
+    case "ACR_TOPIC_UNRESOLVED":
+    case "ACR_MODALITY_UNSUPPORTED":
+    case "ACR_RULE_UNRESOLVED":
     case "ANATOMY_UNRESOLVED":
     case "PROTOCOL_UNRESOLVED":
       return t(`findings.${f.code}`);
@@ -42,13 +55,30 @@ export function findingTitle(t: TFunction, f: Finding): string {
 export function stepNote(t: TFunction, n: NodeTrace): string | null {
   if (n.ai) {
     const fields = (n.ai.fields ?? []).map((x) => t(`fields.${x}`, { defaultValue: x })).join(", ");
-    const kind = n.type === "final_synthesis" ? "synthesis" : n.type === "anatomy_detection" ? "anatomy" : n.type === "protocol_selection" ? "selection" : "extraction";
-    return t(`notes.ai.${kind}.${n.ai.status}`, { fields, defaultValue: t(`notes.ai.${n.ai.status}`, { defaultValue: n.ai.status }) });
+    const kind =
+      n.type === "final_synthesis"
+        ? "synthesis"
+        : n.type === "anatomy_detection"
+          ? "anatomy"
+          : n.type === "protocol_selection"
+            ? "selection"
+            : n.type === "acr_topic_detection"
+              ? "acrTopic"
+              : n.type === "acr_rule_selection"
+                ? "acrRules"
+                : "extraction";
+    const scope = {
+      count: n.ai.count ?? 0,
+      topic: n.ai.topic ? `\u2068${n.ai.topic}\u2069` : "",
+      modality: n.ai.modality ? n.ai.modality.toUpperCase() : "",
+    };
+    return t(`notes.ai.${kind}.${n.ai.status}`, { fields, ...scope, defaultValue: t(`notes.ai.${n.ai.status}`, { defaultValue: n.ai.status }) });
   }
   if (!n.note) return null;
   if (/^AI synthesis/i.test(n.note)) return t("notes.aiSynthesis");
   if (/^AI extraction/i.test(n.note)) return t("notes.aiExtraction");
   if (/^No anatomy was determined/i.test(n.note)) return t("notes.noAnatomy");
+  if (/^No ACR topic was determined/i.test(n.note)) return t("notes.noAcrTopic");
   const m = /^Knowledge revision is (\w+)/i.exec(n.note);
   if (m) return m[1] === "not" ? t("notes.knowledgeMissing") : t("notes.knowledge", { status: t(`status.${m[1]}`, { defaultValue: m[1] }) });
   return n.note;

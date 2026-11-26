@@ -5,6 +5,7 @@
  * block's output field. No expressions, scripts or URLs anywhere.
  */
 import { DEFAULT_ANATOMY_PROMPT, DEFAULT_SELECTION_PROMPT } from "../runtime/mriPrompts.js";
+import { DEFAULT_ACR_RULES_PROMPT_CT, DEFAULT_ACR_RULES_PROMPT_MRI, DEFAULT_ACR_TOPIC_PROMPT } from "../runtime/acrPrompts.js";
 
 export type AgentKind = "cds" | "voice";
 export type FieldType = "string" | "code" | "number" | "boolean" | "date" | "list" | "record";
@@ -33,6 +34,12 @@ export interface BlockDef {
   aiRequired?: boolean;
   /** Prompt used when the author leaves the prompt empty (frozen into the manifest). */
   defaultPrompt?: string;
+  /**
+   * Built-in prompts chosen at run time by a value the block works out (the
+   * ACR rule selection: one per modality). Used when the author leaves the
+   * prompt empty; frozen into the manifest. Not sent to the editor.
+   */
+  defaultPrompts?: Readonly<Record<string, string>>;
 }
 
 const yesNo = ["yes", "no"] as const;
@@ -118,6 +125,40 @@ export const BLOCKS: readonly BlockDef[] = Object.freeze([
     aiRequired: true,
     knowledgeKind: "device_protocol",
     defaultPrompt: DEFAULT_SELECTION_PROMPT,
+  },
+  // ACR-based decision support (Medilis handoff, 22 Nov 2026, second case study):
+  // referral context → ACR topic + modality → ranked rules of that topic (CT or MRI catalogue).
+  {
+    type: "acr_topic_detection",
+    kinds: ["cds"],
+    label: "ACR topic detection (AI, referral)",
+    ports: ["out"],
+    outputs: [
+      { name: "found", type: "boolean" },
+      { name: "topic", type: "string" },
+      { name: "modality", type: "code", values: ["ct", "mri", "other"] },
+    ],
+    aiCapable: true,
+    aiRequired: true,
+    knowledgeKind: "clinical_rule",
+    defaultPrompt: DEFAULT_ACR_TOPIC_PROMPT,
+  },
+  {
+    type: "acr_rule_selection",
+    kinds: ["cds"],
+    label: "ACR rule selection (AI, referral)",
+    ports: ["out"],
+    outputs: [
+      { name: "matched", type: "boolean" },
+      { name: "ruleId", type: "code" },
+      { name: "recommendedExam", type: "string" },
+      { name: "matchCount", type: "number" },
+      { name: "rows", type: "list" },
+    ],
+    aiCapable: true,
+    aiRequired: true,
+    knowledgeKind: "clinical_rule",
+    defaultPrompts: Object.freeze({ ct: DEFAULT_ACR_RULES_PROMPT_CT, mri: DEFAULT_ACR_RULES_PROMPT_MRI }),
   },
   { type: "instruction", kinds: ["cds"], label: "Instruction / finding", ports: ["out"], outputs: [{ name: "finding", type: "record" }], aiCapable: false },
   { type: "final_synthesis", kinds: ["cds"], label: "Final synthesis", ports: [], outputs: [{ name: "summary", type: "record" }], aiCapable: true, terminal: true },

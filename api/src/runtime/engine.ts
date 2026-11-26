@@ -16,6 +16,7 @@
 import { createHash } from "node:crypto";
 import { canonicalJson } from "../agents/compiler.js";
 import type { AnatomyOutcome, SelectionOutcome } from "./protocolAi.js";
+import type { RulesOutcome, TopicOutcome } from "./acrAi.js";
 
 // ------------------------------------------------------------ inputs
 
@@ -127,7 +128,16 @@ export interface NodeTrace {
   /** Decisions: the rule that was evaluated and the value it saw (null = unknown). */
   evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
   /** AI steps: what the AI call did (see aiSteps.ts). */
-  ai?: { status: string; fields?: string[]; reason?: string; answer?: string };
+  ai?: {
+    status: string;
+    fields?: string[];
+    reason?: string;
+    answer?: string;
+    /** ACR rule selection: how many rules of which topic (and catalogue) were evaluated. */
+    count?: number;
+    topic?: string;
+    modality?: string;
+  };
 }
 
 export interface RunResult {
@@ -276,7 +286,10 @@ function topoOrder(m: Manifest): string[] {
 }
 
 /** Results of the AI protocol steps, computed before the engine runs (aiSteps.ts). */
-export type ProtocolAiResults = Map<string, AnatomyOutcome | SelectionOutcome>;
+export type ProtocolAiResults = Map<string, AnatomyOutcome | SelectionOutcome | TopicOutcome | RulesOutcome>;
+
+/** ACR steps read these referral categories (any one is enough). */
+const ACR_CONTEXT = ["clinicalNote", "priors", "labs", "diagnoses"];
 
 const NOTE = "clinicalNote";
 
@@ -528,6 +541,124 @@ export function execute(
             nodeId: id,
             observedInputs: [anatomyInput, ...pedInput],
             evidence: ev,
+            missingInputs: [],
+            allowedActions: ACTIONS,
+          });
+        }
+        break;
+      }
+
+      case "acr_topic_detection":
+      case "acr_rule_selection": {
+        const binding = node.knowledgeRevisionId ? knowledge.get(node.knowledgeRevisionId) : undefined;
+        if (!binding || binding.status !== "approved") {
+          state = "blocked";
+          note = binding ? `Knowledge revision is ${binding.status}` : "Knowledge revision is not available";
+          halted = { state: "completed", outcome: "blocked" };
+          break;
+        }
+        if (ACR_CONTEXT.every((f) => factValue(snapshot.facts[f]) === UNKNOWN)) {
+          state = "awaiting_input";
+          missing.add(NOTE);
+          halted = { state: "awaiting_input", outcome: "needs_input" };
+          findings.push({
+            code: "MISSING_INPUT",
+            category: "missing_data_notice",
+            severity: "review",
+            title: `${node.label}: required inputs are missing`,
+            detail: null,
+            nodeId: id,
+            observedInputs: [],
+            evidence: [],
+            missingInputs: [NOTE],
+            allowedActions: ACTIONS,
+          });
+          break;
+        }
+
+        if (node.type === "acr_topic_detection") {
+          const r = protocolAi.get(id) as TopicOutcome | undefined;
+          out.modality = r?.modality ?? UNKNOWN;
+          if (r?.status === "used" && r.topic) {
+            out.found = true;
+            out.topic = r.topic;
+          } else {
+            out.found = false;
+            out.topic = UNKNOWN;
+            needsReview = true;
+            const unsupported = r?.status === "unsupported";
+            findings.push({
+              code: unsupported ? "ACR_MODALITY_UNSUPPORTED" : "ACR_TOPIC_UNRESOLVED",
+              category: "appropriateness_finding",
+              severity: "review",
+              title: unsupported
+                ? "The requested exam is not CT or MRI; no ACR rule is selected"
+                : "The ACR topic could not be determined from the referral; no rule is selected",
+              detail: null,
+              nodeId: id,
+              observedInputs: [],
+              evidence: [],
+              missingInputs: [],
+              allowedActions: ACTIONS,
+            });
+          }
+          break;
+        }
+
+        // acr_rule_selection: only within the rules of the detected topic, in that modality's catalogue.
+        const detector = manifest.nodes.find((n) => n.type === "acr_topic_detection");
+        const a = detector ? outputs.get(detector.id) : undefined;
+        out.matched = false;
+        out.matchCount = 0;
+        out.ruleId = UNKNOWN;
+        out.recommendedExam = UNKNOWN;
+        if (!a || a.found !== true) {
+          note = "No ACR topic was determined, so no rule is selected.";
+          break;
+        }
+        const r = protocolAi.get(id) as RulesOutcome | undefined;
+        const byRow = new Map(binding.rows.map((x) => [x.rowId, x]));
+        const picked = r?.status === "used" ? (r.selected ?? []).flatMap((s) => (byRow.has(s.rowId) ? [{ ...s, row: byRow.get(s.rowId)! }] : [])) : [];
+        const topicInputs: ObservedInput[] = [
+          { field: "topic", value: a.topic, sourceRef: NOTE, observedAt: null, attribution: "ai" },
+          { field: "modality", value: a.modality, sourceRef: NOTE, observedAt: null, attribution: "ai" },
+        ];
+        out.rows = picked.map((p) => p.row.rowId);
+        out.matchCount = picked.length;
+        if (picked.length) {
+          const primary = picked[0];
+          out.matched = true;
+          out.ruleId = primary.row.rowId;
+          out.recommendedExam = primary.row.mapped.result ?? UNKNOWN;
+          for (const p of picked) {
+            const isPrimary = p === primary;
+            findings.push({
+              code: isPrimary ? "ACR_RULE_PRIMARY" : "ACR_RULE_RELATED",
+              category: "appropriateness_finding",
+              severity: isPrimary ? "review" : "info",
+              title: isPrimary
+                ? `Review ACR rule ${p.row.rowId}: ${String(p.row.mapped.result ?? "").trim()}`.replace(/:\s*$/, "")
+                : `Related ACR rule ${p.row.rowId} (rank ${p.rank})`,
+              detail: p.explanation || null,
+              nodeId: id,
+              observedInputs: topicInputs,
+              evidence: evidenceOf(binding, [p.row]),
+              missingInputs: [],
+              allowedActions: ACTIONS,
+              details: rowDetails(p.row),
+            });
+          }
+        } else {
+          needsReview = true;
+          findings.push({
+            code: "ACR_RULE_UNRESOLVED",
+            category: "appropriateness_finding",
+            severity: "review",
+            title: "No ACR rule could be selected for this topic; review the referral",
+            detail: null,
+            nodeId: id,
+            observedInputs: topicInputs,
+            evidence: [],
             missingInputs: [],
             allowedActions: ACTIONS,
           });

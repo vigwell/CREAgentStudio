@@ -178,7 +178,8 @@
     "blockOutput": "Block output: {{category}}",
     "problems_one": "1 problem",
     "problems_other": "{{count}} problems",
-    "defaultPromptHint": "Starts with the Medilis V2 prompt. The table's list is added when the step runs."
+    "defaultPromptHint": "Starts with the Medilis V2 prompt. The table's list is added when the step runs.",
+    "builtinPromptsHint": "Leave empty to use the Medilis CT and MRI selection prompts; the one for the detected modality is used. A prompt written here is used for both."
   },
   "profiles": {
     "title": "Clinic & exam profiles",
@@ -295,7 +296,8 @@
       "empty": "No text was found in the scan. Check the file, or type the referral.",
       "failed": "The scan could not be read: {{message}}",
       "hint": "PDF or image, up to 30 MB. Read by CRE's OCR; the text replaces the note."
-    }
+    },
+    "contextHint": "Optional. Sent with the referral to the ACR steps."
   },
   "theme": {
     "system": "Theme: follows the system",
@@ -321,7 +323,9 @@
     "transfer_staff": "Transfer to staff",
     "end_call": "End call",
     "anatomy_detection": "Anatomy detection (AI, referral)",
-    "protocol_selection": "Protocol selection (AI, referral)"
+    "protocol_selection": "Protocol selection (AI, referral)",
+    "acr_topic_detection": "ACR topic detection (AI, referral)",
+    "acr_rule_selection": "ACR rule selection (AI, referral)"
   },
   "fields": {
     "indicationCode": "Indication code",
@@ -368,7 +372,17 @@
     "anathomy": "Anatomy",
     "domain": "Domain",
     "contrast": "Contrast",
-    "Tesla": "Tesla"
+    "Tesla": "Tesla",
+    "priors": "Prior imaging / reports",
+    "labs": "Laboratory results",
+    "diagnoses": "Diagnoses",
+    "topic": "ACR topic",
+    "modality": "Modality",
+    "ruleId": "Rule ID",
+    "recommendedExam": "Recommended exam",
+    "Rule ID": "Rule ID",
+    "ACR Topic": "ACR topic",
+    "Modality": "Modality"
   },
   "values": {
     "true": "Yes",
@@ -410,7 +424,12 @@
     "MISSING_INPUT": "{{step}} needs {{fields}}",
     "PROTOCOL_SELECTED": "Review selected protocol {{code}}: {{name}}",
     "ANATOMY_UNRESOLVED": "The anatomy could not be determined from the referral; no protocol is chosen",
-    "PROTOCOL_UNRESOLVED": "No protocol could be selected for this anatomy; review the referral"
+    "PROTOCOL_UNRESOLVED": "No protocol could be selected for this anatomy; review the referral",
+    "ACR_RULE_PRIMARY": "Review ACR rule {{id}}: {{exam}}",
+    "ACR_RULE_RELATED": "Related ACR rule {{id}} (rank {{rank}})",
+    "ACR_TOPIC_UNRESOLVED": "The ACR topic could not be determined from the referral; no rule is selected",
+    "ACR_MODALITY_UNSUPPORTED": "The requested exam is not CT or MRI; no ACR rule is selected",
+    "ACR_RULE_UNRESOLVED": "No ACR rule could be selected for this topic; review the referral"
   },
   "notes": {
     "aiSynthesis": "AI wording isn't set up yet; the summary lists the findings as they are.",
@@ -461,9 +480,35 @@
         "rejected": "The AI reply was not usable.",
         "budget": "The AI call or time limit was reached.",
         "model_changed": "This version was approved with a different AI model; AI was not used."
+      },
+      "acrTopic": {
+        "used": "AI chose the ACR topic and the requested modality from the catalogue's topic list.",
+        "unknown": "AI found no matching ACR topic in the referral.",
+        "unsupported": "The requested exam is not CT or MRI, so no ACR rule is selected.",
+        "invalid": "AI's answer is not a topic of that modality's catalogue, so it was not used.",
+        "no_note": "No referral text was given.",
+        "no_candidates": "The ACR table has no topics.",
+        "not_configured": "AI isn't set up, so the ACR topic wasn't determined.",
+        "not_run": "AI steps don't run in release tests.",
+        "unavailable": "The AI service didn't answer, so the ACR topic wasn't determined.",
+        "rejected": "The AI reply was not usable.",
+        "budget": "The AI call or time limit was reached.",
+        "model_changed": "This version was approved with a different AI model; AI was not used."
+      },
+      "acrRules": {
+        "used": "AI ranked the {{count}} rules of the topic {{topic}} ({{modality}} catalogue). Rules under other topics were not evaluated.",
+        "invalid": "AI's answer is not in the ruleId|rank|explanation format with this topic's rules and one rank 1, so it was not used.",
+        "no_candidates": "The ACR table has no rules for this topic.",
+        "not_configured": "AI isn't set up, so no rule was selected.",
+        "not_run": "AI steps don't run in release tests.",
+        "unavailable": "The AI service didn't answer, so no rule was selected.",
+        "rejected": "The AI reply was not usable.",
+        "budget": "The AI call or time limit was reached.",
+        "model_changed": "This version was approved with a different AI model; AI was not used."
       }
     },
-    "noAnatomy": "No anatomy was determined, so no protocol is selected."
+    "noAnatomy": "No anatomy was determined, so no protocol is selected.",
+    "noAcrTopic": "No ACR topic was determined, so no rule is selected."
   },
   "inspector": {
     "title": "Run Inspector",

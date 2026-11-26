@@ -178,7 +178,8 @@
     "blockOutput": "Bloquer la sortie : {{category}}",
     "problems_one": "1 problème",
     "problems_other": "{{count}} problèmes",
-    "defaultPromptHint": "Commence avec le prompt V2 de Medilis. La liste du tableau est ajoutée à l’exécution."
+    "defaultPromptHint": "Commence avec le prompt V2 de Medilis. La liste du tableau est ajoutée à l’exécution.",
+    "builtinPromptsHint": "Laissez vide pour utiliser les instructions de sélection Medilis pour le scanner et l’IRM ; celles de la modalité détectée sont utilisées. Des instructions écrites ici servent aux deux."
   },
   "profiles": {
     "title": "Profils clinique et examen",
@@ -295,7 +296,8 @@
       "empty": "Aucun texte trouvé dans le scan. Vérifiez le fichier ou saisissez la demande.",
       "failed": "Le scan n’a pas pu être lu : {{message}}",
       "hint": "PDF ou image, jusqu’à 30 Mo. Lu par l’OCR de CRE ; le texte remplace la note."
-    }
+    },
+    "contextHint": "Facultatif. Envoyé avec la demande aux étapes ACR."
   },
   "theme": {
     "system": "Thème : selon le système",
@@ -321,7 +323,9 @@
     "transfer_staff": "Transférer au personnel",
     "end_call": "Fin d’appel",
     "anatomy_detection": "Détection de l’anatomie (IA, demande)",
-    "protocol_selection": "Choix du protocole (IA, demande)"
+    "protocol_selection": "Choix du protocole (IA, demande)",
+    "acr_topic_detection": "Détection du thème ACR (IA, demande)",
+    "acr_rule_selection": "Sélection des règles ACR (IA, demande)"
   },
   "fields": {
     "indicationCode": "Code d’indication",
@@ -368,7 +372,17 @@
     "anathomy": "Anatomie",
     "domain": "Domaine",
     "contrast": "Produit de contraste",
-    "Tesla": "Tesla"
+    "Tesla": "Tesla",
+    "priors": "Imagerie / comptes rendus antérieurs",
+    "labs": "Résultats de laboratoire",
+    "diagnoses": "Diagnostics",
+    "topic": "Thème ACR",
+    "modality": "Modalité",
+    "ruleId": "ID de règle",
+    "recommendedExam": "Examen recommandé",
+    "Rule ID": "ID de règle",
+    "ACR Topic": "Thème ACR",
+    "Modality": "Modalité"
   },
   "values": {
     "true": "Oui",
@@ -410,7 +424,12 @@
     "MISSING_INPUT": "{{step}} a besoin de : {{fields}}",
     "PROTOCOL_SELECTED": "Vérifier le protocole choisi {{code}} : {{name}}",
     "ANATOMY_UNRESOLVED": "L’anatomie n’a pas pu être déterminée à partir de la demande ; aucun protocole n’est choisi",
-    "PROTOCOL_UNRESOLVED": "Aucun protocole n’a pu être choisi pour cette anatomie ; vérifiez la demande"
+    "PROTOCOL_UNRESOLVED": "Aucun protocole n’a pu être choisi pour cette anatomie ; vérifiez la demande",
+    "ACR_RULE_PRIMARY": "Vérifier la règle ACR {{id}} : {{exam}}",
+    "ACR_RULE_RELATED": "Règle ACR associée {{id}} (rang {{rank}})",
+    "ACR_TOPIC_UNRESOLVED": "Le thème ACR n’a pas pu être déterminé à partir de la demande ; aucune règle n’est choisie",
+    "ACR_MODALITY_UNSUPPORTED": "L’examen demandé n’est ni un scanner ni une IRM ; aucune règle ACR n’est choisie",
+    "ACR_RULE_UNRESOLVED": "Aucune règle ACR n’a pu être choisie pour ce thème ; vérifiez la demande"
   },
   "notes": {
     "aiSynthesis": "La rédaction par IA n’est pas encore configurée ; le résumé reprend les résultats tels quels.",
@@ -461,9 +480,35 @@
         "rejected": "La réponse de l’IA n’était pas utilisable.",
         "budget": "La limite d’appels ou de temps a été atteinte.",
         "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; l’IA n’a pas été utilisée."
+      },
+      "acrTopic": {
+        "used": "L’IA a choisi le thème ACR et la modalité demandée dans la liste des thèmes du catalogue.",
+        "unknown": "L’IA n’a trouvé aucun thème ACR correspondant dans la demande.",
+        "unsupported": "L’examen demandé n’est ni un scanner ni une IRM ; aucune règle ACR n’est donc choisie.",
+        "invalid": "La réponse de l’IA n’est pas un thème du catalogue de cette modalité ; elle n’a pas été utilisée.",
+        "no_note": "Aucun texte de demande n’a été saisi.",
+        "no_candidates": "La table ACR ne contient aucun thème.",
+        "not_configured": "L’IA n’est pas configurée ; le thème ACR n’a pas été déterminé.",
+        "not_run": "Les étapes d’IA ne s’exécutent pas dans les tests de version.",
+        "unavailable": "Le service d’IA n’a pas répondu ; le thème ACR n’a pas été déterminé.",
+        "rejected": "La réponse de l’IA n’était pas utilisable.",
+        "budget": "La limite d’appels ou de temps de l’IA a été atteinte.",
+        "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; l’IA n’a pas été utilisée."
+      },
+      "acrRules": {
+        "used": "L’IA a classé les {{count}} règles du thème {{topic}} (catalogue {{modality}}). Les règles d’autres thèmes n’ont pas été évaluées.",
+        "invalid": "La réponse de l’IA n’est pas au format ruleId|rank|explanation avec les règles de ce thème et un seul rang 1 ; elle n’a pas été utilisée.",
+        "no_candidates": "La table ACR ne contient aucune règle pour ce thème.",
+        "not_configured": "L’IA n’est pas configurée ; aucune règle n’a été choisie.",
+        "not_run": "Les étapes d’IA ne s’exécutent pas dans les tests de version.",
+        "unavailable": "Le service d’IA n’a pas répondu ; aucune règle n’a été choisie.",
+        "rejected": "La réponse de l’IA n’était pas utilisable.",
+        "budget": "La limite d’appels ou de temps de l’IA a été atteinte.",
+        "model_changed": "Cette version a été approuvée avec un autre modèle d’IA ; l’IA n’a pas été utilisée."
       }
     },
-    "noAnatomy": "Aucune anatomie n’a été déterminée, donc aucun protocole n’est choisi."
+    "noAnatomy": "Aucune anatomie n’a été déterminée, donc aucun protocole n’est choisi.",
+    "noAcrTopic": "Aucun thème ACR n’a été déterminé ; aucune règle n’est donc choisie."
   },
   "inspector": {
     "title": "Inspecteur d’exécutions",

@@ -18,6 +18,7 @@
     "dev:web": "npm run dev -w web",
     "seed:demo": "npm run seed:demo -w api",
     "seed:mri": "npm run seed:mri -w api --",
+    "seed:acr": "npm run seed:acr -w api --",
     "ai:check": "npm run ai:check -w api",
     "set-role": "npm run set-role -w api --",
     "set-role": "npm run set-role -w api --"
