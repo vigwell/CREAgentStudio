@@ -277,7 +277,7 @@
     "rule": "Rule: {{field}} {{op}} {{expected}}. Value seen: {{actual}}.",
     "unknown": "not known",
     "candidateShort": "Version {{no}}",
-    "noteHint": "Free text, e.g. the referral. Read only by the agent's AI steps (patient information, anatomy and protocol); what they use is shown with the run.",
+    "noteHint": "Free text, e.g. the referral. Read only by the agent's AI steps; what they use is shown with the run.",
     "fromNoteByAi": "from the clinical note, by AI",
     "summaryAi": {
       "not_configured": "AI wording isn't set up yet, so the summary lists the findings as they are.",
@@ -504,7 +504,8 @@
         "unavailable": "The AI service didn't answer, so no rule was selected.",
         "rejected": "The AI reply was not usable.",
         "budget": "The AI call or time limit was reached.",
-        "model_changed": "This version was approved with a different AI model; AI was not used."
+        "model_changed": "This version was approved with a different AI model; AI was not used.",
+        "used_one": "AI ranked the only rule of the topic {{topic}} ({{modality}} catalogue). Rules under other topics were not evaluated."
       }
     },
     "noAnatomy": "No anatomy was determined, so no protocol is selected.",

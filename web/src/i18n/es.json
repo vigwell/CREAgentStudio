@@ -277,7 +277,7 @@
     "rule": "Regla: {{field}} {{op}} {{expected}}. Valor leído: {{actual}}.",
     "unknown": "desconocido",
     "candidateShort": "Versión {{no}}",
-    "noteHint": "Texto libre, p. ej. la derivación. Solo lo leen los pasos de IA del agente (datos del paciente, anatomía y protocolo); lo que usan se muestra con la ejecución.",
+    "noteHint": "Texto libre, p. ej. la derivación. Solo lo leen los pasos de IA del agente; lo que usan se muestra con la ejecución.",
     "fromNoteByAi": "de la nota clínica, por IA",
     "summaryAi": {
       "not_configured": "La redacción con IA aún no está configurada; el resumen lista los hallazgos tal cual.",

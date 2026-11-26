@@ -277,7 +277,7 @@
     "rule": "Règle : {{field}} {{op}} {{expected}}. Valeur lue : {{actual}}.",
     "unknown": "inconnue",
     "candidateShort": "Version {{no}}",
-    "noteHint": "Texte libre, par ex. la demande. Lu uniquement par les étapes d’IA de l’agent (informations patient, anatomie et protocole) ; ce qu’elles utilisent est affiché avec l’exécution.",
+    "noteHint": "Texte libre, par ex. la demande. Lu uniquement par les étapes d’IA de l’agent ; ce qu’elles utilisent est affiché avec l’exécution.",
     "fromNoteByAi": "tiré de la note clinique, par l’IA",
     "summaryAi": {
       "not_configured": "La rédaction par IA n’est pas encore configurée ; le résumé liste les constats tels quels.",
