@@ -8,8 +8,8 @@ describe("LanguageMenu", () => {
     await i18n.changeLanguage("en");
     render(<LanguageMenu />);
     fireEvent.click(screen.getByRole("button", { name: /Language/ }));
-    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["English", "French", "Hebrew", "Arabic", "Spanish"]);
-    fireEvent.click(screen.getByRole("option", { name: "Arabic" }));
+    expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(["Englishen", "Françaisfr", "עבריתhe", "العربيةar", "Españoles"]);
+    fireEvent.click(screen.getByRole("option", { name: /العربية/ }));
     expect(i18n.language).toBe("ar");
     expect(document.documentElement.dir).toBe("rtl");
     await i18n.changeLanguage("fr");

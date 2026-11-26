@@ -10,7 +10,8 @@
     "pageFailed": "This page couldn't be shown",
     "pageFailedHint": "Something went wrong while drawing this page. Your saved work is safe. Try again, or reload the Studio.",
     "tryAgain": "Try again",
-    "reload": "Reload"
+    "reload": "Reload",
+    "account": "Account: {{name}}"
   },
   "nav": {
     "knowledge": "Knowledge Library",
@@ -302,7 +303,13 @@
   "theme": {
     "system": "Theme: follows the system",
     "light": "Theme: light",
-    "dark": "Theme: dark"
+    "dark": "Theme: dark",
+    "label": "Theme",
+    "option": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
   },
   "blocks": {
     "start": "Start",

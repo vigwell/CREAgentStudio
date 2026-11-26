@@ -10,7 +10,8 @@
     "pageFailed": "No se pudo mostrar esta página",
     "pageFailedHint": "Algo salió mal al mostrar la página. Su trabajo guardado está a salvo. Inténtelo de nuevo o recargue el Studio.",
     "tryAgain": "Reintentar",
-    "reload": "Recargar"
+    "reload": "Recargar",
+    "account": "Cuenta: {{name}}"
   },
   "nav": {
     "knowledge": "Biblioteca de conocimiento",
@@ -302,7 +303,13 @@
   "theme": {
     "system": "Tema: según el sistema",
     "light": "Tema: claro",
-    "dark": "Tema: oscuro"
+    "dark": "Tema: oscuro",
+    "label": "Tema",
+    "option": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    }
   },
   "blocks": {
     "start": "Inicio",

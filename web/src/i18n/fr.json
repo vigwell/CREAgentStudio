@@ -10,7 +10,8 @@
     "pageFailed": "Cette page n’a pas pu s’afficher",
     "pageFailedHint": "Un problème est survenu à l’affichage. Votre travail enregistré est en sécurité. Réessayez ou rechargez le Studio.",
     "tryAgain": "Réessayer",
-    "reload": "Recharger"
+    "reload": "Recharger",
+    "account": "Compte : {{name}}"
   },
   "nav": {
     "knowledge": "Bibliothèque de connaissances",
@@ -302,7 +303,13 @@
   "theme": {
     "system": "Thème : selon le système",
     "light": "Thème : clair",
-    "dark": "Thème : sombre"
+    "dark": "Thème : sombre",
+    "label": "Thème",
+    "option": {
+      "light": "Clair",
+      "dark": "Sombre",
+      "system": "Système"
+    }
   },
   "blocks": {
     "start": "Début",
