@@ -178,7 +178,7 @@
     "blockOutput": "Bloquer la sortie : {{category}}",
     "problems_one": "1 problème",
     "problems_other": "{{count}} problèmes",
-    "defaultPromptHint": "Commence avec le prompt V2 de Medilis. La liste du tableau est ajoutée à l’exécution.",
+    "defaultPromptHint": "Commence avec le prompt Medilis fourni. La liste du tableau est ajoutée à l’exécution.",
     "builtinPromptsHint": "Laissez vide pour utiliser les instructions de sélection Medilis pour le scanner et l’IRM ; celles de la modalité détectée sont utilisées. Des instructions écrites ici servent aux deux."
   },
   "profiles": {

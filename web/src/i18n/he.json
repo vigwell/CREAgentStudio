@@ -179,7 +179,7 @@
     "problems_one": "בעיה אחת",
     "problems_two": "{{count}} בעיות",
     "problems_other": "{{count}} בעיות",
-    "defaultPromptHint": "מתחיל בפרומפט V2 של Medilis. הרשימה מהטבלה מתווספת בזמן ההרצה.",
+    "defaultPromptHint": "מתחיל בפרומפט של Medilis מחבילת המסירה. הרשימה מהטבלה מתווספת בזמן ההרצה.",
     "builtinPromptsHint": "השאירו ריק כדי להשתמש בהנחיות הבחירה של Medilis ל-CT ול-MRI; ההנחיה של המודליות שזוהתה היא שתשמש. הנחיה שנכתבת כאן תשמש לשתיהן."
   },
   "profiles": {
