@@ -73,7 +73,7 @@ export function App({ initialAccount }: { initialAccount: string | null }) {
   return (
     <AppShell
       nav={nav}
-      user={{ name: user.displayName ?? user.email ?? "", role: t(`roles.${user.role}`) }}
+      user={{ name: user.displayName ?? user.email ?? "", role: t(`roles.${user.role}`), email: user.email }}
       onSignOut={() => void signOut()}
     >
       <Routes>

@@ -9,8 +9,9 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, LogOut, Menu, Monitor, Moon, Sun, X, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, X, type LucideIcon } from "lucide-react";
 import { LanguageMenu } from "./LanguageMenu";
+import { UserMenu, shortName } from "./UserMenu";
 import { PageErrorBoundary } from "./ErrorBoundary";
 import { applyTheme, readFlag, storedTheme, writeFlag, type ThemeChoice } from "./theme";
 
@@ -31,7 +32,7 @@ export function AppShell({
   children,
 }: {
   nav: NavItem[];
-  user: { name: string; role: string };
+  user: { name: string; role: string; email?: string | null };
   onSignOut: () => void;
   children: React.ReactNode;
 }) {
@@ -63,8 +64,6 @@ export function AppShell({
       writeFlag(COLLAPSE_KEY, !c);
       return !c;
     });
-  const nextTheme: Record<ThemeChoice, ThemeChoice> = { system: "light", light: "dark", dark: "system" };
-  const ThemeIcon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
 
   return (
     <div className="min-h-screen">
@@ -99,7 +98,7 @@ export function AppShell({
             </div>
             <NavList nav={nav} compact={false} />
             <div className="mt-auto border-t border-line p-4 text-sm">
-              <div className="font-medium text-ink">{user.name}</div>
+              <div className="font-medium text-ink">{shortName(user.name)}</div>
               <div className="text-ink-subtle">{user.role}</div>
             </div>
           </div>
@@ -113,22 +112,9 @@ export function AppShell({
           </button>
           <span className="truncate text-sm font-semibold text-ink md:hidden">{t("app.title")}</span>
           <div className="ms-auto flex items-center gap-1">
-            <span className="me-2 hidden text-end text-sm leading-tight sm:block">
-              <span className="block font-medium text-ink">{user.name}</span>
-              <span className="block text-caption text-ink-subtle">{user.role}</span>
-            </span>
             <LanguageMenu />
-            <button
-              className="icon-btn"
-              onClick={() => setTheme(nextTheme[theme])}
-              title={t(`theme.${theme}`)}
-              aria-label={t(`theme.${theme}`)}
-            >
-              <ThemeIcon size={18} />
-            </button>
-            <button className="icon-btn" onClick={onSignOut} title={t("app.signOut")} aria-label={t("app.signOut")}>
-              <LogOut size={18} className="rtl:rotate-180" />
-            </button>
+            <span className="mx-1.5 h-6 w-px bg-line" aria-hidden="true" />
+            <UserMenu user={user} theme={theme} onTheme={setTheme} onSignOut={onSignOut} />
           </div>
         </header>
         <main className="mx-auto w-full max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">

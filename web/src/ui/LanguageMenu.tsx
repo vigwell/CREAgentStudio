@@ -45,7 +45,7 @@ export function LanguageMenu({ compact = false }: { compact?: boolean }) {
     <div ref={root} className="relative" onKeyDown={onKey}>
       <button
         type="button"
-        className={compact ? "icon-btn" : "btn btn-ghost h-10 gap-1.5 px-2.5"}
+        className={compact ? "icon-btn" : "flex h-10 items-center gap-1.5 rounded-control px-2.5 text-ink-muted hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${t("app.language")}: ${current.label}`}
@@ -55,8 +55,8 @@ export function LanguageMenu({ compact = false }: { compact?: boolean }) {
         <Languages size={18} />
         {!compact && (
           <>
-            <span className="hidden text-sm sm:inline">{current.label}</span>
-            <ChevronDown size={14} className="hidden text-ink-subtle sm:inline" />
+            <span className="text-sm font-medium uppercase tracking-wide">{current.value}</span>
+            <ChevronDown size={14} className="text-ink-subtle" />
           </>
         )}
       </button>
@@ -79,6 +79,7 @@ export function LanguageMenu({ compact = false }: { compact?: boolean }) {
               }`}
             >
               <span className="flex-1">{l.label}</span>
+              <span className="text-xs uppercase text-ink-subtle">{l.value}</span>
               {l.value === current.value && <Check size={15} className="text-accent" />}
             </li>
           ))}

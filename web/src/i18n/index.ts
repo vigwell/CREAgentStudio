@@ -9,10 +9,10 @@ import es from "./es.json";
 /** Same UI languages, order and labels as the CRE Report Engine (constants/languages.js). */
 export const UI_LANGUAGES = [
   { value: "en", label: "English" },
-  { value: "fr", label: "French" },
-  { value: "he", label: "Hebrew" },
-  { value: "ar", label: "Arabic" },
-  { value: "es", label: "Spanish" },
+  { value: "fr", label: "Français" },
+  { value: "he", label: "עברית" },
+  { value: "ar", label: "العربية" },
+  { value: "es", label: "Español" },
 ] as const;
 export type UiLanguage = (typeof UI_LANGUAGES)[number]["value"];
 const CODES = UI_LANGUAGES.map((l) => l.value) as string[];
