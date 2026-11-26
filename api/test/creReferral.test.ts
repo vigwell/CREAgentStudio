@@ -48,6 +48,26 @@ describe("CRE referral OCR client", () => {
   });
 });
 
+describe("OCR text cleanup", () => {
+  it("drops the repeated word list CRE appends (live format, 26 Nov)", async () => {
+    const { withoutWordList } = await import("../src/runtime/creReferral.js");
+    const full = 'הפניה לבדיקת MRI\nמטופל: דוגמה, גיל 52\nתאריך: 20.11.2026 חתימה: ד"ר דוגמה';
+    const words = ["הפניה", "לבדיקת", "MRI", "מטופל", ":", "דוגמה", ",", "גיל", "52", "תאריך", ":", "20.11.2026", "חתימה", ":", 'ד"ר', "דוגמה"];
+    expect(withoutWordList(`${full}, ${words.join(", ")}`)).toBe(full);
+  });
+
+  it("leaves ordinary text with commas alone", async () => {
+    const { withoutWordList } = await import("../src/runtime/creReferral.js");
+    expect(withoutWordList("Knee pain, swelling, suspected ACL tear.")).toBe("Knee pain, swelling, suspected ACL tear.");
+    expect(withoutWordList("")).toBe("");
+  });
+
+  it("the client returns the cleaned text", async () => {
+    const f = fakeCre({ "Protocol/UploadReferralFile": () => ok({ fileId: "F" }), "Protocol/ExtractReferralText": () => ok({ extractedText: "Knee pain\nACL, Knee, pain, ACL" }) });
+    expect((await f.client.extractText("t", [{ name: "a.jpg", data: Buffer.from("x") }])).text).toBe("Knee pain\nACL");
+  });
+});
+
 describe("POST /referrals/text", () => {
   const db = { request: () => ({ query: async () => ({ recordset: [] }) }) } as unknown as Db;
   const verifyToken = async (token: string): Promise<CreIdentity> => {

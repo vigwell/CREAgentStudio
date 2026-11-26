@@ -65,6 +65,22 @@ function pick(o: unknown, ...keys: string[]): unknown {
   return undefined;
 }
 
+/**
+ * CRE's OCR text is the full text followed by every word again, joined with
+ * ", " (Google Vision's full annotation, then one annotation per word): seen on
+ * the live service, 26 Nov 2026. Keep only the full text when the tail is
+ * exactly its words; otherwise return the text as it came.
+ */
+export function withoutWordList(text: string): string {
+  const squash = (s: string) => s.replace(/\s+/g, "");
+  for (let i = text.indexOf(", "); i > 0; i = text.indexOf(", ", i + 1)) {
+    const head = text.slice(0, i);
+    const tail = text.slice(i + 2);
+    if (tail && squash(head) === squash(tail.split(", ").join(""))) return head.trim();
+  }
+  return text;
+}
+
 /** The extracted text from ExtractReferralText's payload (a string, or an object with the text). */
 export function textOf(payload: unknown): string | null {
   if (typeof payload === "string") return payload;
@@ -113,7 +129,7 @@ export function createCreReferralClient(opts: { baseUrl: string; fetchImpl?: typ
       const extracted = await call("/api/Protocol/ExtractReferralText", token, JSON.stringify({ fileId }));
       const text = textOf(extracted);
       if (text === null) throw new AppError(502, "cre_ocr_failed", "CRE returned no text");
-      return { fileId, text: text.trim() };
+      return { fileId, text: withoutWordList(text.trim()) };
     },
   };
 }
