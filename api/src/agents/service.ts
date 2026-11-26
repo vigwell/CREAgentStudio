@@ -70,17 +70,25 @@ function checkDraft(d: DraftInput) {
   }
 }
 
+/** Inputs of agents with patient, lookup or decision blocks (any patient value may be read). */
+const GENERAL_FIELDS = ["indicationCode", "hasIndication", "ageYears", "sex", "egfr", "contrastAllergy", "pregnant", "pediatric", "clinicalNote"];
+
 /**
- * The test-run inputs a frozen version reads; null = all of them. Agents built
- * only from the referral blocks read the referral text, age and the pediatric
- * flag; any patient, lookup or decision block may read any patient value.
+ * The test-run inputs a frozen version reads; null = unknown (all). Referral
+ * blocks read only what they need: the MRI protocol blocks the referral, age
+ * and the pediatric flag; the ACR blocks the referral and its other
+ * categories (priors, labs, diagnoses).
  */
 export function inputFieldsOf(manifest: unknown): string[] | null {
   try {
     const m = typeof manifest === "string" ? JSON.parse(manifest) : manifest;
     const types = new Set<string>((m?.nodes ?? []).map((n: { type: string }) => n.type));
-    if (["patient_service", "protocol_lookup", "guidance_lookup", "decision"].some((t) => types.has(t))) return null;
-    return types.has("anatomy_detection") ? ["ageYears", "pediatric", "clinicalNote"] : ["clinicalNote"];
+    const out = new Set<string>();
+    if (["patient_service", "protocol_lookup", "guidance_lookup", "decision"].some((t) => types.has(t))) GENERAL_FIELDS.forEach((f) => out.add(f));
+    if (types.has("anatomy_detection")) ["ageYears", "pediatric", "clinicalNote"].forEach((f) => out.add(f));
+    if (types.has("acr_topic_detection")) ["clinicalNote", "priors", "labs", "diagnoses"].forEach((f) => out.add(f));
+    if (!out.size) out.add("clinicalNote");
+    return [...out];
   } catch {
     return null;
   }

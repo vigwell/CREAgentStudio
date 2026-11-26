@@ -232,7 +232,7 @@ export function validate(graph: AgentGraph, ctx: CompileContext): Issue[] {
     if (ai && !def.aiCapable) add("ai_not_allowed", `${n.label}: this block is deterministic and cannot use AI`, { nodeId: n.id });
     if (def.aiRequired && !ai) add("ai_required", `${n.label}: this block always uses AI; set its execution to AI-assisted`, { nodeId: n.id });
     if (ai) aiCalls += 1;
-    if ((ai || n.type === "final_synthesis") && !hasPrompt(n.prompt) && !def.defaultPrompt) add("prompt_required", `${n.label}: link a Prompt Builder prompt or write its prompt`, { nodeId: n.id });
+    if ((ai || n.type === "final_synthesis") && !hasPrompt(n.prompt) && !def.defaultPrompt && !def.defaultPrompts) add("prompt_required", `${n.label}: link a Prompt Builder prompt or write its prompt`, { nodeId: n.id });
 
     if (def.aiRequired && graph.nodes.filter((x) => x.type === n.type).length > 1 && graph.nodes.find((x) => x.type === n.type)?.id === n.id) {
       add("one_per_agent", `An agent can have only one ${def.label} block`, { nodeId: n.id });
@@ -242,6 +242,14 @@ export function validate(graph: AgentGraph, ctx: CompileContext): Issue[] {
       if (!detectors.length) add("anatomy_required", `${n.label}: needs an Anatomy detection block before it`, { nodeId: n.id });
       else if (n.knowledgeRevisionId && detectors.some((d) => d.knowledgeRevisionId !== n.knowledgeRevisionId)) {
         add("anatomy_knowledge", `${n.label}: use the same protocol table as the Anatomy detection block`, { nodeId: n.id });
+      }
+    }
+
+    if (n.type === "acr_rule_selection") {
+      const detectors = graph.nodes.filter((x) => x.type === "acr_topic_detection" && up.has(x.id));
+      if (!detectors.length) add("acr_topic_required", `${n.label}: needs an ACR topic detection block before it`, { nodeId: n.id });
+      else if (n.knowledgeRevisionId && detectors.some((d) => d.knowledgeRevisionId !== n.knowledgeRevisionId)) {
+        add("acr_knowledge", `${n.label}: use the same ACR rule table as the ACR topic detection block`, { nodeId: n.id });
       }
     }
 
@@ -358,6 +366,8 @@ export function compile(graph: AgentGraph, ctx: CompileContext): CompileResult {
       knowledgeRevisionId: n.knowledgeRevisionId ?? null,
       clinicProfileId: n.clinicProfileId ?? null,
       outputCategories: [...(n.outputCategories ?? [])].sort(),
+      // Only blocks with per-value built-in prompts carry them, so other versions keep their hash.
+      ...builtinPrompts(n),
     }));
   const edges = [...graph.edges].sort((a, b) => a.id.localeCompare(b.id)).map((e) => ({ id: e.id, from: e.from, port: e.port, to: e.to }));
   const manifest = {
@@ -390,6 +400,12 @@ function frozenPrompt(n: GraphNode): PromptRef | null {
   const fallback = BLOCK_BY_TYPE.get(n.type)?.defaultPrompt;
   if (fallback && !hasPrompt(n.prompt)) return { promptId: null, revisionId: null, draftText: fallback };
   return n.prompt ? { promptId: n.prompt.promptId ?? null, revisionId: n.prompt.revisionId ?? null, draftText: n.prompt.draftText?.trim() || null } : null;
+}
+
+/** Built-in prompts frozen with the version when the author left the prompt empty (ACR rule selection: per modality). */
+function builtinPrompts(n: GraphNode): { builtinPrompts?: Record<string, string> } {
+  const prompts = BLOCK_BY_TYPE.get(n.type)?.defaultPrompts;
+  return prompts && !hasPrompt(n.prompt) ? { builtinPrompts: { ...prompts } } : {};
 }
 
 /** Readable steps in execution order (documentation only). */

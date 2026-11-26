@@ -143,6 +143,8 @@ export interface BlockDef {
   aiRequired?: boolean;
   /** Built-in prompt, used when the prompt is left empty. */
   defaultPrompt?: string;
+  /** Built-in prompts the server picks at run time (ACR rule selection: "ct", "mri"), used when the prompt is left empty. */
+  builtinPrompts?: string[];
   knowledgeKind?: SourceKind;
   terminal?: boolean;
   start?: boolean;
@@ -304,7 +306,7 @@ export interface NodeTrace {
   note?: string;
   evaluated?: { nodeId: string; field: string; operator: string; expected: unknown; actual: unknown };
   /** AI step outcome: used, nothing_found, no_note, not_configured, unavailable, rejected, budget, prompt_unavailable. */
-  ai?: { status: string; fields?: string[]; reason?: string; answer?: string };
+  ai?: { status: string; fields?: string[]; reason?: string; answer?: string; count?: number; topic?: string; modality?: string };
 }
 
 export interface RunDetail {

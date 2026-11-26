@@ -34,13 +34,26 @@ import {
   type ProtocolAiStatus,
   type SelectionOutcome,
 } from "./protocolAi.js";
+import {
+  DEFAULT_ACR_RULES_PROMPTS,
+  DEFAULT_ACR_TOPIC_PROMPT,
+  candidateRules,
+  detectTopic,
+  referralContext,
+  selectRules,
+  topicCatalogue,
+  type AcrAiStatus,
+  type AcrModality,
+  type RulesOutcome,
+  type TopicOutcome,
+} from "./acrAi.js";
 
 export type AiStepStatus = "used" | "nothing_found" | "no_note" | "not_configured" | "unavailable" | "rejected" | "budget" | "prompt_unavailable" | "model_changed";
 
 export interface AiCallRecord {
   nodeId: string;
-  purpose: "extraction" | "synthesis" | "anatomy" | "selection";
-  status: AiStepStatus | ProtocolAiStatus;
+  purpose: "extraction" | "synthesis" | "anatomy" | "selection" | "acr_topic" | "acr_rules";
+  status: AiStepStatus | AcrAiStatus;
   model: string | null;
   ms: number | null;
   inputTokens: number | null;
@@ -64,7 +77,7 @@ export const NOTE_MAX_CHARS = 8000;
 const SUMMARY_MAX_CHARS = 1500;
 
 type PromptRef = { promptId?: string | null; revisionId?: string | null; draftText?: string | null } | null | undefined;
-type AiNode = Manifest["nodes"][number] & { prompt?: PromptRef };
+type AiNode = Manifest["nodes"][number] & { prompt?: PromptRef; builtinPrompts?: Record<string, string> };
 type AiManifest = Manifest & {
   agentPrompt?: PromptRef;
   budget?: { maxAiCalls?: number };
@@ -401,6 +414,54 @@ export async function runAgent(
     }
   }
 
+  // 3. ACR decision support (topic + modality → ranked rules of that topic), before the engine as well.
+  const topicNode = nodes.find((n) => n.type === "acr_topic_detection");
+  const rulesNode = nodes.find((n) => n.type === "acr_rule_selection");
+  if (topicNode) {
+    const gate = (): ProtocolAiStatus | null =>
+      !useAi ? "not_run" : !ai ? "not_configured" : !modelOk ? "model_changed" : calls >= maxCalls || timeLeft() < MIN_CALL_MS ? "budget" : null;
+    const context = referralContext(effective.facts);
+    const binding = topicNode.knowledgeRevisionId ? knowledge.get(topicNode.knowledgeRevisionId) : undefined;
+    const cat = binding ? topicCatalogue(binding) : null;
+    const t: TopicOutcome = { status: "not_run", listSize: cat?.topics.length ?? 0 };
+    if (!context) t.status = "no_note";
+    else if (binding?.status === "approved" && cat) {
+      const g = gate();
+      if (g) t.status = g;
+      else if (!cat.topics.length) {
+        t.status = "no_candidates";
+        t.reason = "no_topics";
+      } else {
+        calls += 1;
+        const r = await detectTopic(ai!, promptOrDefault(promptText(topicNode.prompt), DEFAULT_ACR_TOPIC_PROMPT), context, cat, Math.floor(timeLeft() * (rulesNode ? 0.4 : 1)));
+        Object.assign(t, { status: r.status, topic: r.topic, modality: r.modality, answer: r.answer, reason: r.reason });
+        records.push({ nodeId: topicNode.id, purpose: "acr_topic", status: r.status, ...r.meta, ...(r.reason ? { reason: r.reason } : {}) });
+      }
+    }
+    protocolAi.set(topicNode.id, t);
+
+    if (rulesNode) {
+      const rb = rulesNode.knowledgeRevisionId ? knowledge.get(rulesNode.knowledgeRevisionId) : undefined;
+      const s: RulesOutcome = { status: "not_run", candidateCount: 0, ...(t.status === "used" ? {} : { reason: "no_topic" }) };
+      const modality = t.modality === "ct" || t.modality === "mri" ? (t.modality as AcrModality) : null;
+      if (t.status === "used" && t.topic && modality && rb?.status === "approved") {
+        const candidates = candidateRules(rb, modality, t.topic);
+        Object.assign(s, { candidateCount: candidates.length, topic: t.topic, modality });
+        const g = gate();
+        if (!candidates.length) s.status = "no_candidates";
+        else if (g) s.status = g;
+        else {
+          calls += 1;
+          const prompt = promptText(rulesNode.prompt) ?? rulesNode.builtinPrompts?.[modality] ?? DEFAULT_ACR_RULES_PROMPTS[modality];
+          const r = await selectRules(ai!, prompt, context, t.topic, candidates, timeLeft());
+          Object.assign(s, { status: r.status, selected: r.selected, answer: r.answer, reason: r.reason });
+          records.push({ nodeId: rulesNode.id, purpose: "acr_rules", status: r.status, ...r.meta, ...(r.reason ? { reason: r.reason } : {}) });
+        }
+      }
+      protocolAi.set(rulesNode.id, s);
+    }
+  }
+
   const result = execute(manifest, effective, knowledge, protocolAi);
 
   // 2. Summary wording (after the engine, over the policy-filtered findings).
@@ -428,13 +489,16 @@ export async function runAgent(
     const step = result.trace.find((t) => t.nodeId === nodeId);
     if (!step || step.state !== "completed") continue;
     if ("reason" in o && o.reason === "no_anatomy" && step.type === "protocol_selection") continue; // the step note says why
-    step.ai = { status: o.status, ...(o.reason ? { reason: o.reason } : {}), ...(o.answer ? { answer: o.answer } : {}) };
+    if ("reason" in o && o.reason === "no_topic" && step.type === "acr_rule_selection") continue;
+    // ACR rules: say which rules were evaluated (only the detected topic's, not the whole catalogue).
+    const scope = step.type === "acr_rule_selection" && "topic" in o && o.topic ? { count: (o as RulesOutcome).candidateCount, topic: o.topic, modality: (o as RulesOutcome).modality } : {};
+    step.ai = { status: o.status, ...(o.reason ? { reason: o.reason } : {}), ...(o.answer ? { answer: o.answer } : {}), ...scope };
     delete step.note;
   }
 
   // Step notes come from the AI records (the UI shows them in its language).
   for (const r of records) {
-    if (r.purpose === "anatomy" || r.purpose === "selection") continue;
+    if (r.purpose === "anatomy" || r.purpose === "selection" || r.purpose === "acr_topic" || r.purpose === "acr_rules") continue;
     const step = result.trace.find((t) => t.nodeId === r.nodeId);
     if (!step) continue;
     const extracted = r.purpose === "extraction" ? Object.keys(effective.facts).filter((f) => effective.facts[f]?.attribution?.kind === "ai") : [];

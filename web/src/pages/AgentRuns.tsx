@@ -177,7 +177,7 @@ export function AgentRuns() {
               </div>
               <div className="field-grid sm:grid-cols-2">
                 {FIELDS.filter((f) => !shownFields || shownFields.includes(f.name)).map((f) => (
-                  <Field key={f.name} label={t(`fields.${f.name}`)} hint={f.kind === "note" ? t("runs.noteHint") : undefined} className={f.kind === "note" ? "sm:col-span-2" : ""}>
+                  <Field key={f.name} label={t(`fields.${f.name}`)} hint={f.kind === "note" ? t(f.name === "clinicalNote" ? "runs.noteHint" : "runs.contextHint") : undefined} className={f.kind === "note" ? "sm:col-span-2" : ""}>
                     {f.kind === "note" ? (
                       <div className="space-y-2">
                         <textarea

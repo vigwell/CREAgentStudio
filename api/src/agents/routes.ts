@@ -61,7 +61,8 @@ export function registerAgentRoutes(app: FastifyInstance, service: AgentService,
   const id = (req: FastifyRequest) => (req.params as { id: string }).id;
 
   app.get("/agents/catalog", auth, async () => ({
-    blocks: BLOCKS,
+    // Built-in per-modality prompts stay on the server; the editor only learns which exist.
+    blocks: BLOCKS.map(({ defaultPrompts, ...b }) => (defaultPrompts ? { ...b, builtinPrompts: Object.keys(defaultPrompts) } : b)),
     operators: OPERATORS,
     mandatoryRules: MANDATORY_RULES,
     optionalRules: OPTIONAL_RULES,

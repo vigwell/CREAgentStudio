@@ -147,6 +147,26 @@ Deploying (one server hosts the web app and the API): see [DEPLOY.md](DEPLOY.md)
   preamble, selection prompt limited to one protocol) and can be edited per
   block. `npm run seed:mri` imports `assets/mri/protocolsnewlastversion.xlsx`
   (254 rows, 80 anatomy values) and creates a ready test agent.
+- **ACR-based decision support** (Medilis handoff, 22 Nov 2026, second case
+  study): two AI blocks bound to one approved clinical-rule table holding the
+  CT and MRI catalogues (Modality column). *ACR topic detection* sends the
+  referral context (referral, priors, labs, diagnoses: each optional input
+  under its name) with both catalogues' topics, numbered and grouped by
+  catalogue (a flat union let the model answer a CT-only topic for an MRI
+  referral), and
+  accepts `{topic}|{ct|mri|other}` only with a topic of that modality's
+  catalogue; unknown or "other" end for review without a selection call.
+  *ACR rule selection* sends only that topic's rules (the service's field
+  names) with the CT or MRI prompt and accepts `ruleId|rank|explanation` lines
+  with candidate ids, whole ranks, no repeats and exactly one rank 1; anything
+  else is rejected whole. Each selected rule is shown with its row (requested
+  exam, ratings, scores, recommended and alternative exam, contrast, system
+  decision) and its Hebrew explanation; rank 1 is the primary rule. The run
+  says which rules were evaluated (that topic's only). The supplied prompts
+  are built in (`api/src/runtime/acrPrompts.ts`, placeholders bound; the
+  referral is sent as data). `npm run seed:acr` builds the table from
+  `assets/acr/` (CT 860 rules, MRI 469 after collapsing the 28 exact duplicate
+  orbit rows) and creates a ready test agent.
 - **Scanned referrals** (`POST /referrals/text`, button "Read a scanned
   referral" in Test runs): the PDF or image goes to CRE's protocol service
   (`UploadReferralFile`, then `ExtractReferralText` with the returned fileId,

@@ -17,6 +17,10 @@ export const FIELDS: { name: string; kind: "text" | "number" | "bool" | "sex" | 
   { name: "pregnant", kind: "bool" },
   { name: "pediatric", kind: "bool" },
   { name: "clinicalNote", kind: "note" },
+  // ACR decision support: the other referral categories (as on CRE's ACR screen).
+  { name: "priors", kind: "note" },
+  { name: "labs", kind: "note" },
+  { name: "diagnoses", kind: "note" },
 ];
 
 export const OUTCOME_TONE: Record<string, Tone> = {

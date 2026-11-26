@@ -72,6 +72,7 @@ export function Inspector({ graph, node, defs, catalog, sources, profiles, issue
               onChange={(e) => onChange({ prompt: { ...node.prompt, draftText: e.target.value || null } })}
             />
             {def?.defaultPrompt && <span className="hint">{t("editor.defaultPromptHint")}</span>}
+            {def?.builtinPrompts && <span className="hint">{t("editor.builtinPromptsHint")}</span>}
           </Field>
         </div>
       )}

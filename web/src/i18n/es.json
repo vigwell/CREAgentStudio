@@ -178,7 +178,8 @@
     "blockOutput": "Bloquear salida: {{category}}",
     "problems_one": "1 problema",
     "problems_other": "{{count}} problemas",
-    "defaultPromptHint": "Empieza con el prompt V2 de Medilis. La lista de la tabla se añade al ejecutar."
+    "defaultPromptHint": "Empieza con el prompt V2 de Medilis. La lista de la tabla se añade al ejecutar.",
+    "builtinPromptsHint": "Déjelo vacío para usar las instrucciones de selección de Medilis para TC y RM; se usa la de la modalidad detectada. Unas instrucciones escritas aquí se usan para ambas."
   },
   "profiles": {
     "title": "Perfiles de clínica y examen",
@@ -295,7 +296,8 @@
       "empty": "No se encontró texto en el escaneo. Revise el archivo o escriba la derivación.",
       "failed": "No se pudo leer el escaneo: {{message}}",
       "hint": "PDF o imagen, hasta 30 MB. Lo lee el OCR de CRE; el texto sustituye la nota."
-    }
+    },
+    "contextHint": "Opcional. Se envía con la derivación a los pasos ACR."
   },
   "theme": {
     "system": "Tema: según el sistema",
@@ -321,7 +323,9 @@
     "transfer_staff": "Transferir al personal",
     "end_call": "Finalizar llamada",
     "anatomy_detection": "Detección de anatomía (IA, derivación)",
-    "protocol_selection": "Selección de protocolo (IA, derivación)"
+    "protocol_selection": "Selección de protocolo (IA, derivación)",
+    "acr_topic_detection": "Detección del tema ACR (IA, derivación)",
+    "acr_rule_selection": "Selección de reglas ACR (IA, derivación)"
   },
   "fields": {
     "indicationCode": "Código de indicación",
@@ -368,7 +372,17 @@
     "anathomy": "Anatomía",
     "domain": "Dominio",
     "contrast": "Contraste",
-    "Tesla": "Tesla"
+    "Tesla": "Tesla",
+    "priors": "Imágenes / informes previos",
+    "labs": "Resultados de laboratorio",
+    "diagnoses": "Diagnósticos",
+    "topic": "Tema ACR",
+    "modality": "Modalidad",
+    "ruleId": "ID de regla",
+    "recommendedExam": "Estudio recomendado",
+    "Rule ID": "ID de regla",
+    "ACR Topic": "Tema ACR",
+    "Modality": "Modalidad"
   },
   "values": {
     "true": "Sí",
@@ -410,7 +424,12 @@
     "MISSING_INPUT": "{{step}} necesita: {{fields}}",
     "PROTOCOL_SELECTED": "Revisar el protocolo seleccionado {{code}}: {{name}}",
     "ANATOMY_UNRESOLVED": "No se pudo determinar la anatomía a partir de la derivación; no se elige ningún protocolo",
-    "PROTOCOL_UNRESOLVED": "No se pudo seleccionar un protocolo para esta anatomía; revise la derivación"
+    "PROTOCOL_UNRESOLVED": "No se pudo seleccionar un protocolo para esta anatomía; revise la derivación",
+    "ACR_RULE_PRIMARY": "Revise la regla ACR {{id}}: {{exam}}",
+    "ACR_RULE_RELATED": "Regla ACR relacionada {{id}} (rango {{rank}})",
+    "ACR_TOPIC_UNRESOLVED": "No se pudo determinar el tema ACR a partir de la derivación; no se selecciona ninguna regla",
+    "ACR_MODALITY_UNSUPPORTED": "El estudio solicitado no es TC ni RM; no se selecciona ninguna regla ACR",
+    "ACR_RULE_UNRESOLVED": "No se pudo seleccionar una regla ACR para este tema; revise la derivación"
   },
   "notes": {
     "aiSynthesis": "La redacción con IA aún no está configurada; el resumen muestra los hallazgos tal cual.",
@@ -461,9 +480,35 @@
         "rejected": "La respuesta de la IA no se pudo usar.",
         "budget": "Se alcanzó el límite de llamadas o de tiempo.",
         "model_changed": "Esta versión se aprobó con otro modelo de IA; no se usó la IA."
+      },
+      "acrTopic": {
+        "used": "La IA eligió el tema ACR y la modalidad solicitada de la lista de temas del catálogo.",
+        "unknown": "La IA no encontró un tema ACR adecuado en la derivación.",
+        "unsupported": "El estudio solicitado no es TC ni RM, por lo que no se selecciona ninguna regla ACR.",
+        "invalid": "La respuesta de la IA no es un tema del catálogo de esa modalidad, así que no se usó.",
+        "no_note": "No se indicó el texto de la derivación.",
+        "no_candidates": "La tabla ACR no tiene temas.",
+        "not_configured": "La IA no está configurada, así que no se determinó el tema ACR.",
+        "not_run": "Los pasos de IA no se ejecutan en las pruebas de versión.",
+        "unavailable": "El servicio de IA no respondió, así que no se determinó el tema ACR.",
+        "rejected": "La respuesta de la IA no era utilizable.",
+        "budget": "Se alcanzó el límite de llamadas o de tiempo de la IA.",
+        "model_changed": "Esta versión se aprobó con otro modelo de IA; no se usó IA."
+      },
+      "acrRules": {
+        "used": "La IA ordenó las {{count}} reglas del tema {{topic}} (catálogo {{modality}}). No se evaluaron las reglas de otros temas.",
+        "invalid": "La respuesta de la IA no tiene el formato ruleId|rank|explanation con las reglas de este tema y un único rango 1, así que no se usó.",
+        "no_candidates": "La tabla ACR no tiene reglas para este tema.",
+        "not_configured": "La IA no está configurada, así que no se seleccionó ninguna regla.",
+        "not_run": "Los pasos de IA no se ejecutan en las pruebas de versión.",
+        "unavailable": "El servicio de IA no respondió, así que no se seleccionó ninguna regla.",
+        "rejected": "La respuesta de la IA no era utilizable.",
+        "budget": "Se alcanzó el límite de llamadas o de tiempo de la IA.",
+        "model_changed": "Esta versión se aprobó con otro modelo de IA; no se usó IA."
       }
     },
-    "noAnatomy": "No se determinó la anatomía, así que no se selecciona ningún protocolo."
+    "noAnatomy": "No se determinó la anatomía, así que no se selecciona ningún protocolo.",
+    "noAcrTopic": "No se determinó un tema ACR, así que no se selecciona ninguna regla."
   },
   "inspector": {
     "title": "Inspector de ejecuciones",
