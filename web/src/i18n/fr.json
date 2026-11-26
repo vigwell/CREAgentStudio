@@ -276,14 +276,15 @@
     "rule": "Règle : {{field}} {{op}} {{expected}}. Valeur lue : {{actual}}.",
     "unknown": "inconnue",
     "candidateShort": "Version {{no}}",
-    "noteHint": "Texte libre, p. ex. la demande. Lu uniquement par une étape IA d’informations patient ; les valeurs trouvées sont affichées avec les mots d’origine.",
+    "noteHint": "Texte libre, par ex. la demande. Lu uniquement par les étapes d’IA de l’agent (informations patient, anatomie et protocole) ; ce qu’elles utilisent est affiché avec l’exécution.",
     "fromNoteByAi": "tiré de la note clinique, par l’IA",
     "summaryAi": {
       "not_configured": "La rédaction par IA n’est pas encore configurée ; le résumé liste les constats tels quels.",
       "used": "Rédigé par l’IA à partir des constats ci-dessus. Les constats font foi ; vérifiez le résumé par rapport à eux.",
       "unavailable": "Le service IA n’a pas répondu ; le résumé liste les constats tels quels.",
       "rejected": "Le résumé IA n’a pas été utilisé car il contenait une valeur absente des constats. Les constats sont listés tels quels.",
-      "model_changed": "Cette version a été figée avec un autre modèle d’IA, l’IA n’a donc pas été utilisée. Figez, testez et approuvez une nouvelle version pour utiliser le modèle actuel."
+      "model_changed": "Cette version a été figée avec un autre modèle d’IA, l’IA n’a donc pas été utilisée. Figez, testez et approuvez une nouvelle version pour utiliser le modèle actuel.",
+      "not_used": ""
     },
     "aiAnswer": "Réponse de l’IA (telle que reçue)",
     "scan": {

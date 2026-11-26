@@ -137,7 +137,7 @@ export interface RunResult {
   blockedFindings: { code: string; category: string; ruleIds: string[] }[];
   missingInputs: string[];
   trace: NodeTrace[];
-  summary: { text: string; ai: "not_configured" | "used" | "unavailable" | "rejected" | "model_changed"; model?: string | null } | null;
+  summary: { text: string; ai: "not_configured" | "not_used" | "used" | "unavailable" | "rejected" | "model_changed"; model?: string | null } | null;
   /** Active execution time of the run, AI calls included (set by the run service). */
   durationMs?: number;
   /** One record per AI step (status, model, timing, tokens); no clinical text. */
@@ -588,7 +588,8 @@ export function execute(
         const lines = findings.filter((f) => allowed.has(f.category) || f.category === "missing_data_notice").map((f) => `• ${f.title}`);
         summary = {
           text: lines.length ? lines.join("\n") : "No findings for this case.",
-          ai: "not_configured",
+          // A deterministic summary is the author's choice, not a missing AI setup.
+          ai: node.executionKind === "ai" ? "not_configured" : "not_used",
         };
         note = node.executionKind === "ai" ? "AI synthesis is not configured; the summary lists the deterministic findings." : undefined;
         out.summary = summary.text;

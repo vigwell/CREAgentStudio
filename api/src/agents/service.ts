@@ -70,6 +70,22 @@ function checkDraft(d: DraftInput) {
   }
 }
 
+/**
+ * The test-run inputs a frozen version reads; null = all of them. Agents built
+ * only from the referral blocks read the referral text, age and the pediatric
+ * flag; any patient, lookup or decision block may read any patient value.
+ */
+export function inputFieldsOf(manifest: unknown): string[] | null {
+  try {
+    const m = typeof manifest === "string" ? JSON.parse(manifest) : manifest;
+    const types = new Set<string>((m?.nodes ?? []).map((n: { type: string }) => n.type));
+    if (["patient_service", "protocol_lookup", "guidance_lookup", "decision"].some((t) => types.has(t))) return null;
+    return types.has("anatomy_detection") ? ["ageYears", "pediatric", "clinicalNote"] : ["clinicalNote"];
+  } catch {
+    return null;
+  }
+}
+
 export class AgentService {
   constructor(
     private readonly db: Db,
@@ -256,7 +272,7 @@ export class AgentService {
     return withTenant(this.db, user.tenantId, async (tx) => {
       const r = await new sql.Request(tx)
         .input("agent", sql.UniqueIdentifier, agentId)
-        .query("SELECT id, candidate_no, manifest_hash, draft_version, status, created_at FROM studio.agent_candidates WHERE agent_id = @agent ORDER BY candidate_no DESC");
+        .query("SELECT id, candidate_no, manifest, manifest_hash, draft_version, status, created_at FROM studio.agent_candidates WHERE agent_id = @agent ORDER BY candidate_no DESC");
       return r.recordset.map((x: Record<string, unknown>) => ({
         id: lower(x.id),
         candidateNo: x.candidate_no,
@@ -264,6 +280,7 @@ export class AgentService {
         draftVersion: x.draft_version,
         status: x.status,
         createdAt: x.created_at,
+        inputFields: inputFieldsOf(x.manifest),
       }));
     });
   }
