@@ -5,6 +5,7 @@ import { createCreTokenVerifier } from "./auth/creToken.js";
 import { loadConfig } from "./config.js";
 import { createPool } from "./db/pool.js";
 import { createAiClient } from "./runtime/aiClient.js";
+import { createCreReferralClient } from "./runtime/creReferral.js";
 
 const config = loadConfig();
 // The built server (api/dist/server.js) also hosts <repo>/web/dist. In
@@ -22,6 +23,7 @@ const app = buildApp({
   autoProvisionTenantId: config.AUTO_PROVISION_TENANT_ID,
   logLevel: config.LOG_LEVEL,
   webDir,
+  creReferral: createCreReferralClient({ baseUrl: config.CRE_API_BASE_URL }),
   aiPrice:
     config.AI_PRICE_INPUT_PER_MTOK != null && config.AI_PRICE_OUTPUT_PER_MTOK != null
       ? { inputPerMTok: config.AI_PRICE_INPUT_PER_MTOK, outputPerMTok: config.AI_PRICE_OUTPUT_PER_MTOK }

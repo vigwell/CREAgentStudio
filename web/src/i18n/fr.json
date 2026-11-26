@@ -285,7 +285,16 @@
       "rejected": "Le résumé IA n’a pas été utilisé car il contenait une valeur absente des constats. Les constats sont listés tels quels.",
       "model_changed": "Cette version a été figée avec un autre modèle d’IA, l’IA n’a donc pas été utilisée. Figez, testez et approuvez une nouvelle version pour utiliser le modèle actuel."
     },
-    "aiAnswer": "Réponse de l’IA (telle que reçue)"
+    "aiAnswer": "Réponse de l’IA (telle que reçue)",
+    "scan": {
+      "read": "Lire une demande scannée",
+      "reading": "Lecture du scan…",
+      "done": "Texte lu depuis {{files}} ({{count}} caractères). Vérifiez-le par rapport au scan avant l’exécution.",
+      "cut": "Le texte dépassait {{max}} caractères et a été raccourci.",
+      "empty": "Aucun texte trouvé dans le scan. Vérifiez le fichier ou saisissez la demande.",
+      "failed": "Le scan n’a pas pu être lu : {{message}}",
+      "hint": "PDF ou image, jusqu’à 30 Mo. Lu par l’OCR de CRE ; le texte remplace la note."
+    }
   },
   "theme": {
     "system": "Thème : selon le système",

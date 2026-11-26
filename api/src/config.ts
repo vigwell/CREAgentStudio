@@ -27,6 +27,9 @@ const schema = z.object({
   // Optional: USD per million tokens, for the cost estimate on Monitoring.
   AI_PRICE_INPUT_PER_MTOK: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
   AI_PRICE_OUTPUT_PER_MTOK: z.preprocess((v) => (v === "" || v == null ? undefined : v), z.coerce.number().nonnegative().optional()),
+  // CRE protocol service, for scanned referrals (upload + OCR), the same one CRE web uses (the dev
+  // API management has no CRE service). The user's CRE token is used.
+  CRE_API_BASE_URL: z.string().url().default("https://prod-cre-apim.azure-api.net/CreReportingMicroservice"),
   // Built web app served by this server (web/dist). Empty = API only. Default: ../web/dist when it exists.
   WEB_DIR: z
     .string()

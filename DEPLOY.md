@@ -60,6 +60,7 @@ repository root (never commit it). `.env.example` lists them all.
 | `AI_DEPLOYMENT` | no | default `CREAgentStudio__gpt-6.1-sol` |
 | `AI_TIMEOUT_MS` | no | default `20000` |
 | `AI_PRICE_INPUT_PER_MTOK` / `AI_PRICE_OUTPUT_PER_MTOK` | no | USD per million tokens, for the cost estimate on Monitoring |
+| `CRE_API_BASE_URL` | no | CRE protocol service for scanned referrals; default `https://prod-cre-apim.azure-api.net/CreReportingMicroservice` |
 | `AUTO_PROVISION_TENANT_ID` | test only | `a6da57a3-bfe5-592d-a9a6-6c840a27d7a0` (Medilis tenant). See "First users" below. |
 | `LOG_LEVEL` | no | `info` (default) |
 | `PORT` | no | provided by App Service; default `4000` |
